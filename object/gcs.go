@@ -24,7 +24,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"k8s.io/release/pkg/gcp"
+	"sigs.k8s.io/release-sdk/gcli"
 )
 
 type GCS struct {
@@ -175,7 +175,7 @@ func (g *GCS) bucketCopy(src, dst string) error {
 
 	args = append(args, src, dst)
 
-	if err := gcp.GSUtil(args...); err != nil {
+	if err := gcli.GSUtil(args...); err != nil {
 		return errors.Wrap(err, "gcs copy")
 	}
 
@@ -355,7 +355,7 @@ func (g *GCS) IsPathNormalized(gcsPath string) bool {
 // necessary (see `NormalizePath()`).
 func (g *GCS) RsyncRecursive(src, dst string) error {
 	return errors.Wrap(
-		gcp.GSUtil(concurrentFlag, "rsync", recursiveFlag, src, dst),
+		gcli.GSUtil(concurrentFlag, "rsync", recursiveFlag, src, dst),
 		"running gsutil rsync",
 	)
 }
@@ -370,7 +370,7 @@ func (g *GCS) PathExists(gcsPath string) (bool, error) {
 	}
 
 	// Do an ls with gsutil to check if the file exists:
-	if err := gcp.GSUtil(
+	if err := gcli.GSUtil(
 		"ls",
 		gcsPath,
 	); err != nil {
@@ -412,7 +412,7 @@ func (g *GCS) DeletePath(path string) error {
 	args = append(args, path)
 
 	// Call gsutil to remove the path
-	if err = gcp.GSUtil(args...); err != nil {
+	if err = gcli.GSUtil(args...); err != nil {
 		return errors.Wrap(err, "calling gsutil to remove path")
 	}
 
