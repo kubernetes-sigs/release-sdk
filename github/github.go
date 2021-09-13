@@ -73,6 +73,7 @@ func DefaultOptions() *Options {
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Client
+// Client is an interface modeling supported GitHub operations
 type Client interface {
 	GetCommit(
 		context.Context, string, string, string,

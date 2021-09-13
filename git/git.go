@@ -45,12 +45,25 @@ import (
 )
 
 const (
-	DefaultGithubOrg         = "kubernetes"
-	DefaultGithubRepo        = "kubernetes"
+	// DefaultGithubOrg is the default GitHub org used for Kubernetes project
+	// repos
+	DefaultGithubOrg = "kubernetes"
+
+	// DefaultGithubRepo is the default git repository
+	DefaultGithubRepo = "kubernetes"
+
+	// DefaultGithubReleaseRepo is the default git repository used for
+	// SIG Release
 	DefaultGithubReleaseRepo = "sig-release"
-	DefaultRemote            = "origin"
-	DefaultRef               = "HEAD"
-	DefaultBranch            = "master"
+
+	// DefaultRemote is the default git remote name
+	DefaultRemote = "origin"
+
+	// DefaultRef is the default git reference name
+	DefaultRef = "HEAD"
+
+	// DefaultBranch is the default branch name
+	DefaultBranch = "master"
 
 	defaultGithubAuthRoot = "git@github.com:"
 	defaultGitUser        = "Anago GCB"
@@ -246,7 +259,7 @@ func (r *Remote) URLs() []string {
 	return r.urls
 }
 
-// Wrapper type for a Kubernetes repository instance
+// Repo is a wrapper for a Kubernetes repository instance
 type Repo struct {
 	inner      Repository
 	worktree   Worktree
@@ -286,7 +299,7 @@ func (r *Repo) Dir() string {
 	return r.dir
 }
 
-// Set the repo into dry run mode, which does not modify any remote locations
+// SetDry sets the repo to dry-run mode, which does not modify any remote locations
 // at all.
 func (r *Repo) SetDry() {
 	r.dryRun = true
@@ -519,7 +532,7 @@ func (r *Repo) RevParseTagShort(rev string) (string, error) {
 	return fullRev[:10], nil
 }
 
-// RevParseTagShort parses a git revision and returns a SHA1 trimmed to the length
+// RevParseShort parses a git revision and returns a SHA1 trimmed to the length
 // 10 on success, otherwise an error.
 func (r *Repo) RevParseShort(rev string) (string, error) {
 	fullRev, err := r.RevParse(rev)

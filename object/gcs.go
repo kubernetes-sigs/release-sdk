@@ -104,7 +104,7 @@ var (
 	noClobberFlag  = "-n"
 )
 
-// CopyToGCS copies a local directory to the specified GCS path
+// CopyToRemote copies a local directory to the specified GCS path
 func (g *GCS) CopyToRemote(src, gcsPath string) error {
 	logrus.Infof("Copying %s to GCS (%s)", src, gcsPath)
 	gcsPath, gcsPathErr := g.NormalizePath(gcsPath)
@@ -259,7 +259,7 @@ func (g *GCS) getPath(
 	return g.NormalizePath(gcsPathParts...)
 }
 
-// NormalizeGCSPath takes a GCS path and ensures that the `GcsPrefix` is
+// NormalizePath takes a GCS path and ensures that the `GcsPrefix` is
 // prepended to it.
 // TODO: Should there be an append function for paths to prevent multiple calls
 //       like in build.checkBuildExists()?
