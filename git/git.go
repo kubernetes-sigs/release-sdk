@@ -360,13 +360,14 @@ func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) {
 		logrus.Debugf("Using existing repository path %q", repoPath)
 		_, err := os.Stat(repoPath)
 
-		if err == nil {
+		switch {
+		case err == nil:
 			// The file or directory exists, just try to update the repo
 			return updateRepo(repoPath)
-		} else if os.IsNotExist(err) {
+		case os.IsNotExist(err):
 			// The directory does not exists, we still have to clone it
 			targetDir = repoPath
-		} else {
+		default:
 			// Something else bad happened
 			return nil, errors.Wrap(err, "unable to update repo")
 		}
