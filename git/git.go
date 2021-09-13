@@ -1054,16 +1054,16 @@ func (r *Repo) UserCommit(msg string) error {
 
 // Commit commits the current repository state
 func (r *Repo) Commit(msg string) error {
-	if err := r.CommitWithOptions(msg, &git.CommitOptions{
-		Author: &object.Signature{
-			Name:  defaultGitUser,
-			Email: defaultGitEmail,
-			When:  time.Now(),
+	return r.CommitWithOptions(
+		msg,
+		&git.CommitOptions{
+			Author: &object.Signature{
+				Name:  defaultGitUser,
+				Email: defaultGitEmail,
+				When:  time.Now(),
+			},
 		},
-	}); err != nil {
-		return err
-	}
-	return nil
+	)
 }
 
 // CommitWithOptions commits the current repository state
