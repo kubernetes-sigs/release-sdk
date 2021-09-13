@@ -1,5 +1,7 @@
+// +build ignore
+
 /*
-Copyright 2020 The Kubernetes Authors.
+Copyright 2021 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,16 +16,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package regex
+package main
 
 import (
-	"regexp"
+	"os"
+
+	"github.com/magefile/mage/mage"
 )
 
-const (
-	branchRegexStr = `master|release-([0-9]{1,})\.([0-9]{1,})(\.([0-9]{1,}))*$`
-)
-
-// BranchRegex returns a *regexp.Regexp which evaluates the structure of a
-// Kubernetes release branch
-var BranchRegex = regexp.MustCompile(branchRegexStr)
+func main() { os.Exit(mage.Main()) }

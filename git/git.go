@@ -45,12 +45,25 @@ import (
 )
 
 const (
-	DefaultGithubOrg         = "kubernetes"
-	DefaultGithubRepo        = "kubernetes"
+	// DefaultGithubOrg is the default GitHub org used for Kubernetes project
+	// repos
+	DefaultGithubOrg = "kubernetes"
+
+	// DefaultGithubRepo is the default git repository
+	DefaultGithubRepo = "kubernetes"
+
+	// DefaultGithubReleaseRepo is the default git repository used for
+	// SIG Release
 	DefaultGithubReleaseRepo = "sig-release"
-	DefaultRemote            = "origin"
-	DefaultRef               = "HEAD"
-	DefaultBranch            = "master"
+
+	// DefaultRemote is the default git remote name
+	DefaultRemote = "origin"
+
+	// DefaultRef is the default git reference name
+	DefaultRef = "HEAD"
+
+	// DefaultBranch is the default branch name
+	DefaultBranch = "master"
 
 	defaultGithubAuthRoot = "git@github.com:"
 	defaultGitUser        = "Anago GCB"
@@ -246,7 +259,7 @@ func (r *Remote) URLs() []string {
 	return r.urls
 }
 
-// Wrapper type for a Kubernetes repository instance
+// Repo is a wrapper for a Kubernetes repository instance
 type Repo struct {
 	inner      Repository
 	worktree   Worktree
@@ -286,7 +299,7 @@ func (r *Repo) Dir() string {
 	return r.dir
 }
 
-// Set the repo into dry run mode, which does not modify any remote locations
+// SetDry sets the repo to dry-run mode, which does not modify any remote locations
 // at all.
 func (r *Repo) SetDry() {
 	r.dryRun = true
@@ -360,13 +373,14 @@ func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) {
 		logrus.Debugf("Using existing repository path %q", repoPath)
 		_, err := os.Stat(repoPath)
 
-		if err == nil {
+		switch {
+		case err == nil:
 			// The file or directory exists, just try to update the repo
 			return updateRepo(repoPath)
-		} else if os.IsNotExist(err) {
+		case os.IsNotExist(err):
 			// The directory does not exists, we still have to clone it
 			targetDir = repoPath
-		} else {
+		default:
 			// Something else bad happened
 			return nil, errors.Wrap(err, "unable to update repo")
 		}
@@ -518,7 +532,7 @@ func (r *Repo) RevParseTagShort(rev string) (string, error) {
 	return fullRev[:10], nil
 }
 
-// RevParseTagShort parses a git revision and returns a SHA1 trimmed to the length
+// RevParseShort parses a git revision and returns a SHA1 trimmed to the length
 // 10 on success, otherwise an error.
 func (r *Repo) RevParseShort(rev string) (string, error) {
 	fullRev, err := r.RevParse(rev)
@@ -1053,16 +1067,16 @@ func (r *Repo) UserCommit(msg string) error {
 
 // Commit commits the current repository state
 func (r *Repo) Commit(msg string) error {
-	if err := r.CommitWithOptions(msg, &git.CommitOptions{
-		Author: &object.Signature{
-			Name:  defaultGitUser,
-			Email: defaultGitEmail,
-			When:  time.Now(),
+	return r.CommitWithOptions(
+		msg,
+		&git.CommitOptions{
+			Author: &object.Signature{
+				Name:  defaultGitUser,
+				Email: defaultGitEmail,
+				When:  time.Now(),
+			},
 		},
-	}); err != nil {
-		return err
-	}
-	return nil
+	)
 }
 
 // CommitWithOptions commits the current repository state

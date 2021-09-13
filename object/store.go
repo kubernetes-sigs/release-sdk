@@ -19,6 +19,7 @@ package object
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 //counterfeiter:generate . Store
+// Store is an interface modeling supported filestore operations
 type Store interface {
 	// Configure options
 	SetOptions(opts ...OptFn)

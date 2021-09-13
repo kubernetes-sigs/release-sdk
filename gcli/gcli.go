@@ -23,6 +23,7 @@ import (
 )
 
 const (
+	// GCloudExecutable is the name of the Google Cloud SDK executable
 	GCloudExecutable = "gcloud"
 	gsutilExecutable = "gsutil"
 )

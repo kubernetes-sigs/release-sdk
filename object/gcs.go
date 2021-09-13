@@ -104,7 +104,7 @@ var (
 	noClobberFlag  = "-n"
 )
 
-// CopyToGCS copies a local directory to the specified GCS path
+// CopyToRemote copies a local directory to the specified GCS path
 func (g *GCS) CopyToRemote(src, gcsPath string) error {
 	logrus.Infof("Copying %s to GCS (%s)", src, gcsPath)
 	gcsPath, gcsPathErr := g.NormalizePath(gcsPath)
@@ -241,7 +241,8 @@ func (g *GCS) getPath(
 
 	gcsPathParts = append(gcsPathParts, bucket, gcsRoot)
 
-	if pathType == "release" {
+	switch pathType {
+	case "release":
 		if fast {
 			gcsPathParts = append(gcsPathParts, "fast")
 		}
@@ -249,8 +250,8 @@ func (g *GCS) getPath(
 		if version != "" {
 			gcsPathParts = append(gcsPathParts, version)
 		}
-	} else if pathType == "marker" {
-	} else {
+	case "marker":
+	default:
 		return "", errors.New("a GCS path type must be specified")
 	}
 
@@ -258,7 +259,7 @@ func (g *GCS) getPath(
 	return g.NormalizePath(gcsPathParts...)
 }
 
-// NormalizeGCSPath takes a GCS path and ensures that the `GcsPrefix` is
+// NormalizePath takes a GCS path and ensures that the `GcsPrefix` is
 // prepended to it.
 // TODO: Should there be an append function for paths to prevent multiple calls
 //       like in build.checkBuildExists()?
@@ -267,15 +268,16 @@ func (g *GCS) NormalizePath(gcsPathParts ...string) (string, error) {
 
 	// Ensure there is at least one element in the gcsPathParts slice before
 	// trying to construct a path
-	if len(gcsPathParts) == 0 {
+	switch len(gcsPathParts) {
+	case 0:
 		return "", errors.New("must contain at least one path part")
-	} else if len(gcsPathParts) == 1 {
+	case 1:
 		if gcsPathParts[0] == "" {
 			return "", errors.New("path should not be an empty string")
 		}
 
 		gcsPath = gcsPathParts[0]
-	} else {
+	default:
 		var emptyParts int
 
 		for i, part := range gcsPathParts {
