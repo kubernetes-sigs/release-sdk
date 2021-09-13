@@ -29,8 +29,9 @@ import (
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
-	"k8s.io/release/pkg/git"
-	"k8s.io/release/pkg/git/gitfakes"
+
+	"sigs.k8s.io/release-sdk/git"
+	"sigs.k8s.io/release-sdk/git/gitfakes"
 	"sigs.k8s.io/release-utils/command"
 )
 

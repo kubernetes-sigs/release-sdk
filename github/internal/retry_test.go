@@ -25,7 +25,8 @@ import (
 
 	"github.com/google/go-github/v37/github"
 	"github.com/sirupsen/logrus"
-	"k8s.io/release/pkg/github/internal"
+
+	"sigs.k8s.io/release-sdk/github/internal"
 )
 
 func TestMain(m *testing.M) {

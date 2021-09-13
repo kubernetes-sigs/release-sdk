@@ -30,8 +30,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 
-	"k8s.io/release/pkg/git"
-	"k8s.io/release/pkg/github/internal"
+	"sigs.k8s.io/release-sdk/git"
+	"sigs.k8s.io/release-sdk/github/internal"
 	"sigs.k8s.io/release-utils/env"
 	"sigs.k8s.io/release-utils/util"
 )

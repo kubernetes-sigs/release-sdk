@@ -25,7 +25,8 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/storer"
-	"k8s.io/release/pkg/git"
+
+	"sigs.k8s.io/release-sdk/git"
 )
 
 type FakeRepository struct {

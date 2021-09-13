@@ -22,7 +22,8 @@ import (
 
 	gita "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"k8s.io/release/pkg/git"
+
+	"sigs.k8s.io/release-sdk/git"
 )
 
 type FakeWorktree struct {
