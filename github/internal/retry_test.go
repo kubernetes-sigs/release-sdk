@@ -57,6 +57,26 @@ func TestGithubRetryer(t *testing.T) {
 			errs:            []error{fmt.Errorf("some randm error")},
 			expectedResults: []bool{false},
 		},
+		"when the error is a github rate limit error, retry": {
+			maxTries:        1,
+			sleeper:         sleepChecker(t, 1*time.Minute),
+			errs:            []error{&github.RateLimitError{}},
+			expectedResults: []bool{true},
+		},
+		"when the error is a github rate limit error with time, retry": {
+			maxTries: 1,
+			sleeper: func(got time.Duration) {
+				if got.Round(time.Minute) != 30*time.Minute {
+					t.Errorf("Expected a time around 30min, got %v", got)
+				}
+			},
+			errs: []error{&github.RateLimitError{
+				Rate: github.Rate{
+					Reset: github.Timestamp{Time: time.Now().Add(30 * time.Minute)},
+				},
+			}},
+			expectedResults: []bool{true},
+		},
 		"when the error is a github abuse rate limit error, retry": {
 			maxTries:        1,
 			sleeper:         nilSleeper,
@@ -94,7 +114,7 @@ func TestGithubRetryer(t *testing.T) {
 			tc := tc
 			t.Parallel()
 
-			shouldRetry := internal.GithubErrChecker(tc.maxTries, nilSleeper)
+			shouldRetry := internal.GithubErrChecker(tc.maxTries, tc.sleeper)
 
 			for i, err := range tc.errs {
 				if a, e := shouldRetry(err), tc.expectedResults[i]; e != a {
