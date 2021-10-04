@@ -25,7 +25,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/go-github/v37/github"
+	"github.com/google/go-github/v39/github"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -264,7 +264,7 @@ func (g *githubClient) GetRepoCommit(
 	ctx context.Context, owner, repo, sha string,
 ) (*github.RepositoryCommit, *github.Response, error) {
 	for shouldRetry := internal.DefaultGithubErrChecker(); ; {
-		commit, resp, err := g.Repositories.GetCommit(ctx, owner, repo, sha)
+		commit, resp, err := g.Repositories.GetCommit(ctx, owner, repo, sha, nil)
 		if !shouldRetry(err) {
 			return commit, resp, err
 		}

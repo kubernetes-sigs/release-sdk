@@ -19,7 +19,7 @@ package internal
 import (
 	"time"
 
-	"github.com/google/go-github/v37/github"
+	"github.com/google/go-github/v39/github"
 	"github.com/sirupsen/logrus"
 )
 
