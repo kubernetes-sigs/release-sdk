@@ -1341,6 +1341,15 @@ func (r *Repo) ShowLastCommit() (logData string, err error) {
 	return logData, nil
 }
 
+// LastCommitSha returns the sha of the last commit in the repository
+func (r *Repo) LastCommitSha() (string, error) {
+	shaval, err := r.runGitCmd("log", "--pretty=format:'%H'", "-n1")
+	if err != nil {
+		return "", errors.Wrap(err, "trying to retrieve the last commit sha")
+	}
+	return shaval, nil
+}
+
 // FetchRemote gets the objects from the specified remote. It returns true as
 // first argument if something has been fetched remotely.
 func (r *Repo) FetchRemote(remoteName string) (bool, error) {

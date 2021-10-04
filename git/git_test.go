@@ -577,3 +577,33 @@ func TestRebase(t *testing.T) {
 	err = testRepo.Rebase(fmt.Sprintf("origin/%s", branchName))
 	require.NotNil(t, err, "testing for merge conflicts")
 }
+
+func TestLastCommitSha(t *testing.T) {
+	// Create a test repository
+	rawRepoDir, err := os.MkdirTemp("", "k8s-test-repo")
+	require.Nil(t, err)
+	defer os.RemoveAll(rawRepoDir)
+	_, err = gogit.PlainInit(rawRepoDir, false)
+	require.Nil(t, err)
+
+	repo, err := git.OpenRepo(rawRepoDir)
+	require.Nil(t, err)
+
+	// Create two commits in the repository
+	shas := make([]string, 2)
+	for _, i := range []int{0, 1} {
+		require.Nil(t, repo.CommitEmpty(fmt.Sprintf("Empty commit %d", i+1)))
+		shas[i], err = repo.LastCommitSha()
+		require.Nil(t, err)
+		require.NotEmpty(t, shas[i])
+	}
+	require.Len(t, shas, 2)
+
+	// Now, checkout the first one and check we get the right hash
+	require.Nil(t, repo.Checkout("HEAD~1"))
+
+	lastCommit, err := repo.LastCommitSha()
+	require.Nil(t, err)
+	require.Equal(t, shas[0], lastCommit, "Checking HEAD~1 sha matches commit #1")
+	require.NotEqual(t, shas[1], lastCommit, "Checking HEAD~1 sha does not matches commit #2")
+}
