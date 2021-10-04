@@ -47,10 +47,10 @@ func DefaultGithubErrChecker() func(error) bool {
 // should be retried at max, and `sleeper`, a function which implements the
 // sleeping.
 //
-// Currently the only special error that is flagged as retryable is the
-// `AbuseRateLimitError`. If such an error occurs, we sleep for a while (the
-// amount of time the error told us to wait) and then report back that we can
-// retry.
+// Currently only the `github.RateLimitError` and `github.AbuseRateLimitError`
+// return values are supported. If one of those errors occur, then we sleep for
+// a default duration or the amount of time the error told us to wait.
+//
 // Other special errors should be easy to implement too.
 //
 // It can be used like this:
@@ -73,6 +73,18 @@ func GithubErrChecker(maxTries int, sleeper func(time.Duration)) func(error) boo
 		}
 
 		try++
+
+		if err, ok := err.(*github.RateLimitError); ok {
+			waitDuration := defaultGithubSleep
+			if !err.Rate.Reset.Time.IsZero() {
+				waitDuration = time.Until(err.Rate.Reset.Local())
+			}
+			logrus.
+				WithField("err", err).
+				Infof("Hit the rate limit on try %d, sleeping for %s", try, waitDuration)
+			sleeper(waitDuration)
+			return true
+		}
 
 		if aerr, ok := err.(*github.AbuseRateLimitError); ok {
 			waitDuration := defaultGithubSleep
