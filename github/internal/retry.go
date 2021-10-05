@@ -76,8 +76,9 @@ func GithubErrChecker(maxTries int, sleeper func(time.Duration)) func(error) boo
 
 		if err, ok := err.(*github.RateLimitError); ok {
 			waitDuration := defaultGithubSleep
-			if !err.Rate.Reset.Time.IsZero() {
-				waitDuration = time.Until(err.Rate.Reset.Local())
+			until := time.Until(err.Rate.Reset.Time)
+			if until > 0 {
+				waitDuration = until
 			}
 			logrus.
 				WithField("err", err).
