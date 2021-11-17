@@ -17,6 +17,9 @@ limitations under the License.
 package internal
 
 import (
+	"crypto/rand"
+	"math/big"
+	"strings"
 	"time"
 
 	"github.com/google/go-github/v39/github"
@@ -95,6 +98,20 @@ func GithubErrChecker(maxTries int, sleeper func(time.Duration)) func(error) boo
 			logrus.
 				WithField("err", aerr).
 				Infof("Hit the abuse rate limit on try %d, sleeping for %s", try, waitDuration)
+			sleeper(waitDuration)
+			return true
+		}
+
+		if strings.Contains(err.Error(), "secondary rate limit. Please wait") {
+			rtime, err := rand.Int(rand.Reader, big.NewInt(30))
+			if err != nil {
+				logrus.Error(err)
+				return false
+			}
+			waitDuration := time.Duration(rtime.Int64()*int64(time.Second)) + defaultGithubSleep
+			logrus.
+				WithField("err", err).
+				Infof("Hit the GitHub secondary rate limit on try %d, sleeping for %s", try, waitDuration)
 			sleeper(waitDuration)
 			return true
 		}

@@ -83,6 +83,12 @@ func TestGithubRetryer(t *testing.T) {
 			errs:            []error{&github.AbuseRateLimitError{}},
 			expectedResults: []bool{true},
 		},
+		"when hitting the secondary rate limit, sleep for random": {
+			maxTries:        1,
+			sleeper:         nilSleeper,
+			errs:            []error{fmt.Errorf("You have exceeded a secondary rate limit. Please wait a few minutes")},
+			expectedResults: []bool{true},
+		},
 		"when the error is a github abuse rate limit error but max tries have been reached, don't retry": {
 			maxTries: 2,
 			sleeper:  nilSleeper,
