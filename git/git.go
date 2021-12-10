@@ -66,8 +66,8 @@ const (
 	DefaultBranch = "master"
 
 	defaultGithubAuthRoot = "git@github.com:"
-	defaultGitUser        = "Anago GCB"
-	defaultGitEmail       = "nobody@k8s.io"
+	defaultGitUser        = "Kubernetes Release Robot"
+	defaultGitEmail       = "k8s-release-robot@users.noreply.github.com"
 	gitExecutable         = "git"
 )
 
