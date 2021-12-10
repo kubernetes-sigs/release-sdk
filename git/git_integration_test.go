@@ -712,8 +712,16 @@ func TestCommitSuccess(t *testing.T) {
 	).Run()
 	require.Nil(t, err)
 	require.True(t, res.Success())
-	require.Contains(t, res.Output(), "Author: Anago GCB <nobody@k8s.io>")
-	require.Contains(t, res.Output(), commitMessage)
+	require.Contains(
+		t,
+		res.Output(),
+		"Author: Kubernetes Release Robot <k8s-release-robot@users.noreply.github.com>",
+	)
+	require.Contains(
+		t,
+		res.Output(),
+		commitMessage,
+	)
 }
 
 func TestCurrentBranchDefault(t *testing.T) {
