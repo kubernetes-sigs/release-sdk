@@ -1007,3 +1007,25 @@ func (g *GitHub) TagExists(owner, repo, tag string) (exists bool, err error) {
 	}
 	return false, nil
 }
+
+// ListTags gets the tags from a GitHub repository
+func (g *GitHub) ListTags(owner, repo string) ([]*github.RepositoryTag, error) {
+	options := &github.ListOptions{PerPage: g.Options().GetItemsPerPage()}
+	tags := []*github.RepositoryTag{}
+	for {
+		repoTags, r, err := g.Client().ListTags(
+			context.Background(), owner, repo, options,
+		)
+		if err != nil {
+			return tags, errors.Wrap(err, "listing repository tags")
+		}
+
+		tags = append(tags, repoTags...)
+
+		if r.NextPage == 0 {
+			break
+		}
+		options.Page = r.NextPage
+	}
+	return tags, nil
+}
