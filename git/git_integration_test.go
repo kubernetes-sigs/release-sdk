@@ -1001,3 +1001,12 @@ func TestTagSuccess(t *testing.T) {
 	require.Nil(t, err)
 	require.Contains(t, tags, testTag)
 }
+
+func TestLatestReleaseBranch(t *testing.T) {
+	testRepo := newTestRepo(t)
+	defer testRepo.cleanup(t)
+
+	branch, err := testRepo.sut.LatestReleaseBranch()
+	require.Nil(t, err)
+	require.Equal(t, testRepo.branchName, branch)
+}
