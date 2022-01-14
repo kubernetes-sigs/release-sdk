@@ -69,6 +69,7 @@ const (
 	defaultGitUser        = "Kubernetes Release Robot"
 	defaultGitEmail       = "k8s-release-robot@users.noreply.github.com"
 	gitExecutable         = "git"
+	releaseBranchPrefix   = "release-"
 )
 
 // setVerboseTrace enables maximum verbosity output.
@@ -558,7 +559,7 @@ func (r *Repo) LatestReleaseBranchMergeBaseToLatest() (DiscoverResult, error) {
 
 	base, err := r.MergeBase(
 		DefaultBranch,
-		fmt.Sprintf("release-%d.%d", version.Major, version.Minor),
+		semverToReleaseBranch(version),
 	)
 	if err != nil {
 		return DiscoverResult{}, err
@@ -641,7 +642,7 @@ func (r *Repo) latestNonPatchFinalVersions() ([]semver.Version, error) {
 }
 
 func (r *Repo) releaseBranchOrMainRef(major, minor uint64) (sha, rev string, err error) {
-	relBranch := fmt.Sprintf("release-%d.%d", major, minor)
+	relBranch := fmt.Sprintf("%s%d.%d", releaseBranchPrefix, major, minor)
 	sha, err = r.RevParseTag(relBranch)
 	if err == nil {
 		logrus.Debugf("Found release branch %s", relBranch)
@@ -684,9 +685,26 @@ func (r *Repo) HasBranch(branch string) (branchExists bool, err error) {
 func (r *Repo) HasRemoteBranch(branch string) (branchExists bool, err error) {
 	logrus.Infof("Verifying %s branch exists on the remote", branch)
 
+	branches, err := r.RemoteBranches()
+	if err != nil {
+		return false, errors.Wrap(err, "get remote branches")
+	}
+
+	for _, remoteBranch := range branches {
+		if remoteBranch == branch {
+			logrus.Infof("Found branch %s", branch)
+			return true, nil
+		}
+	}
+	logrus.Infof("Branch %s not found", branch)
+	return false, nil
+}
+
+// RemoteBranches returns a list of all remotely available branches.
+func (r *Repo) RemoteBranches() (branches []string, err error) {
 	remote, err := r.inner.Remote(DefaultRemote)
 	if err != nil {
-		return branchExists, NewNetworkError(err)
+		return nil, NewNetworkError(err)
 	}
 	var refs []*plumbing.Reference
 	for i := r.maxRetries + 1; i > 0; i-- {
@@ -699,7 +717,7 @@ func (r *Repo) HasRemoteBranch(branch string) (branchExists bool, err error) {
 		// Convert to network error to see if we can retry the push
 		err = NewNetworkError(err)
 		if !err.(NetworkError).CanRetry() || r.maxRetries == 0 || i == 1 {
-			return branchExists, err
+			return nil, err
 		}
 		waitTime := math.Pow(2, float64(r.maxRetries-i))
 		logrus.Errorf(
@@ -711,14 +729,10 @@ func (r *Repo) HasRemoteBranch(branch string) (branchExists bool, err error) {
 
 	for _, ref := range refs {
 		if ref.Name().IsBranch() {
-			if ref.Name().Short() == branch {
-				logrus.Infof("Found branch %s", ref.Name().Short())
-				return true, nil
-			}
+			branches = append(branches, ref.Name().Short())
 		}
 	}
-	logrus.Infof("Branch %v not found", branch)
-	return false, nil
+	return branches, nil
 }
 
 // Checkout can be used to checkout any revision inside the repository
@@ -1448,4 +1462,39 @@ func (e NetworkError) CanRetry() bool {
 
 	// Otherwise permanent
 	return false
+}
+
+// LatestReleaseBranch determines the latest release-x.y branch of the repo.
+func (r *Repo) LatestReleaseBranch() (string, error) {
+	branches, err := r.RemoteBranches()
+	if err != nil {
+		return "", errors.Wrap(err, "get remote branches")
+	}
+
+	var latest semver.Version
+	for _, branch := range branches {
+		if strings.HasPrefix(branch, releaseBranchPrefix) {
+			version := strings.TrimPrefix(branch, releaseBranchPrefix) + ".0"
+
+			parsed, err := semver.Parse(version)
+			if err != nil {
+				logrus.Debugf("Unable to parse semver for %s: %v", version, err)
+				continue
+			}
+
+			if parsed.GT(latest) {
+				latest = parsed
+			}
+		}
+	}
+
+	if latest.EQ(semver.Version{}) {
+		return "", errors.New("no latest release branch found")
+	}
+
+	return semverToReleaseBranch(latest), nil
+}
+
+func semverToReleaseBranch(v semver.Version) string {
+	return fmt.Sprintf("%s%d.%d", releaseBranchPrefix, v.Major, v.Minor)
 }
