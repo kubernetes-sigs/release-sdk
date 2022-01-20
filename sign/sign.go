@@ -61,8 +61,9 @@ func (s *Signer) UploadBlob(path string) error {
 	return nil
 }
 
-// Sign can be used to sign any provided reference by using keyless signing.
-func (s *Signer) Sign(reference string) (*SignedObject, error) {
+// SignImage can be used to sign any provided container image reference by
+// using keyless signing.
+func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	s.log.Infof("Signing reference: %s", reference)
 
 	// TODO: unimplemented
@@ -70,6 +71,20 @@ func (s *Signer) Sign(reference string) (*SignedObject, error) {
 	object, err := s.VerifyInternal(s, reference)
 	if err != nil {
 		return nil, errors.Wrapf(err, "verify reference: %s", reference)
+	}
+	return object, nil
+}
+
+// SignFile can be used to sign any provided file path by using keyless
+// signing.
+func (s *Signer) SignFile(path string) (*SignedObject, error) {
+	s.log.Infof("Signing file path: %s", path)
+
+	// TODO: unimplemented
+
+	object, err := s.VerifyInternal(s, path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "verify file path: %s", path)
 	}
 	return object, nil
 }
