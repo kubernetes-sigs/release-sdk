@@ -53,7 +53,8 @@ func TestUploadBlob(t *testing.T) {
 	}
 }
 
-func TestSign(t *testing.T) {
+// nolint: dupl
+func TestSignImage(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
@@ -87,7 +88,47 @@ func TestSign(t *testing.T) {
 		sut := sign.New(&sign.Options{Verbose: true})
 		sut.SetImpl(mock)
 
-		obj, err := sut.Sign("")
+		obj, err := sut.SignImage("")
+		tc.assert(obj, err)
+	}
+}
+
+// nolint: dupl
+func TestSignFile(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		prepare func(*signfakes.FakeImpl)
+		assert  func(*sign.SignedObject, error)
+	}{
+		{ // Success
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyInternalReturns(&sign.SignedObject{}, nil)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, obj)
+				require.Empty(t, obj.Reference())
+				require.Empty(t, obj.Digest())
+				require.Nil(t, err)
+			},
+		},
+		{ // Failure on Verify
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyInternalReturns(nil, errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, err)
+				require.Nil(t, obj)
+			},
+		},
+	} {
+		mock := &signfakes.FakeImpl{}
+		tc.prepare(mock)
+
+		sut := sign.New(&sign.Options{Verbose: true})
+		sut.SetImpl(mock)
+
+		obj, err := sut.SignFile("")
 		tc.assert(obj, err)
 	}
 }
