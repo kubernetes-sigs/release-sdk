@@ -73,6 +73,7 @@ func DefaultOptions() *Options {
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Client
+//go:generate /usr/bin/env bash -c "cat ../scripts/boilerplate/boilerplate.generatego.txt githubfakes/fake_client.go > githubfakes/_fake_client.go && mv githubfakes/_fake_client.go githubfakes/fake_client.go"
 // Client is an interface modeling supported GitHub operations
 type Client interface {
 	GetCommit(

@@ -22,7 +22,6 @@ import (
 
 	gita "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-
 	"sigs.k8s.io/release-sdk/git"
 )
 

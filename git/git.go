@@ -270,6 +270,8 @@ type Repo struct {
 }
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//go:generate /usr/bin/env bash -c "cat ../scripts/boilerplate/boilerplate.generatego.txt gitfakes/fake_repository.go > gitfakes/_fake_repository.go && mv gitfakes/_fake_repository.go gitfakes/fake_repository.go"
+//go:generate /usr/bin/env bash -c "cat ../scripts/boilerplate/boilerplate.generatego.txt gitfakes/fake_worktree.go > gitfakes/_fake_worktree.go && mv gitfakes/_fake_worktree.go gitfakes/fake_worktree.go"
 
 // Repository is the main interface to the git.Repository functionality
 //counterfeiter:generate . Repository
