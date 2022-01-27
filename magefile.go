@@ -1,3 +1,4 @@
+//go:build mage
 // +build mage
 
 /*
@@ -23,6 +24,7 @@ import (
 	"path/filepath"
 
 	"github.com/carolynvs/magex/pkg"
+	"github.com/magefile/mage/sh"
 
 	"sigs.k8s.io/release-utils/mage"
 )
@@ -68,12 +70,12 @@ func Verify() error {
 	}
 
 	fmt.Println("Running copyright header checks...")
-	if err := mage.VerifyBoilerplate("", binDir, boilerplateDir, false); err != nil {
+	if err := mage.VerifyBoilerplate("v0.2.5", binDir, boilerplateDir, false); err != nil {
 		return err
 	}
 
 	fmt.Println("Running external dependency checks...")
-	if err := mage.VerifyDeps("", "", "", true); err != nil {
+	if err := mage.VerifyDeps("v0.3.0", "", "", true); err != nil {
 		return err
 	}
 
@@ -83,7 +85,7 @@ func Verify() error {
 	}
 
 	fmt.Println("Running golangci-lint...")
-	if err := mage.RunGolangCILint("", false); err != nil {
+	if err := mage.RunGolangCILint("v1.44.0", false); err != nil {
 		return err
 	}
 
@@ -93,4 +95,15 @@ func Verify() error {
 	}
 
 	return nil
+}
+
+func Clean() {
+	fmt.Println("Cleaning workspace...")
+	toClean := []string{"bin"}
+
+	for _, clean := range toClean {
+		sh.Rm(clean)
+	}
+
+	fmt.Println("Done.")
 }
