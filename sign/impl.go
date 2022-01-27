@@ -16,14 +16,39 @@ limitations under the License.
 
 package sign
 
+import (
+	"context"
+
+	"github.com/pkg/errors"
+	"github.com/sigstore/cosign/cmd/cosign/cli/options"
+	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
+)
+
 type defaultImpl struct{}
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . impl
+//go:generate /usr/bin/env bash -c "cat ../scripts/boilerplate/boilerplate.generatego.txt signfakes/fake_impl.go > signfakes/_fake_impl.go && mv signfakes/_fake_impl.go signfakes/fake_impl.go"
 type impl interface {
 	VerifyInternal(*Signer, string) (*SignedObject, error)
+	SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions,
+		annotations map[string]interface{}, imgs []string, certPath string, upload bool,
+		outputSignature string, outputCertificate string, payloadPath string, force bool,
+		recursive bool, attachment string) error
 }
 
 func (*defaultImpl) VerifyInternal(signer *Signer, reference string) (*SignedObject, error) {
 	return signer.Verify(reference)
+}
+
+func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions,
+	annotations map[string]interface{}, imgs []string, certPath string, upload bool,
+	outputSignature string, outputCertificate string, payloadPath string, force bool,
+	recursive bool, attachment string) error {
+	err := sign.SignCmd(context.Background(), ko, regOpts, annotations, imgs, certPath, upload, outputSignature, outputCertificate, payloadPath, force, recursive, attachment)
+	if err != nil {
+		return errors.Wrapf(err, "signing reference: %v", imgs)
+	}
+
+	return nil
 }

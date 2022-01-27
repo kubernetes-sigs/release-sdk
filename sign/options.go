@@ -16,13 +16,37 @@ limitations under the License.
 
 package sign
 
+const (
+	DefaultFulcioURL     = "https://v1.fulcio.sigstore.dev"
+	DefaultRekorURL      = "https://rekor.sigstore.dev"
+	DefaultOIDCIssuerURL = "https://oauth2.sigstore.dev/auth"
+)
+
 // Options can be used to modify the behavior of the signer.
 type Options struct {
 	// Verbose can be used to enable a higher log verbosity
 	Verbose bool
+	// Experimental enable the cosing experimental feature. Enabled by default
+	Experimental          bool
+	OutputSignaturePath   string
+	OutputCertificatePath string
+	Annotations           map[string]interface{}
+	KeyPath               string
+	FulcioURL             string
+	RekorURL              string
+	OIDCIssuer            string
+	UploadToTLOG          bool
+	Force                 bool
 }
 
 // Default returns a default Options instance.
 func Default() *Options {
-	return &Options{}
+	return &Options{
+		Experimental: true,
+		FulcioURL:    DefaultFulcioURL,
+		RekorURL:     DefaultRekorURL,
+		OIDCIssuer:   DefaultOIDCIssuerURL,
+		UploadToTLOG: true,
+		Force:        true,
+	}
 }
