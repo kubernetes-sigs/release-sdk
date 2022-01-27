@@ -41,7 +41,7 @@ func (*defaultImpl) VerifyInternal(signer *Signer, reference string) (*SignedObj
 	return signer.Verify(reference)
 }
 
-func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions,
+func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic
 	annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 	outputSignature string, outputCertificate string, payloadPath string, force bool,
 	recursive bool, attachment string) error {

@@ -23,7 +23,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/logs"
 	"github.com/pkg/errors"
 	"github.com/sigstore/cosign/cmd/cosign/cli/generate"
-	"github.com/sigstore/cosign/cmd/cosign/cli/options"
+	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sirupsen/logrus"
 )
@@ -83,7 +83,7 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 
 		InsecureSkipFulcioVerify: false,
 	}
-	regOpts := options.RegistryOptions{
+	regOpts := cliOpts.RegistryOptions{
 		AllowInsecure: true,
 	}
 

@@ -53,7 +53,6 @@ func TestUploadBlob(t *testing.T) {
 	}
 }
 
-// nolint: dupl
 func TestSignImage(t *testing.T) {
 	t.Parallel()
 
@@ -108,7 +107,6 @@ func TestSignImage(t *testing.T) {
 	}
 }
 
-// nolint: dupl
 func TestSignFile(t *testing.T) {
 	t.Parallel()
 
