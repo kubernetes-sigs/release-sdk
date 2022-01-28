@@ -8,13 +8,14 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/google/go-containerregistry v0.8.1-0.20220125170349-50dfc2733d10
 	github.com/google/go-github/v39 v39.1.0
+	github.com/magefile/mage v1.11.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.4.1
 	github.com/pkg/errors v0.9.1
-	github.com/sigstore/cosign v1.5.0
+	github.com/sigstore/cosign v1.5.1-0.20220128133340-d2781b81e9d0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
-	sigs.k8s.io/release-utils v0.3.0
+	sigs.k8s.io/release-utils v0.4.0
 )
 
 require (
@@ -23,7 +24,7 @@ require (
 	cloud.google.com/go/compute v1.1.0 // indirect
 	cloud.google.com/go/iam v0.1.1 // indirect
 	cloud.google.com/go/kms v1.1.0 // indirect
-	cloud.google.com/go/storage v1.18.2 // indirect
+	cloud.google.com/go/storage v1.19.0 // indirect
 	github.com/Azure/azure-sdk-for-go v61.3.0+incompatible // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.11.24 // indirect
@@ -163,7 +164,6 @@ require (
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/magefile/mage v1.11.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
@@ -262,7 +262,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/api v0.65.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220111164026-67b88f271998 // indirect
+	google.golang.org/genproto v0.0.0-20220118154757-00ab72f36ad5 // indirect
 	google.golang.org/grpc v1.43.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect

@@ -46,9 +46,6 @@ func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regO
 	outputSignature string, outputCertificate string, payloadPath string, force bool,
 	recursive bool, attachment string) error {
 	err := sign.SignCmd(context.Background(), ko, regOpts, annotations, imgs, certPath, upload, outputSignature, outputCertificate, payloadPath, force, recursive, attachment)
-	if err != nil {
-		return errors.Wrapf(err, "signing reference: %v", imgs)
-	}
 
-	return nil
+	return errors.Wrapf(err, "signing reference: %v", imgs)
 }

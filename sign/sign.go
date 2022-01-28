@@ -70,21 +70,21 @@ func (s *Signer) UploadBlob(path string) error {
 func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	s.log.Infof("Signing reference: %s", reference)
 
-	if s.options.Experimental {
-		os.Setenv("COSIGN_EXPERIMENTAL", "true")
-	}
+	os.Setenv("COSIGN_EXPERIMENTAL", "true")
+	defer os.Setenv("COSIGN_EXPERIMENTAL", "")
 
 	ko := sign.KeyOpts{
 		KeyRef:     s.options.KeyPath,
 		PassFunc:   generate.GetPass,
-		FulcioURL:  s.options.FulcioURL,
-		RekorURL:   s.options.RekorURL,
-		OIDCIssuer: s.options.OIDCIssuer,
+		FulcioURL:  cliOpts.DefaultFulcioURL,
+		RekorURL:   cliOpts.DefaultRekorURL,
+		OIDCIssuer: cliOpts.DefaultOIDCIssuerURL,
 
 		InsecureSkipFulcioVerify: false,
 	}
+
 	regOpts := cliOpts.RegistryOptions{
-		AllowInsecure: true,
+		AllowInsecure: s.options.AllowInsecure,
 	}
 
 	imgs := []string{reference}
@@ -99,18 +99,9 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 		outputCertificate = s.options.OutputCertificatePath
 	}
 
-	upload := s.options.UploadToTLOG
-	force := s.options.Force
-
-	// not used right now
-	certPath := ""
-	payloadPath := ""
-	recursive := false
-	attachment := ""
-
 	err := s.SignImageInternal(context.Background(), ko, regOpts,
-		s.options.Annotations, imgs, certPath, upload, outputSignature,
-		outputCertificate, payloadPath, force, recursive, attachment)
+		s.options.Annotations, imgs, "", true, outputSignature,
+		outputCertificate, "", true, false, "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "verify reference: %s", reference)
 	}
