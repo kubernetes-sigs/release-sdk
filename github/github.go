@@ -73,84 +73,67 @@ func DefaultOptions() *Options {
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . Client
+//go:generate /usr/bin/env bash -c "cat ../scripts/boilerplate/boilerplate.generatego.txt githubfakes/fake_client.go > githubfakes/_fake_client.go && mv githubfakes/_fake_client.go githubfakes/fake_client.go"
+
 // Client is an interface modeling supported GitHub operations
 type Client interface {
 	GetCommit(
 		context.Context, string, string, string,
 	) (*github.Commit, *github.Response, error)
-
 	GetPullRequest(
 		context.Context, string, string, int,
 	) (*github.PullRequest, *github.Response, error)
-
 	GetIssue(
 		context.Context, string, string, int,
 	) (*github.Issue, *github.Response, error)
-
 	GetRepoCommit(
 		context.Context, string, string, string,
 	) (*github.RepositoryCommit, *github.Response, error)
-
 	ListCommits(
 		context.Context, string, string, *github.CommitsListOptions,
 	) ([]*github.RepositoryCommit, *github.Response, error)
-
 	ListPullRequestsWithCommit(
 		context.Context, string, string, string, *github.PullRequestListOptions,
 	) ([]*github.PullRequest, *github.Response, error)
-
 	ListMilestones(
 		context.Context, string, string, *github.MilestoneListOptions,
 	) ([]*github.Milestone, *github.Response, error)
-
 	ListReleases(
 		context.Context, string, string, *github.ListOptions,
 	) ([]*github.RepositoryRelease, *github.Response, error)
-
 	GetReleaseByTag(
 		context.Context, string, string, string,
 	) (*github.RepositoryRelease, *github.Response, error)
-
 	DownloadReleaseAsset(
 		context.Context, string, string, int64,
 	) (io.ReadCloser, string, error)
-
 	ListTags(
 		context.Context, string, string, *github.ListOptions,
 	) ([]*github.RepositoryTag, *github.Response, error)
-
 	ListBranches(
 		context.Context, string, string, *github.BranchListOptions,
 	) ([]*github.Branch, *github.Response, error)
-
 	CreatePullRequest(
 		context.Context, string, string, string, string, string, string,
 	) (*github.PullRequest, error)
-
 	CreateIssue(
 		context.Context, string, string, *github.IssueRequest,
 	) (*github.Issue, error)
-
 	GetRepository(
 		context.Context, string, string,
 	) (*github.Repository, *github.Response, error)
-
 	UpdateReleasePage(
 		context.Context, string, string, int64, *github.RepositoryRelease,
 	) (*github.RepositoryRelease, error)
-
 	UploadReleaseAsset(
 		context.Context, string, string, int64, *github.UploadOptions, *os.File,
 	) (*github.ReleaseAsset, error)
-
 	DeleteReleaseAsset(
 		context.Context, string, string, int64,
 	) error
-
 	ListReleaseAssets(
 		context.Context, string, string, int64, *github.ListOptions,
 	) ([]*github.ReleaseAsset, error)
-
 	CreateComment(
 		context.Context, string, string, int, string,
 	) (*github.IssueComment, *github.Response, error)

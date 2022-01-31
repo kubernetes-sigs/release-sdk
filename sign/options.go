@@ -19,7 +19,12 @@ package sign
 // Options can be used to modify the behavior of the signer.
 type Options struct {
 	// Verbose can be used to enable a higher log verbosity
-	Verbose bool
+	Verbose               bool
+	AllowInsecure         bool
+	OutputSignaturePath   string
+	OutputCertificatePath string
+	Annotations           map[string]interface{}
+	KeyPath               string
 }
 
 // Default returns a default Options instance.

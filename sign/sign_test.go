@@ -53,7 +53,6 @@ func TestUploadBlob(t *testing.T) {
 	}
 }
 
-// nolint: dupl
 func TestSignImage(t *testing.T) {
 	t.Parallel()
 
@@ -64,6 +63,7 @@ func TestSignImage(t *testing.T) {
 		{ // Success
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyInternalReturns(&sign.SignedObject{}, nil)
+				mock.SignImageInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj)
@@ -75,6 +75,17 @@ func TestSignImage(t *testing.T) {
 		{ // Failure on Verify
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyInternalReturns(nil, errTest)
+				mock.SignImageInternalReturns(nil)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, err)
+				require.Nil(t, obj)
+			},
+		},
+		{ // Failure on Sign
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyInternalReturns(&sign.SignedObject{}, nil)
+				mock.SignImageInternalReturns(errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, err)
@@ -85,15 +96,17 @@ func TestSignImage(t *testing.T) {
 		mock := &signfakes.FakeImpl{}
 		tc.prepare(mock)
 
-		sut := sign.New(&sign.Options{Verbose: true})
+		opts := sign.Default()
+		opts.Verbose = true
+
+		sut := sign.New(opts)
 		sut.SetImpl(mock)
 
-		obj, err := sut.SignImage("")
+		obj, err := sut.SignImage("gcr.io/fake/honk:99.99.99")
 		tc.assert(obj, err)
 	}
 }
 
-// nolint: dupl
 func TestSignFile(t *testing.T) {
 	t.Parallel()
 

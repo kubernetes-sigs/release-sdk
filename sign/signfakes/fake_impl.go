@@ -1,5 +1,5 @@
 /*
-Copyright 2022 The Kubernetes Authors.
+Copyright The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,12 +18,38 @@ limitations under the License.
 package signfakes
 
 import (
+	"context"
 	"sync"
 
+	"github.com/sigstore/cosign/cmd/cosign/cli/options"
+	signa "github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"sigs.k8s.io/release-sdk/sign"
 )
 
 type FakeImpl struct {
+	SignImageInternalStub        func(context.Context, signa.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) error
+	signImageInternalMutex       sync.RWMutex
+	signImageInternalArgsForCall []struct {
+		arg1  context.Context
+		arg2  signa.KeyOpts
+		arg3  options.RegistryOptions
+		arg4  map[string]interface{}
+		arg5  []string
+		arg6  string
+		arg7  bool
+		arg8  string
+		arg9  string
+		arg10 string
+		arg11 bool
+		arg12 bool
+		arg13 string
+	}
+	signImageInternalReturns struct {
+		result1 error
+	}
+	signImageInternalReturnsOnCall map[int]struct {
+		result1 error
+	}
 	VerifyInternalStub        func(*sign.Signer, string) (*sign.SignedObject, error)
 	verifyInternalMutex       sync.RWMutex
 	verifyInternalArgsForCall []struct {
@@ -40,6 +66,84 @@ type FakeImpl struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeImpl) SignImageInternal(arg1 context.Context, arg2 signa.KeyOpts, arg3 options.RegistryOptions, arg4 map[string]interface{}, arg5 []string, arg6 string, arg7 bool, arg8 string, arg9 string, arg10 string, arg11 bool, arg12 bool, arg13 string) error {
+	var arg5Copy []string
+	if arg5 != nil {
+		arg5Copy = make([]string, len(arg5))
+		copy(arg5Copy, arg5)
+	}
+	fake.signImageInternalMutex.Lock()
+	ret, specificReturn := fake.signImageInternalReturnsOnCall[len(fake.signImageInternalArgsForCall)]
+	fake.signImageInternalArgsForCall = append(fake.signImageInternalArgsForCall, struct {
+		arg1  context.Context
+		arg2  signa.KeyOpts
+		arg3  options.RegistryOptions
+		arg4  map[string]interface{}
+		arg5  []string
+		arg6  string
+		arg7  bool
+		arg8  string
+		arg9  string
+		arg10 string
+		arg11 bool
+		arg12 bool
+		arg13 string
+	}{arg1, arg2, arg3, arg4, arg5Copy, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13})
+	stub := fake.SignImageInternalStub
+	fakeReturns := fake.signImageInternalReturns
+	fake.recordInvocation("SignImageInternal", []interface{}{arg1, arg2, arg3, arg4, arg5Copy, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13})
+	fake.signImageInternalMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeImpl) SignImageInternalCallCount() int {
+	fake.signImageInternalMutex.RLock()
+	defer fake.signImageInternalMutex.RUnlock()
+	return len(fake.signImageInternalArgsForCall)
+}
+
+func (fake *FakeImpl) SignImageInternalCalls(stub func(context.Context, signa.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) error) {
+	fake.signImageInternalMutex.Lock()
+	defer fake.signImageInternalMutex.Unlock()
+	fake.SignImageInternalStub = stub
+}
+
+func (fake *FakeImpl) SignImageInternalArgsForCall(i int) (context.Context, signa.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) {
+	fake.signImageInternalMutex.RLock()
+	defer fake.signImageInternalMutex.RUnlock()
+	argsForCall := fake.signImageInternalArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7, argsForCall.arg8, argsForCall.arg9, argsForCall.arg10, argsForCall.arg11, argsForCall.arg12, argsForCall.arg13
+}
+
+func (fake *FakeImpl) SignImageInternalReturns(result1 error) {
+	fake.signImageInternalMutex.Lock()
+	defer fake.signImageInternalMutex.Unlock()
+	fake.SignImageInternalStub = nil
+	fake.signImageInternalReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeImpl) SignImageInternalReturnsOnCall(i int, result1 error) {
+	fake.signImageInternalMutex.Lock()
+	defer fake.signImageInternalMutex.Unlock()
+	fake.SignImageInternalStub = nil
+	if fake.signImageInternalReturnsOnCall == nil {
+		fake.signImageInternalReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.signImageInternalReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeImpl) VerifyInternal(arg1 *sign.Signer, arg2 string) (*sign.SignedObject, error) {
@@ -110,6 +214,8 @@ func (fake *FakeImpl) VerifyInternalReturnsOnCall(i int, result1 *sign.SignedObj
 func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.signImageInternalMutex.RLock()
+	defer fake.signImageInternalMutex.RUnlock()
 	fake.verifyInternalMutex.RLock()
 	defer fake.verifyInternalMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

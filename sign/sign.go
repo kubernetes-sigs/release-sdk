@@ -17,10 +17,14 @@ limitations under the License.
 package sign
 
 import (
+	"context"
 	"os"
 
 	"github.com/google/go-containerregistry/pkg/logs"
 	"github.com/pkg/errors"
+	"github.com/sigstore/cosign/cmd/cosign/cli/generate"
+	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
+	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sirupsen/logrus"
 )
 
@@ -66,12 +70,47 @@ func (s *Signer) UploadBlob(path string) error {
 func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	s.log.Infof("Signing reference: %s", reference)
 
-	// TODO: unimplemented
+	os.Setenv("COSIGN_EXPERIMENTAL", "true")
+	defer os.Setenv("COSIGN_EXPERIMENTAL", "")
+
+	ko := sign.KeyOpts{
+		KeyRef:     s.options.KeyPath,
+		PassFunc:   generate.GetPass,
+		FulcioURL:  cliOpts.DefaultFulcioURL,
+		RekorURL:   cliOpts.DefaultRekorURL,
+		OIDCIssuer: cliOpts.DefaultOIDCIssuerURL,
+
+		InsecureSkipFulcioVerify: false,
+	}
+
+	regOpts := cliOpts.RegistryOptions{
+		AllowInsecure: s.options.AllowInsecure,
+	}
+
+	imgs := []string{reference}
+
+	outputSignature := ""
+	if s.options.OutputSignaturePath == "" {
+		outputSignature = s.options.OutputSignaturePath
+	}
+
+	outputCertificate := ""
+	if s.options.OutputCertificatePath == "" {
+		outputCertificate = s.options.OutputCertificatePath
+	}
+
+	err := s.SignImageInternal(context.Background(), ko, regOpts,
+		s.options.Annotations, imgs, "", true, outputSignature,
+		outputCertificate, "", true, false, "")
+	if err != nil {
+		return nil, errors.Wrapf(err, "verify reference: %s", reference)
+	}
 
 	object, err := s.VerifyInternal(s, reference)
 	if err != nil {
 		return nil, errors.Wrapf(err, "verify reference: %s", reference)
 	}
+
 	return object, nil
 }
 
