@@ -19,7 +19,6 @@ package sign
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 )
@@ -45,7 +44,8 @@ func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regO
 	annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 	outputSignature string, outputCertificate string, payloadPath string, force bool,
 	recursive bool, attachment string) error {
-	err := sign.SignCmd(context.Background(), ko, regOpts, annotations, imgs, certPath, upload, outputSignature, outputCertificate, payloadPath, force, recursive, attachment)
-
-	return errors.Wrapf(err, "signing reference: %v", imgs)
+	return sign.SignCmd(
+		ctx, ko, regOpts, annotations, imgs, certPath, upload, outputSignature,
+		outputCertificate, payloadPath, force, recursive, attachment,
+	)
 }

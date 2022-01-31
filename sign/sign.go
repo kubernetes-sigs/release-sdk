@@ -99,11 +99,14 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 		outputCertificate = s.options.OutputCertificatePath
 	}
 
-	err := s.impl.SignImageInternal(context.Background(), ko, regOpts,
+	ctx, cancel := context.WithTimeout(context.Background(), s.options.Timeout)
+	defer cancel()
+
+	err := s.impl.SignImageInternal(ctx, ko, regOpts,
 		s.options.Annotations, imgs, "", true, outputSignature,
 		outputCertificate, "", true, false, "")
 	if err != nil {
-		return nil, errors.Wrapf(err, "verify reference: %s", reference)
+		return nil, errors.Wrapf(err, "sign reference: %s", reference)
 	}
 
 	object, err := s.impl.VerifyInternal(s, reference)

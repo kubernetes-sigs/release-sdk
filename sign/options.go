@@ -16,10 +16,17 @@ limitations under the License.
 
 package sign
 
+import "time"
+
 // Options can be used to modify the behavior of the signer.
 type Options struct {
 	// Verbose can be used to enable a higher log verbosity
-	Verbose               bool
+	Verbose bool
+
+	// Timeout is the default timeout for network operations.
+	// Defaults to 3 minutes
+	Timeout time.Duration
+
 	AllowInsecure         bool
 	OutputSignaturePath   string
 	OutputCertificatePath string
@@ -29,5 +36,7 @@ type Options struct {
 
 // Default returns a default Options instance.
 func Default() *Options {
-	return &Options{}
+	return &Options{
+		Timeout: 3 * time.Minute,
+	}
 }
