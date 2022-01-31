@@ -18,6 +18,7 @@ package sign
 
 import (
 	"context"
+	"os"
 
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
@@ -34,6 +35,7 @@ type impl interface {
 		annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 		outputSignature string, outputCertificate string, payloadPath string, force bool,
 		recursive bool, attachment string) error
+	Setenv(string, string) error
 }
 
 func (*defaultImpl) VerifyInternal(signer *Signer, reference string) (*SignedObject, error) {
@@ -48,4 +50,8 @@ func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regO
 		ctx, ko, regOpts, annotations, imgs, certPath, upload, outputSignature,
 		outputCertificate, payloadPath, force, recursive, attachment,
 	)
+}
+
+func (*defaultImpl) Setenv(key, value string) error {
+	return os.Setenv(key, value)
 }

@@ -27,6 +27,18 @@ import (
 )
 
 type FakeImpl struct {
+	SetenvStub        func(string, string) error
+	setenvMutex       sync.RWMutex
+	setenvArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	setenvReturns struct {
+		result1 error
+	}
+	setenvReturnsOnCall map[int]struct {
+		result1 error
+	}
 	SignImageInternalStub        func(context.Context, signa.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) error
 	signImageInternalMutex       sync.RWMutex
 	signImageInternalArgsForCall []struct {
@@ -66,6 +78,68 @@ type FakeImpl struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeImpl) Setenv(arg1 string, arg2 string) error {
+	fake.setenvMutex.Lock()
+	ret, specificReturn := fake.setenvReturnsOnCall[len(fake.setenvArgsForCall)]
+	fake.setenvArgsForCall = append(fake.setenvArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.SetenvStub
+	fakeReturns := fake.setenvReturns
+	fake.recordInvocation("Setenv", []interface{}{arg1, arg2})
+	fake.setenvMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeImpl) SetenvCallCount() int {
+	fake.setenvMutex.RLock()
+	defer fake.setenvMutex.RUnlock()
+	return len(fake.setenvArgsForCall)
+}
+
+func (fake *FakeImpl) SetenvCalls(stub func(string, string) error) {
+	fake.setenvMutex.Lock()
+	defer fake.setenvMutex.Unlock()
+	fake.SetenvStub = stub
+}
+
+func (fake *FakeImpl) SetenvArgsForCall(i int) (string, string) {
+	fake.setenvMutex.RLock()
+	defer fake.setenvMutex.RUnlock()
+	argsForCall := fake.setenvArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeImpl) SetenvReturns(result1 error) {
+	fake.setenvMutex.Lock()
+	defer fake.setenvMutex.Unlock()
+	fake.SetenvStub = nil
+	fake.setenvReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeImpl) SetenvReturnsOnCall(i int, result1 error) {
+	fake.setenvMutex.Lock()
+	defer fake.setenvMutex.Unlock()
+	fake.SetenvStub = nil
+	if fake.setenvReturnsOnCall == nil {
+		fake.setenvReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.setenvReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeImpl) SignImageInternal(arg1 context.Context, arg2 signa.KeyOpts, arg3 options.RegistryOptions, arg4 map[string]interface{}, arg5 []string, arg6 string, arg7 bool, arg8 string, arg9 string, arg10 string, arg11 bool, arg12 bool, arg13 string) error {
@@ -214,6 +288,8 @@ func (fake *FakeImpl) VerifyInternalReturnsOnCall(i int, result1 *sign.SignedObj
 func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.setenvMutex.RLock()
+	defer fake.setenvMutex.RUnlock()
 	fake.signImageInternalMutex.RLock()
 	defer fake.signImageInternalMutex.RUnlock()
 	fake.verifyInternalMutex.RLock()
