@@ -30,7 +30,7 @@ import (
 
 // Signer is the main structure to be used by API consumers.
 type Signer struct {
-	impl
+	impl    impl
 	options *Options
 	log     *logrus.Logger
 }
@@ -99,14 +99,14 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 		outputCertificate = s.options.OutputCertificatePath
 	}
 
-	err := s.SignImageInternal(context.Background(), ko, regOpts,
+	err := s.impl.SignImageInternal(context.Background(), ko, regOpts,
 		s.options.Annotations, imgs, "", true, outputSignature,
 		outputCertificate, "", true, false, "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "verify reference: %s", reference)
 	}
 
-	object, err := s.VerifyInternal(s, reference)
+	object, err := s.impl.VerifyInternal(s, reference)
 	if err != nil {
 		return nil, errors.Wrapf(err, "verify reference: %s", reference)
 	}
@@ -121,7 +121,7 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 
 	// TODO: unimplemented
 
-	object, err := s.VerifyInternal(s, path)
+	object, err := s.impl.VerifyInternal(s, path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "verify file path: %s", path)
 	}
