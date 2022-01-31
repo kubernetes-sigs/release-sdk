@@ -72,6 +72,18 @@ func TestSignImage(t *testing.T) {
 				require.Nil(t, err)
 			},
 		},
+		{ // Success with failed unset experimental
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyInternalReturns(&sign.SignedObject{}, nil)
+				mock.SetenvReturnsOnCall(1, errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, obj)
+				require.Empty(t, obj.Reference())
+				require.Empty(t, obj.Digest())
+				require.Nil(t, err)
+			},
+		},
 		{ // Failure on Verify
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyInternalReturns(nil, errTest)
@@ -86,6 +98,15 @@ func TestSignImage(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyInternalReturns(&sign.SignedObject{}, nil)
 				mock.SignImageInternalReturns(errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, err)
+				require.Nil(t, obj)
+			},
+		},
+		{ // Failure on set experimental
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.SetenvReturns(errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, err)

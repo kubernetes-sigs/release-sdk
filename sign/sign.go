@@ -70,8 +70,14 @@ func (s *Signer) UploadBlob(path string) error {
 func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	s.log.Infof("Signing reference: %s", reference)
 
-	os.Setenv("COSIGN_EXPERIMENTAL", "true")
-	defer os.Setenv("COSIGN_EXPERIMENTAL", "")
+	if err := s.impl.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
+		return nil, errors.Wrap(err, "enable cosign experimental mode")
+	}
+	defer func() {
+		if err := s.impl.Setenv("COSIGN_EXPERIMENTAL", ""); err != nil {
+			s.log.Errorf("Unable to unset cosign experimental mode: %v", err)
+		}
+	}()
 
 	ko := sign.KeyOpts{
 		KeyRef:     s.options.KeyPath,
