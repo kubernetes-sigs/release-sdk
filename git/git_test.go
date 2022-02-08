@@ -27,6 +27,7 @@ import (
 	"time"
 
 	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
@@ -34,6 +35,12 @@ import (
 	"sigs.k8s.io/release-sdk/git/gitfakes"
 	"sigs.k8s.io/release-utils/command"
 )
+
+var testAuthor = &object.Signature{
+	Name:  "John Doe",
+	Email: "john@doe.org",
+	When:  time.Now(),
+}
 
 func newSUT() (*git.Repo, *gitfakes.FakeWorktree) {
 	repoMock := &gitfakes.FakeRepository{}
