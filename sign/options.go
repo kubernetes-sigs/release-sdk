@@ -39,7 +39,8 @@ type Options struct {
 	KeyPath               string
 
 	// PassFunc is a function that returns a slice of bytes that will be used
-	// as a password for decrypting the cosign key.
+	// as a password for decrypting the cosign key. It is used only if KeyPath
+	// is provided (i.e. it's not used for keyless signing).
 	// Defaults to a function that reads from stdin and asks for confirmation
 	PassFunc cosign.PassFunc
 }

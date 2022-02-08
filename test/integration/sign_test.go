@@ -28,13 +28,13 @@ import (
 
 	"github.com/sigstore/cosign/pkg/cosign"
 	"github.com/stretchr/testify/require"
+
 	"sigs.k8s.io/release-sdk/sign"
-	"sigs.k8s.io/release-sdk/test"
 )
 
 type cleanupFn func() error
 
-func generateCosignKey(t *testing.T, getPassFunc cosign.PassFunc) (string, cleanupFn) {
+func generateCosignKeyPair(t *testing.T, getPassFunc cosign.PassFunc) (string, cleanupFn) {
 	tempDir, err := os.MkdirTemp("", "k8s-cosign-keys-")
 	require.Nil(t, err)
 
@@ -56,14 +56,15 @@ func generateCosignKey(t *testing.T, getPassFunc cosign.PassFunc) (string, clean
 
 func TestSuccessSignImage(t *testing.T) {
 	imageName := fmt.Sprintf("localhost:5000/honk:%d", time.Now().Unix())
-	reg := test.RunDockerRegistryWithDummyImage(t, imageName)
-	defer test.DeleteRegistryContainer(t)
+	reg := runDockerRegistryWithDummyImage(t, imageName)
+	defer deleteRegistryContainer(t)
 
 	getPass := func(confirm bool) ([]byte, error) {
 		return []byte("key-pass"), nil
 	}
 
-	keyPath, cleanup := generateCosignKey(t, getPass)
+	// TODO(xmudrii): This can be removed once cosign 1.5.2 or newer is available
+	keyPath, cleanup := generateCosignKeyPair(t, getPass)
 	defer cleanup()
 
 	opts := sign.Default()
@@ -75,4 +76,8 @@ func TestSuccessSignImage(t *testing.T) {
 	signedObject, err := signer.SignImage(reg.ImageName)
 	require.Nil(t, err)
 	require.NotNil(t, signedObject)
+
+	verifiedObject, err := signer.Verify(reg.ImageName)
+	require.Nil(t, err)
+	require.NotNil(t, verifiedObject)
 }
