@@ -62,7 +62,7 @@ func TestSignImage(t *testing.T) {
 	}{
 		{ // Success
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyInternalReturns(&sign.SignedObject{}, nil)
+				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SignImageInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -74,7 +74,7 @@ func TestSignImage(t *testing.T) {
 		},
 		{ // Success with failed unset experimental
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyInternalReturns(&sign.SignedObject{}, nil)
+				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SetenvReturnsOnCall(1, errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -86,7 +86,7 @@ func TestSignImage(t *testing.T) {
 		},
 		{ // Failure on Verify
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyInternalReturns(nil, errTest)
+				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SignImageInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -96,7 +96,7 @@ func TestSignImage(t *testing.T) {
 		},
 		{ // Failure on Sign
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyInternalReturns(&sign.SignedObject{}, nil)
+				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SignImageInternalReturns(errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -137,7 +137,7 @@ func TestSignFile(t *testing.T) {
 	}{
 		{ // Success
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyInternalReturns(&sign.SignedObject{}, nil)
+				mock.VerifyFileInternalReturns(&sign.SignedObject{}, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj)
@@ -148,7 +148,7 @@ func TestSignFile(t *testing.T) {
 		},
 		{ // Failure on Verify
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyInternalReturns(nil, errTest)
+				mock.VerifyFileInternalReturns(nil, errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, err)
@@ -167,7 +167,7 @@ func TestSignFile(t *testing.T) {
 	}
 }
 
-func TestVerify(t *testing.T) {
+func TestVerifyImage(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
@@ -188,7 +188,33 @@ func TestVerify(t *testing.T) {
 		sut := sign.New(sign.Default())
 		sut.SetImpl(mock)
 
-		obj, err := sut.Verify("")
+		obj, err := sut.VerifyImage("")
+		tc.assert(obj, err)
+	}
+}
+
+func TestVerifyFile(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		prepare func(*signfakes.FakeImpl)
+		assert  func(*sign.SignedObject, error)
+	}{
+		{ // Success
+			prepare: func(mock *signfakes.FakeImpl) {
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, err)
+			},
+		},
+	} {
+		mock := &signfakes.FakeImpl{}
+		tc.prepare(mock)
+
+		sut := sign.New(sign.Default())
+		sut.SetImpl(mock)
+
+		obj, err := sut.VerifyFile("")
 		tc.assert(obj, err)
 	}
 }

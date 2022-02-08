@@ -30,7 +30,8 @@ type defaultImpl struct{}
 //counterfeiter:generate . impl
 //go:generate /usr/bin/env bash -c "cat ../scripts/boilerplate/boilerplate.generatego.txt signfakes/fake_impl.go > signfakes/_fake_impl.go && mv signfakes/_fake_impl.go signfakes/fake_impl.go"
 type impl interface {
-	VerifyInternal(*Signer, string) (*SignedObject, error)
+	VerifyFileInternal(*Signer, string) (*SignedObject, error)
+	VerifyImageInternal(*Signer, string) (*SignedObject, error)
 	SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions,
 		annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 		outputSignature string, outputCertificate string, payloadPath string, force bool,
@@ -38,8 +39,12 @@ type impl interface {
 	Setenv(string, string) error
 }
 
-func (*defaultImpl) VerifyInternal(signer *Signer, reference string) (*SignedObject, error) {
-	return signer.Verify(reference)
+func (*defaultImpl) VerifyFileInternal(signer *Signer, path string) (*SignedObject, error) {
+	return signer.VerifyFile(path)
+}
+
+func (*defaultImpl) VerifyImageInternal(signer *Signer, reference string) (*SignedObject, error) {
+	return signer.VerifyImage(reference)
 }
 
 func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic

@@ -115,7 +115,7 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 		return nil, errors.Wrapf(err, "sign reference: %s", reference)
 	}
 
-	object, err := s.impl.VerifyInternal(s, reference)
+	object, err := s.impl.VerifyImageInternal(s, reference)
 	if err != nil {
 		return nil, errors.Wrapf(err, "verify reference: %s", reference)
 	}
@@ -130,18 +130,25 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 
 	// TODO: unimplemented
 
-	object, err := s.impl.VerifyInternal(s, path)
+	object, err := s.impl.VerifyFileInternal(s, path)
 	if err != nil {
 		return nil, errors.Wrapf(err, "verify file path: %s", path)
 	}
 	return object, nil
 }
 
-// Verify can be used to validate any remote reference. The returned signed
-// object will contain additional information if the verification was
-// successful.
-func (s *Signer) Verify(reference string) (*SignedObject, error) {
+// VerifyImage can be used to validate any provided file path.
+func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 	s.log.Infof("Verifying reference: %s", reference)
+
+	// TODO: unimplemented
+
+	return &SignedObject{}, nil
+}
+
+// VerifyFile can be used to validate any provided file path.
+func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
+	s.log.Infof("Verifying file path: %s", path)
 
 	// TODO: unimplemented
 

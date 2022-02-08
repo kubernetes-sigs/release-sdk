@@ -62,17 +62,31 @@ type FakeImpl struct {
 	signImageInternalReturnsOnCall map[int]struct {
 		result1 error
 	}
-	VerifyInternalStub        func(*sign.Signer, string) (*sign.SignedObject, error)
-	verifyInternalMutex       sync.RWMutex
-	verifyInternalArgsForCall []struct {
+	VerifyFileInternalStub        func(*sign.Signer, string) (*sign.SignedObject, error)
+	verifyFileInternalMutex       sync.RWMutex
+	verifyFileInternalArgsForCall []struct {
 		arg1 *sign.Signer
 		arg2 string
 	}
-	verifyInternalReturns struct {
+	verifyFileInternalReturns struct {
 		result1 *sign.SignedObject
 		result2 error
 	}
-	verifyInternalReturnsOnCall map[int]struct {
+	verifyFileInternalReturnsOnCall map[int]struct {
+		result1 *sign.SignedObject
+		result2 error
+	}
+	VerifyImageInternalStub        func(*sign.Signer, string) (*sign.SignedObject, error)
+	verifyImageInternalMutex       sync.RWMutex
+	verifyImageInternalArgsForCall []struct {
+		arg1 *sign.Signer
+		arg2 string
+	}
+	verifyImageInternalReturns struct {
+		result1 *sign.SignedObject
+		result2 error
+	}
+	verifyImageInternalReturnsOnCall map[int]struct {
 		result1 *sign.SignedObject
 		result2 error
 	}
@@ -220,17 +234,17 @@ func (fake *FakeImpl) SignImageInternalReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeImpl) VerifyInternal(arg1 *sign.Signer, arg2 string) (*sign.SignedObject, error) {
-	fake.verifyInternalMutex.Lock()
-	ret, specificReturn := fake.verifyInternalReturnsOnCall[len(fake.verifyInternalArgsForCall)]
-	fake.verifyInternalArgsForCall = append(fake.verifyInternalArgsForCall, struct {
+func (fake *FakeImpl) VerifyFileInternal(arg1 *sign.Signer, arg2 string) (*sign.SignedObject, error) {
+	fake.verifyFileInternalMutex.Lock()
+	ret, specificReturn := fake.verifyFileInternalReturnsOnCall[len(fake.verifyFileInternalArgsForCall)]
+	fake.verifyFileInternalArgsForCall = append(fake.verifyFileInternalArgsForCall, struct {
 		arg1 *sign.Signer
 		arg2 string
 	}{arg1, arg2})
-	stub := fake.VerifyInternalStub
-	fakeReturns := fake.verifyInternalReturns
-	fake.recordInvocation("VerifyInternal", []interface{}{arg1, arg2})
-	fake.verifyInternalMutex.Unlock()
+	stub := fake.VerifyFileInternalStub
+	fakeReturns := fake.verifyFileInternalReturns
+	fake.recordInvocation("VerifyFileInternal", []interface{}{arg1, arg2})
+	fake.verifyFileInternalMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)
 	}
@@ -240,46 +254,111 @@ func (fake *FakeImpl) VerifyInternal(arg1 *sign.Signer, arg2 string) (*sign.Sign
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeImpl) VerifyInternalCallCount() int {
-	fake.verifyInternalMutex.RLock()
-	defer fake.verifyInternalMutex.RUnlock()
-	return len(fake.verifyInternalArgsForCall)
+func (fake *FakeImpl) VerifyFileInternalCallCount() int {
+	fake.verifyFileInternalMutex.RLock()
+	defer fake.verifyFileInternalMutex.RUnlock()
+	return len(fake.verifyFileInternalArgsForCall)
 }
 
-func (fake *FakeImpl) VerifyInternalCalls(stub func(*sign.Signer, string) (*sign.SignedObject, error)) {
-	fake.verifyInternalMutex.Lock()
-	defer fake.verifyInternalMutex.Unlock()
-	fake.VerifyInternalStub = stub
+func (fake *FakeImpl) VerifyFileInternalCalls(stub func(*sign.Signer, string) (*sign.SignedObject, error)) {
+	fake.verifyFileInternalMutex.Lock()
+	defer fake.verifyFileInternalMutex.Unlock()
+	fake.VerifyFileInternalStub = stub
 }
 
-func (fake *FakeImpl) VerifyInternalArgsForCall(i int) (*sign.Signer, string) {
-	fake.verifyInternalMutex.RLock()
-	defer fake.verifyInternalMutex.RUnlock()
-	argsForCall := fake.verifyInternalArgsForCall[i]
+func (fake *FakeImpl) VerifyFileInternalArgsForCall(i int) (*sign.Signer, string) {
+	fake.verifyFileInternalMutex.RLock()
+	defer fake.verifyFileInternalMutex.RUnlock()
+	argsForCall := fake.verifyFileInternalArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeImpl) VerifyInternalReturns(result1 *sign.SignedObject, result2 error) {
-	fake.verifyInternalMutex.Lock()
-	defer fake.verifyInternalMutex.Unlock()
-	fake.VerifyInternalStub = nil
-	fake.verifyInternalReturns = struct {
+func (fake *FakeImpl) VerifyFileInternalReturns(result1 *sign.SignedObject, result2 error) {
+	fake.verifyFileInternalMutex.Lock()
+	defer fake.verifyFileInternalMutex.Unlock()
+	fake.VerifyFileInternalStub = nil
+	fake.verifyFileInternalReturns = struct {
 		result1 *sign.SignedObject
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeImpl) VerifyInternalReturnsOnCall(i int, result1 *sign.SignedObject, result2 error) {
-	fake.verifyInternalMutex.Lock()
-	defer fake.verifyInternalMutex.Unlock()
-	fake.VerifyInternalStub = nil
-	if fake.verifyInternalReturnsOnCall == nil {
-		fake.verifyInternalReturnsOnCall = make(map[int]struct {
+func (fake *FakeImpl) VerifyFileInternalReturnsOnCall(i int, result1 *sign.SignedObject, result2 error) {
+	fake.verifyFileInternalMutex.Lock()
+	defer fake.verifyFileInternalMutex.Unlock()
+	fake.VerifyFileInternalStub = nil
+	if fake.verifyFileInternalReturnsOnCall == nil {
+		fake.verifyFileInternalReturnsOnCall = make(map[int]struct {
 			result1 *sign.SignedObject
 			result2 error
 		})
 	}
-	fake.verifyInternalReturnsOnCall[i] = struct {
+	fake.verifyFileInternalReturnsOnCall[i] = struct {
+		result1 *sign.SignedObject
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) VerifyImageInternal(arg1 *sign.Signer, arg2 string) (*sign.SignedObject, error) {
+	fake.verifyImageInternalMutex.Lock()
+	ret, specificReturn := fake.verifyImageInternalReturnsOnCall[len(fake.verifyImageInternalArgsForCall)]
+	fake.verifyImageInternalArgsForCall = append(fake.verifyImageInternalArgsForCall, struct {
+		arg1 *sign.Signer
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.VerifyImageInternalStub
+	fakeReturns := fake.verifyImageInternalReturns
+	fake.recordInvocation("VerifyImageInternal", []interface{}{arg1, arg2})
+	fake.verifyImageInternalMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeImpl) VerifyImageInternalCallCount() int {
+	fake.verifyImageInternalMutex.RLock()
+	defer fake.verifyImageInternalMutex.RUnlock()
+	return len(fake.verifyImageInternalArgsForCall)
+}
+
+func (fake *FakeImpl) VerifyImageInternalCalls(stub func(*sign.Signer, string) (*sign.SignedObject, error)) {
+	fake.verifyImageInternalMutex.Lock()
+	defer fake.verifyImageInternalMutex.Unlock()
+	fake.VerifyImageInternalStub = stub
+}
+
+func (fake *FakeImpl) VerifyImageInternalArgsForCall(i int) (*sign.Signer, string) {
+	fake.verifyImageInternalMutex.RLock()
+	defer fake.verifyImageInternalMutex.RUnlock()
+	argsForCall := fake.verifyImageInternalArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeImpl) VerifyImageInternalReturns(result1 *sign.SignedObject, result2 error) {
+	fake.verifyImageInternalMutex.Lock()
+	defer fake.verifyImageInternalMutex.Unlock()
+	fake.VerifyImageInternalStub = nil
+	fake.verifyImageInternalReturns = struct {
+		result1 *sign.SignedObject
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) VerifyImageInternalReturnsOnCall(i int, result1 *sign.SignedObject, result2 error) {
+	fake.verifyImageInternalMutex.Lock()
+	defer fake.verifyImageInternalMutex.Unlock()
+	fake.VerifyImageInternalStub = nil
+	if fake.verifyImageInternalReturnsOnCall == nil {
+		fake.verifyImageInternalReturnsOnCall = make(map[int]struct {
+			result1 *sign.SignedObject
+			result2 error
+		})
+	}
+	fake.verifyImageInternalReturnsOnCall[i] = struct {
 		result1 *sign.SignedObject
 		result2 error
 	}{result1, result2}
@@ -292,8 +371,10 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	defer fake.setenvMutex.RUnlock()
 	fake.signImageInternalMutex.RLock()
 	defer fake.signImageInternalMutex.RUnlock()
-	fake.verifyInternalMutex.RLock()
-	defer fake.verifyInternalMutex.RUnlock()
+	fake.verifyFileInternalMutex.RLock()
+	defer fake.verifyFileInternalMutex.RUnlock()
+	fake.verifyImageInternalMutex.RLock()
+	defer fake.verifyImageInternalMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
