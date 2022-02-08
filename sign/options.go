@@ -16,7 +16,12 @@ limitations under the License.
 
 package sign
 
-import "time"
+import (
+	"time"
+
+	"github.com/sigstore/cosign/cmd/cosign/cli/generate"
+	"github.com/sigstore/cosign/pkg/cosign"
+)
 
 // Options can be used to modify the behavior of the signer.
 type Options struct {
@@ -32,11 +37,13 @@ type Options struct {
 	OutputCertificatePath string
 	Annotations           map[string]interface{}
 	KeyPath               string
+	PassFunc              cosign.PassFunc
 }
 
 // Default returns a default Options instance.
 func Default() *Options {
 	return &Options{
-		Timeout: 3 * time.Minute,
+		Timeout:  3 * time.Minute,
+		PassFunc: generate.GetPass,
 	}
 }

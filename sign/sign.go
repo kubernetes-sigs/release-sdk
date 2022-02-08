@@ -22,7 +22,6 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/logs"
 	"github.com/pkg/errors"
-	"github.com/sigstore/cosign/cmd/cosign/cli/generate"
 	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sirupsen/logrus"
@@ -81,7 +80,7 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 
 	ko := sign.KeyOpts{
 		KeyRef:     s.options.KeyPath,
-		PassFunc:   generate.GetPass,
+		PassFunc:   s.options.PassFunc,
 		FulcioURL:  cliOpts.DefaultFulcioURL,
 		RekorURL:   cliOpts.DefaultRekorURL,
 		OIDCIssuer: cliOpts.DefaultOIDCIssuerURL,
