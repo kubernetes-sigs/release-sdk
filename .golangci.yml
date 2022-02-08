@@ -2,6 +2,8 @@
 run:
   concurrency: 6
   deadline: 5m
+  build-tags:
+    - integration
 issues:
   exclude-rules:
     # counterfeiter fakes are usually named 'fake_<something>.go'
