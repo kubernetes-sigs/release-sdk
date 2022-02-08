@@ -79,7 +79,7 @@ func TestSuccessSignImage(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, signedObject)
 
-	verifiedObject, err := signer.Verify(reg.ImageName)
+	verifiedObject, err := signer.VerifyImage(reg.ImageName)
 	require.Nil(t, err)
 	require.NotNil(t, verifiedObject)
 }
