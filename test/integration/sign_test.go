@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 /*
 Copyright 2022 The Kubernetes Authors.
 
@@ -14,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package sign_test
+package integration
 
 import (
 	"fmt"

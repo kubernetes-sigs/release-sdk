@@ -62,6 +62,19 @@ func Test() error {
 	return nil
 }
 
+// IntegrationTest runs the integration test functions
+func IntegrationTest() error {
+	if err := mage.EnsureGitConfig(); err != nil {
+		return err
+	}
+
+	if err := mage.TestGoWithTags(true, "integration", "test/integration"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Verify runs repository verification scripts
 func Verify() error {
 	fmt.Println("Ensuring mage is available...")
