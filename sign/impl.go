@@ -22,6 +22,7 @@ import (
 
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
+	"github.com/sigstore/cosign/cmd/cosign/cli/verify"
 )
 
 type defaultImpl struct{}
@@ -31,7 +32,7 @@ type defaultImpl struct{}
 //go:generate /usr/bin/env bash -c "cat ../scripts/boilerplate/boilerplate.generatego.txt signfakes/fake_impl.go > signfakes/_fake_impl.go && mv signfakes/_fake_impl.go signfakes/fake_impl.go"
 type impl interface {
 	VerifyFileInternal(*Signer, string) (*SignedObject, error)
-	VerifyImageInternal(*Signer, string) (*SignedObject, error)
+	VerifyImageInternal(ctx context.Context, keyPath string, images []string) (*SignedObject, error)
 	SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions,
 		annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 		outputSignature string, outputCertificate string, payloadPath string, force bool,
@@ -43,8 +44,9 @@ func (*defaultImpl) VerifyFileInternal(signer *Signer, path string) (*SignedObje
 	return signer.VerifyFile(path)
 }
 
-func (*defaultImpl) VerifyImageInternal(signer *Signer, reference string) (*SignedObject, error) {
-	return signer.VerifyImage(reference)
+func (*defaultImpl) VerifyImageInternal(ctx context.Context, publickeyPath string, images []string) (*SignedObject, error) {
+	v := verify.VerifyCommand{KeyRef: publickeyPath}
+	return &SignedObject{}, v.Exec(ctx, images)
 }
 
 func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic

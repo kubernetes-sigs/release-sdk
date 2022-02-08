@@ -36,10 +36,11 @@ type Options struct {
 	OutputSignaturePath   string
 	OutputCertificatePath string
 	Annotations           map[string]interface{}
-	KeyPath               string
+	PrivateKeyPath        string
+	PublicKeyPath         string
 
 	// PassFunc is a function that returns a slice of bytes that will be used
-	// as a password for decrypting the cosign key. It is used only if KeyPath
+	// as a password for decrypting the cosign key. It is used only if PrivateKeyPath
 	// is provided (i.e. it's not used for keyless signing).
 	// Defaults to a function that reads from stdin and asks for confirmation
 	PassFunc cosign.PassFunc
