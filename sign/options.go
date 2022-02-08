@@ -37,7 +37,11 @@ type Options struct {
 	OutputCertificatePath string
 	Annotations           map[string]interface{}
 	KeyPath               string
-	PassFunc              cosign.PassFunc
+
+	// PassFunc is a function that returns a slice of bytes that will be used
+	// as a password for decrypting the cosign key.
+	// Defaults to a function that reads from stdin and asks for confirmation
+	PassFunc cosign.PassFunc
 }
 
 // Default returns a default Options instance.

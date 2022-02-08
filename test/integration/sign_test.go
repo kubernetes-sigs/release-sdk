@@ -32,7 +32,9 @@ import (
 	"sigs.k8s.io/release-sdk/test"
 )
 
-func generateCosignKey(t *testing.T, getPassFunc cosign.PassFunc) string {
+type cleanupFn func() error
+
+func generateCosignKey(t *testing.T, getPassFunc cosign.PassFunc) (string, cleanupFn) {
 	tempDir, err := os.MkdirTemp("", "k8s-cosign-keys-")
 	require.Nil(t, err)
 
@@ -40,17 +42,20 @@ func generateCosignKey(t *testing.T, getPassFunc cosign.PassFunc) string {
 	require.Nil(t, err)
 	require.NotNil(t, keys)
 
-	err = os.WriteFile(filepath.Join(tempDir, "cosign.key"), keys.PrivateBytes, 0600)
+	keyPath := filepath.Join(tempDir, "cosign.key")
+	err = os.WriteFile(keyPath, keys.PrivateBytes, 0600)
 	require.Nil(t, err)
 
 	err = os.WriteFile(filepath.Join(tempDir, "cosign.pub"), keys.PublicBytes, 0644)
 	require.Nil(t, err)
 
-	return tempDir
+	return keyPath, func() error {
+		return os.RemoveAll(tempDir)
+	}
 }
 
 func TestSuccessSignImage(t *testing.T) {
-	imageName := fmt.Sprintf("%s:%d", "localhost:5000/honk", time.Now().Unix())
+	imageName := fmt.Sprintf("localhost:5000/honk:%d", time.Now().Unix())
 	reg := test.RunDockerRegistryWithDummyImage(t, imageName)
 	defer test.DeleteRegistryContainer(t)
 
@@ -58,10 +63,11 @@ func TestSuccessSignImage(t *testing.T) {
 		return []byte("key-pass"), nil
 	}
 
-	keyPath := generateCosignKey(t, getPass)
+	keyPath, cleanup := generateCosignKey(t, getPass)
+	defer cleanup()
 
 	opts := sign.Default()
-	opts.KeyPath = filepath.Join(keyPath, "cosign.key")
+	opts.KeyPath = keyPath
 	opts.PassFunc = getPass
 
 	signer := sign.New(opts)

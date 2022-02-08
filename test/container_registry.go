@@ -51,6 +51,9 @@ func RunDockerRegistryWithDummyImage(t *testing.T, imageName string) *dockerRegi
 	err = cmd.RunSuccess()
 	require.Nil(t, err)
 
+	// After the image is pushed, we don't need the Dockerfile any longer
+	require.Nil(t, os.RemoveAll(tempDir))
+
 	return &dockerRegistry{
 		ImageName:      imageName,
 		DockerfilePath: tempDir,
