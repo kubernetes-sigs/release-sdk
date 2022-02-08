@@ -43,10 +43,10 @@ func generateCosignKeyPair(t *testing.T, getPassFunc cosign.PassFunc) (string, c
 	require.NotNil(t, keys)
 
 	keyPath := filepath.Join(tempDir, "cosign.key")
-	err = os.WriteFile(keyPath, keys.PrivateBytes, 0600)
+	err = os.WriteFile(keyPath, keys.PrivateBytes, 0o600)
 	require.Nil(t, err)
 
-	err = os.WriteFile(filepath.Join(tempDir, "cosign.pub"), keys.PublicBytes, 0644)
+	err = os.WriteFile(filepath.Join(tempDir, "cosign.pub"), keys.PublicBytes, 0o644)
 	require.Nil(t, err)
 
 	return keyPath, func() error {
@@ -65,7 +65,9 @@ func TestSuccessSignImage(t *testing.T) {
 
 	// TODO(xmudrii): This can be removed once cosign 1.5.2 or newer is available
 	keyPath, cleanup := generateCosignKeyPair(t, getPass)
-	defer cleanup()
+	defer func() {
+		require.Nil(t, cleanup())
+	}()
 
 	opts := sign.Default()
 	opts.KeyPath = keyPath
