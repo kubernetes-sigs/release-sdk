@@ -69,14 +69,11 @@ func (s *Signer) UploadBlob(path string) error {
 func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	s.log.Infof("Signing reference: %s", reference)
 
-	if err := s.impl.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
-		return nil, errors.Wrap(err, "enable cosign experimental mode")
+	resetFn, err := s.enableExperimental()
+	if err != nil {
+		return nil, err
 	}
-	defer func() {
-		if err := s.impl.Setenv("COSIGN_EXPERIMENTAL", ""); err != nil {
-			s.log.Errorf("Unable to unset cosign experimental mode: %v", err)
-		}
-	}()
+	defer resetFn()
 
 	ko := sign.KeyOpts{
 		KeyRef:     s.options.PrivateKeyPath,
@@ -107,10 +104,10 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.options.Timeout)
 	defer cancel()
 
-	err := s.impl.SignImageInternal(ctx, ko, regOpts,
+	if err := s.impl.SignImageInternal(ctx, ko, regOpts,
 		s.options.Annotations, images, "", true, outputSignature,
-		outputCertificate, "", true, false, "")
-	if err != nil {
+		outputCertificate, "", true, false, "",
+	); err != nil {
 		return nil, errors.Wrapf(err, "sign reference: %s", reference)
 	}
 
@@ -141,14 +138,11 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 	s.log.Infof("Verifying reference: %s", reference)
 
-	if err := s.impl.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
-		return nil, errors.Wrap(err, "enable cosign experimental mode")
+	resetFn, err := s.enableExperimental()
+	if err != nil {
+		return nil, err
 	}
-	defer func() {
-		if err := s.impl.Setenv("COSIGN_EXPERIMENTAL", ""); err != nil {
-			s.log.Errorf("Unable to unset cosign experimental mode: %v", err)
-		}
-	}()
+	defer resetFn()
 
 	ctx, cancel := context.WithTimeout(context.Background(), s.options.Timeout)
 	defer cancel()
@@ -167,4 +161,19 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 	// TODO: unimplemented
 
 	return &SignedObject{}, nil
+}
+
+// enableExperimental sets the cosign experimental mode to true. It also
+// returns a resetFn to recover the original state within the environment.
+func (s *Signer) enableExperimental() (resetFn func(), err error) {
+	const key = "COSIGN_EXPERIMENTAL"
+	previousValue := s.impl.EnvDefault(key, "")
+	if err := s.impl.Setenv(key, "true"); err != nil {
+		return nil, errors.Wrap(err, "enable cosign experimental mode")
+	}
+	return func() {
+		if err := s.impl.Setenv(key, previousValue); err != nil {
+			s.log.Errorf("Unable to reset cosign experimental mode: %v", err)
+		}
+	}, nil
 }
