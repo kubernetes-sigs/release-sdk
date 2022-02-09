@@ -32,6 +32,10 @@ import (
 	"sigs.k8s.io/release-sdk/sign"
 )
 
+const (
+	testFile = "hello kubefolx!"
+)
+
 type cleanupFn func() error
 
 func generateCosignKeyPair(t *testing.T, getPassFunc cosign.PassFunc) (string, cleanupFn) {
@@ -80,6 +84,45 @@ func TestSuccessSignImage(t *testing.T) {
 	require.NotNil(t, signedObject)
 
 	verifiedObject, err := signer.VerifyImage(reg.ImageName)
+	require.Nil(t, err)
+	require.NotNil(t, verifiedObject)
+}
+
+func TestSuccessSignFile(t *testing.T) {
+	// Setup the temp dir
+	tempDir, err := os.MkdirTemp("", "k8s-test-file-")
+	require.Nil(t, err)
+	defer func() {
+		require.Nil(t, os.RemoveAll(tempDir))
+	}()
+
+	// Write the test file
+	testFilePath := filepath.Join(tempDir, "test")
+	testFileSigPath := filepath.Join(tempDir, "test.sig")
+	require.Nil(t, os.WriteFile(testFilePath, []byte(testFile), 0o644))
+
+	getPass := func(confirm bool) ([]byte, error) {
+		return []byte("key-pass"), nil
+	}
+
+	// TODO(xmudrii): This can be removed once cosign 1.5.2 or newer is available
+	keyPath, cleanup := generateCosignKeyPair(t, getPass)
+	defer func() {
+		require.Nil(t, cleanup())
+	}()
+
+	opts := sign.Default()
+	opts.KeyPath = keyPath
+	opts.PassFunc = getPass
+	opts.OutputCertificatePath = testFileSigPath
+
+	signer := sign.New(opts)
+
+	signedObject, err := signer.SignFile(testFilePath)
+	require.Nil(t, err)
+	require.NotNil(t, signedObject)
+
+	verifiedObject, err := signer.VerifyFile(testFilePath)
 	require.Nil(t, err)
 	require.NotNil(t, verifiedObject)
 }
