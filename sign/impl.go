@@ -23,6 +23,7 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sigstore/cosign/cmd/cosign/cli/verify"
+	"sigs.k8s.io/release-utils/env"
 )
 
 type defaultImpl struct{}
@@ -38,6 +39,7 @@ type impl interface {
 		outputSignature string, outputCertificate string, payloadPath string, force bool,
 		recursive bool, attachment string) error
 	Setenv(string, string) error
+	EnvDefault(string, string) string
 }
 
 func (*defaultImpl) VerifyFileInternal(signer *Signer, path string) (*SignedObject, error) {
@@ -61,4 +63,8 @@ func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regO
 
 func (*defaultImpl) Setenv(key, value string) error {
 	return os.Setenv(key, value)
+}
+
+func (*defaultImpl) EnvDefault(key, def string) string {
+	return env.Default(key, def)
 }

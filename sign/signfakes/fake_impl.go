@@ -27,6 +27,18 @@ import (
 )
 
 type FakeImpl struct {
+	EnvDefaultStub        func(string, string) string
+	envDefaultMutex       sync.RWMutex
+	envDefaultArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	envDefaultReturns struct {
+		result1 string
+	}
+	envDefaultReturnsOnCall map[int]struct {
+		result1 string
+	}
 	SetenvStub        func(string, string) error
 	setenvMutex       sync.RWMutex
 	setenvArgsForCall []struct {
@@ -93,6 +105,68 @@ type FakeImpl struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeImpl) EnvDefault(arg1 string, arg2 string) string {
+	fake.envDefaultMutex.Lock()
+	ret, specificReturn := fake.envDefaultReturnsOnCall[len(fake.envDefaultArgsForCall)]
+	fake.envDefaultArgsForCall = append(fake.envDefaultArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.EnvDefaultStub
+	fakeReturns := fake.envDefaultReturns
+	fake.recordInvocation("EnvDefault", []interface{}{arg1, arg2})
+	fake.envDefaultMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeImpl) EnvDefaultCallCount() int {
+	fake.envDefaultMutex.RLock()
+	defer fake.envDefaultMutex.RUnlock()
+	return len(fake.envDefaultArgsForCall)
+}
+
+func (fake *FakeImpl) EnvDefaultCalls(stub func(string, string) string) {
+	fake.envDefaultMutex.Lock()
+	defer fake.envDefaultMutex.Unlock()
+	fake.EnvDefaultStub = stub
+}
+
+func (fake *FakeImpl) EnvDefaultArgsForCall(i int) (string, string) {
+	fake.envDefaultMutex.RLock()
+	defer fake.envDefaultMutex.RUnlock()
+	argsForCall := fake.envDefaultArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeImpl) EnvDefaultReturns(result1 string) {
+	fake.envDefaultMutex.Lock()
+	defer fake.envDefaultMutex.Unlock()
+	fake.EnvDefaultStub = nil
+	fake.envDefaultReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeImpl) EnvDefaultReturnsOnCall(i int, result1 string) {
+	fake.envDefaultMutex.Lock()
+	defer fake.envDefaultMutex.Unlock()
+	fake.EnvDefaultStub = nil
+	if fake.envDefaultReturnsOnCall == nil {
+		fake.envDefaultReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.envDefaultReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
 }
 
 func (fake *FakeImpl) Setenv(arg1 string, arg2 string) error {
@@ -374,6 +448,8 @@ func (fake *FakeImpl) VerifyImageInternalReturnsOnCall(i int, result1 *sign.Sign
 func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.envDefaultMutex.RLock()
+	defer fake.envDefaultMutex.RUnlock()
 	fake.setenvMutex.RLock()
 	defer fake.setenvMutex.RUnlock()
 	fake.signImageInternalMutex.RLock()
