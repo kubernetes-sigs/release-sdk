@@ -79,7 +79,7 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	}()
 
 	ko := sign.KeyOpts{
-		KeyRef:     s.options.KeyPath,
+		KeyRef:     s.options.PrivateKeyPath,
 		PassFunc:   s.options.PassFunc,
 		FulcioURL:  cliOpts.DefaultFulcioURL,
 		RekorURL:   cliOpts.DefaultRekorURL,
@@ -92,7 +92,7 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 		AllowInsecure: s.options.AllowInsecure,
 	}
 
-	imgs := []string{reference}
+	images := []string{reference}
 
 	outputSignature := ""
 	if s.options.OutputSignaturePath == "" {
@@ -108,15 +108,15 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	defer cancel()
 
 	err := s.impl.SignImageInternal(ctx, ko, regOpts,
-		s.options.Annotations, imgs, "", true, outputSignature,
+		s.options.Annotations, images, "", true, outputSignature,
 		outputCertificate, "", true, false, "")
 	if err != nil {
 		return nil, errors.Wrapf(err, "sign reference: %s", reference)
 	}
 
-	object, err := s.impl.VerifyImageInternal(s, reference)
+	object, err := s.impl.VerifyImageInternal(ctx, s.options.PublicKeyPath, images)
 	if err != nil {
-		return nil, errors.Wrapf(err, "verify reference: %s", reference)
+		return nil, errors.Wrapf(err, "verify reference: %s", images)
 	}
 
 	return object, nil
@@ -136,13 +136,28 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 	return object, nil
 }
 
-// VerifyImage can be used to validate any provided file path.
+// VerifyImage can be used to validate any provided container image reference by
+// using keyless signing.
 func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 	s.log.Infof("Verifying reference: %s", reference)
 
-	// TODO: unimplemented
+	if err := s.impl.Setenv("COSIGN_EXPERIMENTAL", "true"); err != nil {
+		return nil, errors.Wrap(err, "enable cosign experimental mode")
+	}
+	defer func() {
+		if err := s.impl.Setenv("COSIGN_EXPERIMENTAL", ""); err != nil {
+			s.log.Errorf("Unable to unset cosign experimental mode: %v", err)
+		}
+	}()
 
-	return &SignedObject{}, nil
+	ctx, cancel := context.WithTimeout(context.Background(), s.options.Timeout)
+	defer cancel()
+	images := []string{reference}
+	object, err := s.impl.VerifyImageInternal(ctx, s.options.PublicKeyPath, images)
+	if err != nil {
+		return nil, errors.Wrapf(err, "verify image reference: %s", images)
+	}
+	return object, nil
 }
 
 // VerifyFile can be used to validate any provided file path.

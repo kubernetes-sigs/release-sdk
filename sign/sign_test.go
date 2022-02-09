@@ -176,9 +176,40 @@ func TestVerifyImage(t *testing.T) {
 	}{
 		{ // Success
 			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, err)
+			},
+		},
+		{ // Success with failed unset experimental
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
+				mock.SetenvReturnsOnCall(1, errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, obj)
+				require.Empty(t, obj.Reference())
+				require.Empty(t, obj.Digest())
+				require.Nil(t, err)
+			},
+		},
+		{ // Failure on Verify
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyImageInternalReturns(nil, errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, err)
+				require.Nil(t, obj)
+			},
+		},
+		{ // Failure on set experimental
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.SetenvReturns(errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, err)
+				require.Nil(t, obj)
 			},
 		},
 	} {
@@ -188,7 +219,7 @@ func TestVerifyImage(t *testing.T) {
 		sut := sign.New(sign.Default())
 		sut.SetImpl(mock)
 
-		obj, err := sut.VerifyImage("")
+		obj, err := sut.VerifyImage("gcr.io/fake/honk:99.99.99")
 		tc.assert(obj, err)
 	}
 }

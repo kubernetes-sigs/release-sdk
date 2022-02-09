@@ -38,7 +38,7 @@ const (
 
 type cleanupFn func() error
 
-func generateCosignKeyPair(t *testing.T, getPassFunc cosign.PassFunc) (string, cleanupFn) {
+func generateCosignKeyPair(t *testing.T, getPassFunc cosign.PassFunc) (privateKeyPath, publicKeyPath string, fn cleanupFn) {
 	tempDir, err := os.MkdirTemp("", "k8s-cosign-keys-")
 	require.Nil(t, err)
 
@@ -46,16 +46,17 @@ func generateCosignKeyPair(t *testing.T, getPassFunc cosign.PassFunc) (string, c
 	require.Nil(t, err)
 	require.NotNil(t, keys)
 
-	keyPath := filepath.Join(tempDir, "cosign.key")
-	err = os.WriteFile(keyPath, keys.PrivateBytes, 0o600)
+	privateKeyPath = filepath.Join(tempDir, "cosign.key")
+	err = os.WriteFile(privateKeyPath, keys.PrivateBytes, 0o600)
 	require.Nil(t, err)
 
-	err = os.WriteFile(filepath.Join(tempDir, "cosign.pub"), keys.PublicBytes, 0o644)
+	publicKeyPath = filepath.Join(tempDir, "cosign.pub")
+	err = os.WriteFile(publicKeyPath, keys.PublicBytes, 0o644)
 	require.Nil(t, err)
-
-	return keyPath, func() error {
+	cleanupFn := func() error {
 		return os.RemoveAll(tempDir)
 	}
+	return privateKeyPath, publicKeyPath, cleanupFn
 }
 
 func TestSuccessSignImage(t *testing.T) {
@@ -68,13 +69,14 @@ func TestSuccessSignImage(t *testing.T) {
 	}
 
 	// TODO(xmudrii): This can be removed once cosign 1.5.2 or newer is available
-	keyPath, cleanup := generateCosignKeyPair(t, getPass)
+	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t, getPass)
 	defer func() {
 		require.Nil(t, cleanup())
 	}()
 
 	opts := sign.Default()
-	opts.KeyPath = keyPath
+	opts.PrivateKeyPath = privateKeyPath
+	opts.PublicKeyPath = publicKeyPath
 	opts.PassFunc = getPass
 
 	signer := sign.New(opts)
@@ -82,7 +84,6 @@ func TestSuccessSignImage(t *testing.T) {
 	signedObject, err := signer.SignImage(reg.ImageName)
 	require.Nil(t, err)
 	require.NotNil(t, signedObject)
-
 	verifiedObject, err := signer.VerifyImage(reg.ImageName)
 	require.Nil(t, err)
 	require.NotNil(t, verifiedObject)
@@ -106,13 +107,14 @@ func TestSuccessSignFile(t *testing.T) {
 	}
 
 	// TODO(xmudrii): This can be removed once cosign 1.5.2 or newer is available
-	keyPath, cleanup := generateCosignKeyPair(t, getPass)
+	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t, getPass)
 	defer func() {
 		require.Nil(t, cleanup())
 	}()
 
 	opts := sign.Default()
-	opts.KeyPath = keyPath
+	opts.PrivateKeyPath = privateKeyPath
+	opts.PublicKeyPath = publicKeyPath
 	opts.PassFunc = getPass
 	opts.OutputCertificatePath = testFileSigPath
 
