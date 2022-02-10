@@ -17,6 +17,7 @@ limitations under the License.
 package github_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -496,6 +497,64 @@ func TestCreateIssue(t *testing.T) {
 			require.Nil(t, err)
 			require.NotNil(t, newissue)
 			require.Equal(t, fakeID, issue.GetNumber())
+		} else {
+			require.NotNil(t, err)
+		}
+	}
+}
+
+func TestUpdateIssue(t *testing.T) {
+	// Given
+	sut, client := newSUT()
+	fakeID := 100000
+	title := "Test Issue"
+	body := "Issue body text"
+	opts := &github.NewIssueOptions{
+		Assignees: []string{"k8s-ci-robot"},
+		Milestone: "v1.21",
+		State:     "open",
+		Labels:    []string{"bug"},
+	}
+	issue := &gogithub.Issue{
+		Number: &fakeID,
+		State:  &opts.State,
+		Title:  &title,
+		Body:   &body,
+	}
+
+	updatedtitle := "Test Issue updated"
+	updatedopts := &github.NewIssueOptions{
+		State: "closed",
+	}
+	updatedIssue := &gogithub.Issue{
+		Number: &fakeID,
+		State:  &updatedopts.State,
+		Title:  &updatedtitle,
+		Body:   &body,
+	}
+
+	issueRequest := &gogithub.IssueRequest{}
+
+	for _, tcErr := range []error{errors.New("Test error"), nil} {
+		// When
+		client.CreateIssueReturns(issue, tcErr)
+		newissue, err := sut.CreateIssue("kubernetes-fake-org", "kubernetes-fake-repo", title, body, opts)
+		if tcErr == nil {
+			require.Nil(t, err)
+			require.NotNil(t, newissue)
+			require.Equal(t, fakeID, issue.GetNumber())
+		} else {
+			require.NotNil(t, err)
+		}
+
+		client.UpdateIssueReturns(updatedIssue, nil, tcErr)
+		updatedIssue, _, err := client.UpdateIssue(context.Background(), "kubernetes-fake-org", "kubernetes-fake-repo", newissue.GetNumber(), issueRequest)
+
+		// Then
+		if tcErr == nil {
+			require.Nil(t, err)
+			require.NotNil(t, updatedIssue)
+			require.Equal(t, updatedopts.State, updatedIssue.GetState())
 		} else {
 			require.NotNil(t, err)
 		}

@@ -36,6 +36,7 @@ const (
 	gitHubAPIGetCommit                  gitHubAPI = "GetCommit"
 	gitHubAPIGetPullRequest             gitHubAPI = "GetPullRequest"
 	gitHubAPIGetIssue                   gitHubAPI = "GetIssue"
+	gitHubAPIUpdateIssue                gitHubAPI = "UpdateIssue"
 	gitHubAPIGetRepoCommit              gitHubAPI = "GetRepoCommit"
 	gitHubAPIListCommits                gitHubAPI = "ListCommits"
 	gitHubAPIListPullRequestsWithCommit gitHubAPI = "ListPullRequestsWithCommit"
@@ -123,6 +124,17 @@ func (c *githubNotesRecordClient) GetIssue(ctx context.Context, owner, repo stri
 		return nil, nil, err
 	}
 	if err := c.recordAPICall(gitHubAPIGetIssue, issue, resp); err != nil {
+		return nil, nil, err
+	}
+	return issue, resp, nil
+}
+
+func (c *githubNotesRecordClient) UpdateIssue(ctx context.Context, owner, repo string, number int, issueRequest *github.IssueRequest) (*github.Issue, *github.Response, error) {
+	issue, resp, err := c.client.UpdateIssue(ctx, owner, repo, number, issueRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := c.recordAPICall(gitHubAPIUpdateIssue, issue, resp); err != nil {
 		return nil, nil, err
 	}
 	return issue, resp, nil
