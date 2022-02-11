@@ -106,6 +106,19 @@ func (c *githubNotesReplayClient) GetIssue(ctx context.Context, owner, repo stri
 	return result, record.response(), nil
 }
 
+func (c *githubNotesReplayClient) UpdateIssue(ctx context.Context, owner, repo string, number int, issueRequest *github.IssueRequest) (*github.Issue, *github.Response, error) {
+	data, err := c.readRecordedData(gitHubAPIUpdateIssue)
+	if err != nil {
+		return nil, nil, err
+	}
+	result := &github.Issue{}
+	record := apiRecord{Result: result}
+	if err := json.Unmarshal(data, &record); err != nil {
+		return nil, nil, err
+	}
+	return result, record.response(), nil
+}
+
 func (c *githubNotesReplayClient) GetRepoCommit(ctx context.Context, owner, repo, sha string) (*github.RepositoryCommit, *github.Response, error) {
 	data, err := c.readRecordedData(gitHubAPIGetRepoCommit)
 	if err != nil {

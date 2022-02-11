@@ -347,6 +347,25 @@ type FakeClient struct {
 		result2 *githuba.Response
 		result3 error
 	}
+	UpdateIssueStub        func(context.Context, string, string, int, *githuba.IssueRequest) (*githuba.Issue, *githuba.Response, error)
+	updateIssueMutex       sync.RWMutex
+	updateIssueArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int
+		arg5 *githuba.IssueRequest
+	}
+	updateIssueReturns struct {
+		result1 *githuba.Issue
+		result2 *githuba.Response
+		result3 error
+	}
+	updateIssueReturnsOnCall map[int]struct {
+		result1 *githuba.Issue
+		result2 *githuba.Response
+		result3 error
+	}
 	UpdateReleasePageStub        func(context.Context, string, string, int64, *githuba.RepositoryRelease) (*githuba.RepositoryRelease, error)
 	updateReleasePageMutex       sync.RWMutex
 	updateReleasePageArgsForCall []struct {
@@ -1636,6 +1655,77 @@ func (fake *FakeClient) ListTagsReturnsOnCall(i int, result1 []*githuba.Reposito
 	}{result1, result2, result3}
 }
 
+func (fake *FakeClient) UpdateIssue(arg1 context.Context, arg2 string, arg3 string, arg4 int, arg5 *githuba.IssueRequest) (*githuba.Issue, *githuba.Response, error) {
+	fake.updateIssueMutex.Lock()
+	ret, specificReturn := fake.updateIssueReturnsOnCall[len(fake.updateIssueArgsForCall)]
+	fake.updateIssueArgsForCall = append(fake.updateIssueArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int
+		arg5 *githuba.IssueRequest
+	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.UpdateIssueStub
+	fakeReturns := fake.updateIssueReturns
+	fake.recordInvocation("UpdateIssue", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.updateIssueMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeClient) UpdateIssueCallCount() int {
+	fake.updateIssueMutex.RLock()
+	defer fake.updateIssueMutex.RUnlock()
+	return len(fake.updateIssueArgsForCall)
+}
+
+func (fake *FakeClient) UpdateIssueCalls(stub func(context.Context, string, string, int, *githuba.IssueRequest) (*githuba.Issue, *githuba.Response, error)) {
+	fake.updateIssueMutex.Lock()
+	defer fake.updateIssueMutex.Unlock()
+	fake.UpdateIssueStub = stub
+}
+
+func (fake *FakeClient) UpdateIssueArgsForCall(i int) (context.Context, string, string, int, *githuba.IssueRequest) {
+	fake.updateIssueMutex.RLock()
+	defer fake.updateIssueMutex.RUnlock()
+	argsForCall := fake.updateIssueArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+}
+
+func (fake *FakeClient) UpdateIssueReturns(result1 *githuba.Issue, result2 *githuba.Response, result3 error) {
+	fake.updateIssueMutex.Lock()
+	defer fake.updateIssueMutex.Unlock()
+	fake.UpdateIssueStub = nil
+	fake.updateIssueReturns = struct {
+		result1 *githuba.Issue
+		result2 *githuba.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeClient) UpdateIssueReturnsOnCall(i int, result1 *githuba.Issue, result2 *githuba.Response, result3 error) {
+	fake.updateIssueMutex.Lock()
+	defer fake.updateIssueMutex.Unlock()
+	fake.UpdateIssueStub = nil
+	if fake.updateIssueReturnsOnCall == nil {
+		fake.updateIssueReturnsOnCall = make(map[int]struct {
+			result1 *githuba.Issue
+			result2 *githuba.Response
+			result3 error
+		})
+	}
+	fake.updateIssueReturnsOnCall[i] = struct {
+		result1 *githuba.Issue
+		result2 *githuba.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
 func (fake *FakeClient) UpdateReleasePage(arg1 context.Context, arg2 string, arg3 string, arg4 int64, arg5 *githuba.RepositoryRelease) (*githuba.RepositoryRelease, error) {
 	fake.updateReleasePageMutex.Lock()
 	ret, specificReturn := fake.updateReleasePageReturnsOnCall[len(fake.updateReleasePageArgsForCall)]
@@ -1812,6 +1902,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.listReleasesMutex.RUnlock()
 	fake.listTagsMutex.RLock()
 	defer fake.listTagsMutex.RUnlock()
+	fake.updateIssueMutex.RLock()
+	defer fake.updateIssueMutex.RUnlock()
 	fake.updateReleasePageMutex.RLock()
 	defer fake.updateReleasePageMutex.RUnlock()
 	fake.uploadReleaseAssetMutex.RLock()

@@ -125,6 +125,9 @@ type Client interface {
 	UpdateReleasePage(
 		context.Context, string, string, int64, *github.RepositoryRelease,
 	) (*github.RepositoryRelease, error)
+	UpdateIssue(
+		context.Context, string, string, int, *github.IssueRequest,
+	) (*github.Issue, *github.Response, error)
 	UploadReleaseAsset(
 		context.Context, string, string, int64, *github.UploadOptions, *os.File,
 	) (*github.ReleaseAsset, error)
@@ -1011,4 +1014,15 @@ func (g *GitHub) ListTags(owner, repo string) ([]*github.RepositoryTag, error) {
 		options.Page = r.NextPage
 	}
 	return tags, nil
+}
+
+func (g *githubClient) UpdateIssue(
+	ctx context.Context, owner, repo string, number int, issueRequest *github.IssueRequest,
+) (*github.Issue, *github.Response, error) {
+	for shouldRetry := internal.DefaultGithubErrChecker(); ; {
+		issue, resp, err := g.Issues.Edit(ctx, owner, repo, number, issueRequest)
+		if !shouldRetry(err) {
+			return issue, resp, err
+		}
+	}
 }
