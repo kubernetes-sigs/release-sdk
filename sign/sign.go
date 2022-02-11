@@ -157,7 +157,44 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 func (s *Signer) SignFile(path string) (*SignedObject, error) {
 	s.log().Infof("Signing file path: %s", path)
 
-	// TODO: unimplemented
+	resetFn, err := s.enableExperimental()
+	if err != nil {
+		return nil, err
+	}
+	defer resetFn()
+
+	ko := sign.KeyOpts{
+		KeyRef:     s.options.PrivateKeyPath,
+		PassFunc:   s.options.PassFunc,
+		FulcioURL:  cliOpts.DefaultFulcioURL,
+		RekorURL:   cliOpts.DefaultRekorURL,
+		OIDCIssuer: cliOpts.DefaultOIDCIssuerURL,
+
+		InsecureSkipFulcioVerify: false,
+	}
+
+	regOpts := cliOpts.RegistryOptions{
+		AllowInsecure: s.options.AllowInsecure,
+	}
+
+	outputSignature := ""
+	if s.options.OutputSignaturePath != "" {
+		outputSignature = s.options.OutputSignaturePath
+	}
+
+	outputCertificate := ""
+	if s.options.OutputCertificatePath != "" {
+		outputCertificate = s.options.OutputCertificatePath
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), s.options.Timeout)
+	defer cancel()
+
+	if err := s.impl.SignFileInternal(ctx, ko, regOpts, path,
+		true, outputSignature, outputCertificate,
+	); err != nil {
+		return nil, errors.Wrapf(err, "sign file path: %s", path)
+	}
 
 	object, err := s.impl.VerifyFileInternal(s, path)
 	if err != nil {
