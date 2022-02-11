@@ -123,12 +123,12 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	images := []string{reference}
 
 	outputSignature := ""
-	if s.options.OutputSignaturePath == "" {
+	if s.options.OutputSignaturePath != "" {
 		outputSignature = s.options.OutputSignaturePath
 	}
 
 	outputCertificate := ""
-	if s.options.OutputCertificatePath == "" {
+	if s.options.OutputCertificatePath != "" {
 		outputCertificate = s.options.OutputCertificatePath
 	}
 
