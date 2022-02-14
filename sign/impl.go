@@ -25,7 +25,8 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sigstore/cosign/cmd/cosign/cli/verify"
-	"github.com/sigstore/cosign/pkg/cosign"
+	ociremote "github.com/sigstore/cosign/pkg/oci/remote"
+
 	"sigs.k8s.io/release-utils/env"
 )
 
@@ -73,8 +74,9 @@ func (*defaultImpl) EnvDefault(key, def string) string {
 	return env.Default(key, def)
 }
 
-// IsImageSignedInternal makes a call to the registry to check
-// if there are signatures available for a given reference.
+// IsImageSignedInternal makes a request to the registry to check
+// if there are signatures available for a given reference. Returns
+// true if signatures are found, false otherwise.
 func (*defaultImpl) IsImageSignedInternal(
 	ctx context.Context, imageRef string,
 ) (bool, error) {
@@ -83,9 +85,19 @@ func (*defaultImpl) IsImageSignedInternal(
 		return false, errors.Wrap(err, "parsing image reference")
 	}
 
-	signatures, err := cosign.FetchSignaturesForReference(ctx, ref)
+	simg, err := ociremote.SignedEntity(ref)
 	if err != nil {
-		return false, errors.Wrap(err, "fetching signarures")
+		return false, errors.Wrap(err, "getting signed entity from image reference")
+	}
+
+	sigs, err := simg.Signatures()
+	if err != nil {
+		return false, errors.Wrap(err, "remote image")
+	}
+
+	signatures, err := sigs.Get()
+	if err != nil {
+		return false, errors.Wrap(err, "fetching signatures")
 	}
 
 	return len(signatures) > 0, nil

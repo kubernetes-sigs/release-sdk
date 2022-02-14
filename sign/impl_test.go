@@ -35,8 +35,8 @@ func TestIsImageSigned(t *testing.T) {
 			"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2", true, false,
 		},
 		{
-			// k8s/pause ~feb 13 2022. mot signed
-			"k8s.gcr.io/pause@sha256:a78c2d6208eff9b672de43f880093100050983047b7b0afe0217d3656e1b0d5f", false, true,
+			// k8s/pause ~feb 13 2022. not signed
+			"k8s.gcr.io/pause@sha256:a78c2d6208eff9b672de43f880093100050983047b7b0afe0217d3656e1b0d5f", false, false,
 		},
 		{
 			// nonexistent image, must fail
