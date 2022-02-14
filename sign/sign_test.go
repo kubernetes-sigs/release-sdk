@@ -249,3 +249,48 @@ func TestVerifyFile(t *testing.T) {
 		tc.assert(obj, err)
 	}
 }
+
+func TestIsImageSigned(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		prepare func(*signfakes.FakeImpl)
+		assert  func(bool, error)
+	}{
+		{ // Success, signed
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.IsImageSignedInternalReturns(true, nil)
+			},
+			assert: func(signed bool, err error) {
+				require.True(t, signed)
+				require.Nil(t, err)
+			},
+		},
+		{ // Success, not signed
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.IsImageSignedInternalReturns(false, nil)
+			},
+			assert: func(signed bool, err error) {
+				require.False(t, signed)
+				require.Nil(t, err)
+			},
+		},
+		{ // IsImageSignedInternal errors
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.IsImageSignedInternalReturns(false, errTest)
+			},
+			assert: func(signed bool, err error) {
+				require.Error(t, err)
+			},
+		},
+	} {
+		mock := &signfakes.FakeImpl{}
+		tc.prepare(mock)
+
+		sut := sign.New(sign.Default())
+		sut.SetImpl(mock)
+
+		res, err := sut.IsImageSigned("")
+		tc.assert(res, err)
+	}
+}
