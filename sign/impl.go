@@ -20,9 +20,12 @@ import (
 	"context"
 	"os"
 
+	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/pkg/errors"
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sigstore/cosign/cmd/cosign/cli/verify"
+	"github.com/sigstore/cosign/pkg/cosign"
 	"sigs.k8s.io/release-utils/env"
 )
 
@@ -34,6 +37,7 @@ type defaultImpl struct{}
 type impl interface {
 	VerifyFileInternal(*Signer, string) (*SignedObject, error)
 	VerifyImageInternal(ctx context.Context, keyPath string, images []string) (*SignedObject, error)
+	IsImageSignedInternal(context.Context, string) (bool, error)
 	SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions,
 		annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 		outputSignature string, outputCertificate string, payloadPath string, force bool,
@@ -67,4 +71,22 @@ func (*defaultImpl) Setenv(key, value string) error {
 
 func (*defaultImpl) EnvDefault(key, def string) string {
 	return env.Default(key, def)
+}
+
+// IsImageSignedInternal makes a call to the registry to check
+// if there are signatures available for a given reference.
+func (*defaultImpl) IsImageSignedInternal(
+	ctx context.Context, imageRef string,
+) (bool, error) {
+	ref, err := name.ParseReference(imageRef)
+	if err != nil {
+		return false, errors.Wrap(err, "parsing image reference")
+	}
+
+	signatures, err := cosign.FetchSignaturesForReference(ctx, ref)
+	if err != nil {
+		return false, errors.Wrap(err, "fetching signarures")
+	}
+
+	return len(signatures) > 0, nil
 }
