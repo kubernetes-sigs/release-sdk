@@ -39,6 +39,20 @@ type FakeImpl struct {
 	envDefaultReturnsOnCall map[int]struct {
 		result1 string
 	}
+	IsImageSignedInternalStub        func(context.Context, string) (bool, error)
+	isImageSignedInternalMutex       sync.RWMutex
+	isImageSignedInternalArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	isImageSignedInternalReturns struct {
+		result1 bool
+		result2 error
+	}
+	isImageSignedInternalReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	SetenvStub        func(string, string) error
 	setenvMutex       sync.RWMutex
 	setenvArgsForCall []struct {
@@ -167,6 +181,71 @@ func (fake *FakeImpl) EnvDefaultReturnsOnCall(i int, result1 string) {
 	fake.envDefaultReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
+}
+
+func (fake *FakeImpl) IsImageSignedInternal(arg1 context.Context, arg2 string) (bool, error) {
+	fake.isImageSignedInternalMutex.Lock()
+	ret, specificReturn := fake.isImageSignedInternalReturnsOnCall[len(fake.isImageSignedInternalArgsForCall)]
+	fake.isImageSignedInternalArgsForCall = append(fake.isImageSignedInternalArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.IsImageSignedInternalStub
+	fakeReturns := fake.isImageSignedInternalReturns
+	fake.recordInvocation("IsImageSignedInternal", []interface{}{arg1, arg2})
+	fake.isImageSignedInternalMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeImpl) IsImageSignedInternalCallCount() int {
+	fake.isImageSignedInternalMutex.RLock()
+	defer fake.isImageSignedInternalMutex.RUnlock()
+	return len(fake.isImageSignedInternalArgsForCall)
+}
+
+func (fake *FakeImpl) IsImageSignedInternalCalls(stub func(context.Context, string) (bool, error)) {
+	fake.isImageSignedInternalMutex.Lock()
+	defer fake.isImageSignedInternalMutex.Unlock()
+	fake.IsImageSignedInternalStub = stub
+}
+
+func (fake *FakeImpl) IsImageSignedInternalArgsForCall(i int) (context.Context, string) {
+	fake.isImageSignedInternalMutex.RLock()
+	defer fake.isImageSignedInternalMutex.RUnlock()
+	argsForCall := fake.isImageSignedInternalArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeImpl) IsImageSignedInternalReturns(result1 bool, result2 error) {
+	fake.isImageSignedInternalMutex.Lock()
+	defer fake.isImageSignedInternalMutex.Unlock()
+	fake.IsImageSignedInternalStub = nil
+	fake.isImageSignedInternalReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) IsImageSignedInternalReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.isImageSignedInternalMutex.Lock()
+	defer fake.isImageSignedInternalMutex.Unlock()
+	fake.IsImageSignedInternalStub = nil
+	if fake.isImageSignedInternalReturnsOnCall == nil {
+		fake.isImageSignedInternalReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.isImageSignedInternalReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeImpl) Setenv(arg1 string, arg2 string) error {
@@ -450,6 +529,8 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.envDefaultMutex.RLock()
 	defer fake.envDefaultMutex.RUnlock()
+	fake.isImageSignedInternalMutex.RLock()
+	defer fake.isImageSignedInternalMutex.RUnlock()
 	fake.setenvMutex.RLock()
 	defer fake.setenvMutex.RUnlock()
 	fake.signImageInternalMutex.RLock()

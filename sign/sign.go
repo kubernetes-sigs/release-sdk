@@ -177,3 +177,13 @@ func (s *Signer) enableExperimental() (resetFn func(), err error) {
 		}
 	}, nil
 }
+
+// IsImageSigned takes an image reference and returns true if there are
+// signatures available for it. It makes no signature verification, only
+// checks to see if more than one signature is available.
+func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), s.options.Timeout)
+	defer cancel()
+
+	return s.impl.IsImageSignedInternal(ctx, imageRef)
+}
