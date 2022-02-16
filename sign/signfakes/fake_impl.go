@@ -88,6 +88,19 @@ type FakeImpl struct {
 	signImageInternalReturnsOnCall map[int]struct {
 		result1 error
 	}
+	TokenFromProvidersStub        func(context.Context) (string, error)
+	tokenFromProvidersMutex       sync.RWMutex
+	tokenFromProvidersArgsForCall []struct {
+		arg1 context.Context
+	}
+	tokenFromProvidersReturns struct {
+		result1 string
+		result2 error
+	}
+	tokenFromProvidersReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	VerifyFileInternalStub        func(*sign.Signer, string) (*sign.SignedObject, error)
 	verifyFileInternalMutex       sync.RWMutex
 	verifyFileInternalArgsForCall []struct {
@@ -388,6 +401,70 @@ func (fake *FakeImpl) SignImageInternalReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeImpl) TokenFromProviders(arg1 context.Context) (string, error) {
+	fake.tokenFromProvidersMutex.Lock()
+	ret, specificReturn := fake.tokenFromProvidersReturnsOnCall[len(fake.tokenFromProvidersArgsForCall)]
+	fake.tokenFromProvidersArgsForCall = append(fake.tokenFromProvidersArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.TokenFromProvidersStub
+	fakeReturns := fake.tokenFromProvidersReturns
+	fake.recordInvocation("TokenFromProviders", []interface{}{arg1})
+	fake.tokenFromProvidersMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeImpl) TokenFromProvidersCallCount() int {
+	fake.tokenFromProvidersMutex.RLock()
+	defer fake.tokenFromProvidersMutex.RUnlock()
+	return len(fake.tokenFromProvidersArgsForCall)
+}
+
+func (fake *FakeImpl) TokenFromProvidersCalls(stub func(context.Context) (string, error)) {
+	fake.tokenFromProvidersMutex.Lock()
+	defer fake.tokenFromProvidersMutex.Unlock()
+	fake.TokenFromProvidersStub = stub
+}
+
+func (fake *FakeImpl) TokenFromProvidersArgsForCall(i int) context.Context {
+	fake.tokenFromProvidersMutex.RLock()
+	defer fake.tokenFromProvidersMutex.RUnlock()
+	argsForCall := fake.tokenFromProvidersArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeImpl) TokenFromProvidersReturns(result1 string, result2 error) {
+	fake.tokenFromProvidersMutex.Lock()
+	defer fake.tokenFromProvidersMutex.Unlock()
+	fake.TokenFromProvidersStub = nil
+	fake.tokenFromProvidersReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) TokenFromProvidersReturnsOnCall(i int, result1 string, result2 error) {
+	fake.tokenFromProvidersMutex.Lock()
+	defer fake.tokenFromProvidersMutex.Unlock()
+	fake.TokenFromProvidersStub = nil
+	if fake.tokenFromProvidersReturnsOnCall == nil {
+		fake.tokenFromProvidersReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.tokenFromProvidersReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeImpl) VerifyFileInternal(arg1 *sign.Signer, arg2 string) (*sign.SignedObject, error) {
 	fake.verifyFileInternalMutex.Lock()
 	ret, specificReturn := fake.verifyFileInternalReturnsOnCall[len(fake.verifyFileInternalArgsForCall)]
@@ -535,6 +612,8 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	defer fake.setenvMutex.RUnlock()
 	fake.signImageInternalMutex.RLock()
 	defer fake.signImageInternalMutex.RUnlock()
+	fake.tokenFromProvidersMutex.RLock()
+	defer fake.tokenFromProvidersMutex.RUnlock()
 	fake.verifyFileInternalMutex.RLock()
 	defer fake.verifyFileInternalMutex.RUnlock()
 	fake.verifyImageInternalMutex.RLock()
