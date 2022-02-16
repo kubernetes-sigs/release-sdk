@@ -113,7 +113,7 @@ func (*defaultImpl) IsImageSignedInternal(
 // TokenFromProviders will try the cosign OIDC providers to get an
 // oidc token from them.
 func (di *defaultImpl) TokenFromProviders(ctx context.Context) (string, error) {
-	if !providers.Enabled(ctx) {
+	if !di.IdentityProvidersEnabled(ctx) {
 		di.log.Warn("No OIDC provider enabled. Token cannot be obtained autmatically.")
 		return "", nil
 	}
@@ -128,4 +128,11 @@ func (di *defaultImpl) TokenFromProviders(ctx context.Context) (string, error) {
 // FileExists returns true if a file exists
 func (*defaultImpl) FileExists(path string) bool {
 	return util.Exists(path)
+}
+
+// IdentityProvidersEnabled returns true if any of the cosign
+// identity providers is able to obteain an OIDC identity token
+// suitable for keyless signing,
+func (*defaultImpl) IdentityProvidersEnabled(ctx context.Context) bool {
+	return providers.Enabled(ctx)
 }
