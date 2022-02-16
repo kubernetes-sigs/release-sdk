@@ -128,6 +128,9 @@ type Client interface {
 	UpdateIssue(
 		context.Context, string, string, int, *github.IssueRequest,
 	) (*github.Issue, *github.Response, error)
+	AddLabels(
+		context.Context, string, string, int, []string,
+	) ([]*github.Label, *github.Response, error)
 	UploadReleaseAsset(
 		context.Context, string, string, int64, *github.UploadOptions, *os.File,
 	) (*github.ReleaseAsset, error)
@@ -1023,6 +1026,17 @@ func (g *githubClient) UpdateIssue(
 		issue, resp, err := g.Issues.Edit(ctx, owner, repo, number, issueRequest)
 		if !shouldRetry(err) {
 			return issue, resp, err
+		}
+	}
+}
+
+func (g *githubClient) AddLabels(
+	ctx context.Context, owner, repo string, number int, labels []string,
+) ([]*github.Label, *github.Response, error) {
+	for shouldRetry := internal.DefaultGithubErrChecker(); ; {
+		appliedLabels, resp, err := g.Issues.AddLabelsToIssue(ctx, owner, repo, number, labels)
+		if !shouldRetry(err) {
+			return appliedLabels, resp, err
 		}
 	}
 }

@@ -119,6 +119,19 @@ func (c *githubNotesReplayClient) UpdateIssue(ctx context.Context, owner, repo s
 	return result, record.response(), nil
 }
 
+func (c *githubNotesReplayClient) AddLabels(ctx context.Context, owner, repo string, number int, labels []string) ([]*github.Label, *github.Response, error) {
+	data, err := c.readRecordedData(gitHubAPIAddLabels)
+	if err != nil {
+		return nil, nil, err
+	}
+	result := []*github.Label{}
+	record := apiRecord{Result: result}
+	if err := json.Unmarshal(data, &record); err != nil {
+		return nil, nil, err
+	}
+	return result, record.response(), nil
+}
+
 func (c *githubNotesReplayClient) GetRepoCommit(ctx context.Context, owner, repo, sha string) (*github.RepositoryCommit, *github.Response, error) {
 	data, err := c.readRecordedData(gitHubAPIGetRepoCommit)
 	if err != nil {

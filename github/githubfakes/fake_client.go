@@ -28,6 +28,25 @@ import (
 )
 
 type FakeClient struct {
+	AddLabelsStub        func(context.Context, string, string, int, []string) ([]*githuba.Label, *githuba.Response, error)
+	addLabelsMutex       sync.RWMutex
+	addLabelsArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int
+		arg5 []string
+	}
+	addLabelsReturns struct {
+		result1 []*githuba.Label
+		result2 *githuba.Response
+		result3 error
+	}
+	addLabelsReturnsOnCall map[int]struct {
+		result1 []*githuba.Label
+		result2 *githuba.Response
+		result3 error
+	}
 	CreateCommentStub        func(context.Context, string, string, int, string) (*githuba.IssueComment, *githuba.Response, error)
 	createCommentMutex       sync.RWMutex
 	createCommentArgsForCall []struct {
@@ -403,6 +422,82 @@ type FakeClient struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeClient) AddLabels(arg1 context.Context, arg2 string, arg3 string, arg4 int, arg5 []string) ([]*githuba.Label, *githuba.Response, error) {
+	var arg5Copy []string
+	if arg5 != nil {
+		arg5Copy = make([]string, len(arg5))
+		copy(arg5Copy, arg5)
+	}
+	fake.addLabelsMutex.Lock()
+	ret, specificReturn := fake.addLabelsReturnsOnCall[len(fake.addLabelsArgsForCall)]
+	fake.addLabelsArgsForCall = append(fake.addLabelsArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int
+		arg5 []string
+	}{arg1, arg2, arg3, arg4, arg5Copy})
+	stub := fake.AddLabelsStub
+	fakeReturns := fake.addLabelsReturns
+	fake.recordInvocation("AddLabels", []interface{}{arg1, arg2, arg3, arg4, arg5Copy})
+	fake.addLabelsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeClient) AddLabelsCallCount() int {
+	fake.addLabelsMutex.RLock()
+	defer fake.addLabelsMutex.RUnlock()
+	return len(fake.addLabelsArgsForCall)
+}
+
+func (fake *FakeClient) AddLabelsCalls(stub func(context.Context, string, string, int, []string) ([]*githuba.Label, *githuba.Response, error)) {
+	fake.addLabelsMutex.Lock()
+	defer fake.addLabelsMutex.Unlock()
+	fake.AddLabelsStub = stub
+}
+
+func (fake *FakeClient) AddLabelsArgsForCall(i int) (context.Context, string, string, int, []string) {
+	fake.addLabelsMutex.RLock()
+	defer fake.addLabelsMutex.RUnlock()
+	argsForCall := fake.addLabelsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+}
+
+func (fake *FakeClient) AddLabelsReturns(result1 []*githuba.Label, result2 *githuba.Response, result3 error) {
+	fake.addLabelsMutex.Lock()
+	defer fake.addLabelsMutex.Unlock()
+	fake.AddLabelsStub = nil
+	fake.addLabelsReturns = struct {
+		result1 []*githuba.Label
+		result2 *githuba.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeClient) AddLabelsReturnsOnCall(i int, result1 []*githuba.Label, result2 *githuba.Response, result3 error) {
+	fake.addLabelsMutex.Lock()
+	defer fake.addLabelsMutex.Unlock()
+	fake.AddLabelsStub = nil
+	if fake.addLabelsReturnsOnCall == nil {
+		fake.addLabelsReturnsOnCall = make(map[int]struct {
+			result1 []*githuba.Label
+			result2 *githuba.Response
+			result3 error
+		})
+	}
+	fake.addLabelsReturnsOnCall[i] = struct {
+		result1 []*githuba.Label
+		result2 *githuba.Response
+		result3 error
+	}{result1, result2, result3}
 }
 
 func (fake *FakeClient) CreateComment(arg1 context.Context, arg2 string, arg3 string, arg4 int, arg5 string) (*githuba.IssueComment, *githuba.Response, error) {
@@ -1866,6 +1961,8 @@ func (fake *FakeClient) UploadReleaseAssetReturnsOnCall(i int, result1 *githuba.
 func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.addLabelsMutex.RLock()
+	defer fake.addLabelsMutex.RUnlock()
 	fake.createCommentMutex.RLock()
 	defer fake.createCommentMutex.RUnlock()
 	fake.createIssueMutex.RLock()
