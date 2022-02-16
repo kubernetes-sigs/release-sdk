@@ -26,6 +26,8 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sigstore/cosign/cmd/cosign/cli/verify"
 	ociremote "github.com/sigstore/cosign/pkg/oci/remote"
+	"github.com/sigstore/cosign/pkg/providers"
+	"github.com/sirupsen/logrus"
 
 	"sigs.k8s.io/release-utils/env"
 )
@@ -45,6 +47,7 @@ type impl interface {
 		recursive bool, attachment string) error
 	Setenv(string, string) error
 	EnvDefault(string, string) string
+	TokenFromProviders(context.Context) (string, error)
 }
 
 func (*defaultImpl) VerifyFileInternal(signer *Signer, path string) (*SignedObject, error) {
@@ -101,4 +104,19 @@ func (*defaultImpl) IsImageSignedInternal(
 	}
 
 	return len(signatures) > 0, nil
+}
+
+// TokenFromProviders will try the cosign OIDC providers to get an
+// oidc token from them.
+func (*defaultImpl) TokenFromProviders(ctx context.Context) (string, error) {
+	if !providers.Enabled(ctx) {
+		logrus.Warn("No OIDC provider enabled. Token cannot be obtained autmatically.")
+		return "", nil
+	}
+
+	tok, err := providers.Provide(ctx, "sigstore")
+	if err != nil {
+		return "", errors.Wrap(err, "fetching oidc token from environment")
+	}
+	return tok, nil
 }
