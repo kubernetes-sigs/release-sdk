@@ -30,6 +30,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"sigs.k8s.io/release-utils/env"
+	"sigs.k8s.io/release-utils/util"
 )
 
 type defaultImpl struct{}
@@ -48,6 +49,7 @@ type impl interface {
 	Setenv(string, string) error
 	EnvDefault(string, string) string
 	TokenFromProviders(context.Context) (string, error)
+	FileExists(string) bool
 }
 
 func (*defaultImpl) VerifyFileInternal(signer *Signer, path string) (*SignedObject, error) {
@@ -119,4 +121,9 @@ func (*defaultImpl) TokenFromProviders(ctx context.Context) (string, error) {
 		return "", errors.Wrap(err, "fetching oidc token from environment")
 	}
 	return tok, nil
+}
+
+// FileExists returns true if a file exists
+func (*defaultImpl) FileExists(path string) bool {
+	return util.Exists(path)
 }

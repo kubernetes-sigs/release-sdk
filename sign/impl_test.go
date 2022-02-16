@@ -18,6 +18,7 @@ package sign
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -51,4 +52,14 @@ func TestIsImageSigned(t *testing.T) {
 			require.NoError(t, err)
 		}
 	}
+}
+
+func TestFileExists(t *testing.T) {
+	f, err := os.CreateTemp("", "test-")
+	require.NoError(t, err)
+	defer os.Remove(f.Name())
+	require.NoError(t, os.WriteFile(f.Name(), []byte("hey"), os.FileMode(0o644)))
+	sut := defaultImpl{}
+	require.True(t, sut.FileExists(f.Name()))
+	require.False(t, sut.FileExists(f.Name()+"a"))
 }

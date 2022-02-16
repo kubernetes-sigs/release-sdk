@@ -22,7 +22,6 @@ import (
 
 	"github.com/sigstore/cosign/cmd/cosign/cli/generate"
 	"github.com/sigstore/cosign/pkg/cosign"
-	"sigs.k8s.io/release-utils/util"
 )
 
 // Options can be used to modify the behavior of the signer.
@@ -75,7 +74,8 @@ func (o *Options) verifySignOptions() error {
 	}
 
 	// Ensure that the private key file exists
-	if o.PrivateKeyPath != "" && !util.Exists(o.PrivateKeyPath) {
+	i := defaultImpl{}
+	if o.PrivateKeyPath != "" && !i.FileExists(o.PrivateKeyPath) {
 		return errors.New("specified private key file not found")
 	}
 	return nil
