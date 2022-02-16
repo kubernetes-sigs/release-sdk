@@ -22,6 +22,7 @@ import (
 
 	"github.com/sigstore/cosign/cmd/cosign/cli/generate"
 	"github.com/sigstore/cosign/pkg/cosign"
+	"github.com/sirupsen/logrus"
 )
 
 // Options can be used to modify the behavior of the signer.
@@ -74,7 +75,9 @@ func (o *Options) verifySignOptions() error {
 	}
 
 	// Ensure that the private key file exists
-	i := defaultImpl{}
+	i := defaultImpl{
+		log: logrus.New(),
+	}
 	if o.PrivateKeyPath != "" && !i.FileExists(o.PrivateKeyPath) {
 		return errors.New("specified private key file not found")
 	}

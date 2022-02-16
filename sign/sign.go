@@ -44,7 +44,9 @@ func New(options *Options) *Signer {
 	}
 
 	return &Signer{
-		impl:    &defaultImpl{},
+		impl: &defaultImpl{
+			log: logger,
+		},
 		options: options,
 		log:     logger,
 	}
