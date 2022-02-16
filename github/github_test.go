@@ -560,3 +560,30 @@ func TestUpdateIssue(t *testing.T) {
 		}
 	}
 }
+
+func TestAddLabels(t *testing.T) {
+	// Given
+	_, client := newSUT()
+	label := "honk-label"
+
+	labelToAdd := []*gogithub.Label{
+		{
+			Name: &label,
+		},
+	}
+
+	for _, tcErr := range []error{errors.New("Test error"), nil} {
+		// When
+		client.AddLabelsReturns(labelToAdd, nil, tcErr)
+		updatedLabel, _, err := client.AddLabels(context.Background(), "kubernetes-fake-org", "kubernetes-fake-repo", 1234, []string{"honk-label"})
+
+		// Then
+		if tcErr == nil {
+			require.Nil(t, err)
+			require.NotNil(t, updatedLabel)
+			require.EqualValues(t, labelToAdd, updatedLabel)
+		} else {
+			require.NotNil(t, err)
+		}
+	}
+}
