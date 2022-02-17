@@ -17,10 +17,12 @@ limitations under the License.
 package sign
 
 import (
+	"errors"
 	"time"
 
 	"github.com/sigstore/cosign/cmd/cosign/cli/generate"
 	"github.com/sigstore/cosign/pkg/cosign"
+	"github.com/sirupsen/logrus"
 )
 
 // Options can be used to modify the behavior of the signer.
@@ -39,6 +41,13 @@ type Options struct {
 	PrivateKeyPath        string
 	PublicKeyPath         string
 
+	// Identity token for keyless signing
+	IdentityToken string
+
+	// EnableTokenProviders tells signer to try to get a
+	// token from the cosign providers when needed.
+	EnableTokenProviders bool
+
 	// PassFunc is a function that returns a slice of bytes that will be used
 	// as a password for decrypting the cosign key. It is used only if PrivateKeyPath
 	// is provided (i.e. it's not used for keyless signing).
@@ -49,7 +58,28 @@ type Options struct {
 // Default returns a default Options instance.
 func Default() *Options {
 	return &Options{
-		Timeout:  3 * time.Minute,
-		PassFunc: generate.GetPass,
+		Timeout:              3 * time.Minute,
+		PassFunc:             generate.GetPass,
+		EnableTokenProviders: true,
 	}
+}
+
+// verifySignOptions checks that options have the minimum settings
+// for signing files or images:
+func (o *Options) verifySignOptions() error {
+	// Our library is not designed to run in interactive mode
+	// this means that we will only support signing if we get a keypair or
+	// identity token to run keyless signing:
+	if o.PrivateKeyPath != "" && o.IdentityToken == "" && !o.EnableTokenProviders {
+		return errors.New("signing can only be done if a key or identity token are set")
+	}
+
+	// Ensure that the private key file exists
+	i := defaultImpl{
+		log: logrus.New(),
+	}
+	if o.PrivateKeyPath != "" && !i.FileExists(o.PrivateKeyPath) {
+		return errors.New("specified private key file not found")
+	}
+	return nil
 }

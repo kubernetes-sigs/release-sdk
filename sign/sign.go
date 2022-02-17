@@ -44,7 +44,9 @@ func New(options *Options) *Signer {
 	}
 
 	return &Signer{
-		impl:    &defaultImpl{},
+		impl: &defaultImpl{
+			log: logger,
+		},
 		options: options,
 		log:     logger,
 	}
@@ -69,14 +71,37 @@ func (s *Signer) UploadBlob(path string) error {
 func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	s.log.Infof("Signing reference: %s", reference)
 
+	// Ensure options to sign are correct
+	if err := s.options.verifySignOptions(); err != nil {
+		return nil, errors.Wrap(err, "checking signing options")
+	}
+
 	resetFn, err := s.enableExperimental()
 	if err != nil {
 		return nil, err
 	}
 	defer resetFn()
 
+	// If we don't have a key path, we must ensure we can get an OIDC
+	// token or there is no way to sign. Depending on the options set,
+	// we may get the ID token from the cosign providers
+	identityToken := ""
+	if s.options.PrivateKeyPath == "" {
+		tok, err := s.identityToken()
+		if err != nil {
+			return nil, errors.Wrap(err, "getting identity token for keyless signing")
+		}
+		identityToken = tok
+		if identityToken == "" {
+			return nil, errors.New(
+				"no private key or identity token are available, unable to sign",
+			)
+		}
+	}
+
 	ko := sign.KeyOpts{
 		KeyRef:     s.options.PrivateKeyPath,
+		IDToken:    identityToken,
 		PassFunc:   s.options.PassFunc,
 		FulcioURL:  cliOpts.DefaultFulcioURL,
 		RekorURL:   cliOpts.DefaultRekorURL,
@@ -186,4 +211,27 @@ func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 	defer cancel()
 
 	return s.impl.IsImageSignedInternal(ctx, imageRef)
+}
+
+// identityToken returns an identity token to perform keyless signing.
+// If there is one set in the options we will use that one. If not,
+// signer will try to get one from the cosign OIDC identity providers
+// if options.EnableTokenProviders is set
+func (s *Signer) identityToken() (string, error) {
+	tok := s.options.IdentityToken
+	if s.options.PrivateKeyPath == "" && s.options.IdentityToken == "" {
+		// We only attempt to pull from the providers if the option is set
+		if !s.options.EnableTokenProviders {
+			logrus.Warn("No token set in options and OIDC providers are disabled")
+			return "", nil
+		}
+
+		logrus.Info("No identity token was provided. Attempting to get one from supported providers.")
+		token, err := s.impl.TokenFromProviders(context.Background())
+		if err != nil {
+			return "", errors.Wrap(err, "getting identity token from providers")
+		}
+		tok = token
+	}
+	return tok, nil
 }

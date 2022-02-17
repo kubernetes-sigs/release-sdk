@@ -56,6 +56,9 @@ func TestUploadBlob(t *testing.T) {
 func TestSignImage(t *testing.T) {
 	t.Parallel()
 
+	// Some of these tests require a real IDentity token
+	token := "DUMMYTOKEN"
+
 	for _, tc := range []struct {
 		prepare func(*signfakes.FakeImpl)
 		assert  func(*sign.SignedObject, error)
@@ -64,33 +67,36 @@ func TestSignImage(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SignImageInternalReturns(nil)
+				mock.TokenFromProvidersReturns(token, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
+				require.NoError(t, err)
 				require.NotNil(t, obj)
 				require.Empty(t, obj.Reference())
 				require.Empty(t, obj.Digest())
-				require.Nil(t, err)
 			},
 		},
 		{ // Success with failed unset experimental
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SetenvReturnsOnCall(1, errTest)
+				mock.TokenFromProvidersReturns(token, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj)
 				require.Empty(t, obj.Reference())
 				require.Empty(t, obj.Digest())
-				require.Nil(t, err)
+				require.NoError(t, err)
 			},
 		},
 		{ // Failure on Verify
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SignImageInternalReturns(nil)
+				mock.TokenFromProvidersReturns(token, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.Nil(t, obj)
 			},
 		},
@@ -98,18 +104,29 @@ func TestSignImage(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SignImageInternalReturns(errTest)
+				mock.TokenFromProvidersReturns(token, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.Nil(t, obj)
 			},
 		},
 		{ // Failure on set experimental
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.SetenvReturns(errTest)
+				mock.TokenFromProvidersReturns(token, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
-				require.NotNil(t, err)
+				require.Error(t, err)
+				require.Nil(t, obj)
+			},
+		},
+		{ // Failure getting identity token
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.TokenFromProvidersReturns(token, errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Error(t, err)
 				require.Nil(t, obj)
 			},
 		},

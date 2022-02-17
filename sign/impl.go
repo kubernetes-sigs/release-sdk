@@ -26,11 +26,16 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sigstore/cosign/cmd/cosign/cli/verify"
 	ociremote "github.com/sigstore/cosign/pkg/oci/remote"
+	"github.com/sigstore/cosign/pkg/providers"
+	"github.com/sirupsen/logrus"
 
 	"sigs.k8s.io/release-utils/env"
+	"sigs.k8s.io/release-utils/util"
 )
 
-type defaultImpl struct{}
+type defaultImpl struct {
+	log *logrus.Logger
+}
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . impl
@@ -45,6 +50,8 @@ type impl interface {
 		recursive bool, attachment string) error
 	Setenv(string, string) error
 	EnvDefault(string, string) string
+	TokenFromProviders(context.Context) (string, error)
+	FileExists(string) bool
 }
 
 func (*defaultImpl) VerifyFileInternal(signer *Signer, path string) (*SignedObject, error) {
@@ -101,4 +108,31 @@ func (*defaultImpl) IsImageSignedInternal(
 	}
 
 	return len(signatures) > 0, nil
+}
+
+// TokenFromProviders will try the cosign OIDC providers to get an
+// oidc token from them.
+func (di *defaultImpl) TokenFromProviders(ctx context.Context) (string, error) {
+	if !di.IdentityProvidersEnabled(ctx) {
+		di.log.Warn("No OIDC provider enabled. Token cannot be obtained autmatically.")
+		return "", nil
+	}
+
+	tok, err := providers.Provide(ctx, "sigstore")
+	if err != nil {
+		return "", errors.Wrap(err, "fetching oidc token from environment")
+	}
+	return tok, nil
+}
+
+// FileExists returns true if a file exists
+func (*defaultImpl) FileExists(path string) bool {
+	return util.Exists(path)
+}
+
+// IdentityProvidersEnabled returns true if any of the cosign
+// identity providers is able to obteain an OIDC identity token
+// suitable for keyless signing,
+func (*defaultImpl) IdentityProvidersEnabled(ctx context.Context) bool {
+	return providers.Enabled(ctx)
 }

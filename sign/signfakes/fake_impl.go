@@ -39,6 +39,17 @@ type FakeImpl struct {
 	envDefaultReturnsOnCall map[int]struct {
 		result1 string
 	}
+	FileExistsStub        func(string) bool
+	fileExistsMutex       sync.RWMutex
+	fileExistsArgsForCall []struct {
+		arg1 string
+	}
+	fileExistsReturns struct {
+		result1 bool
+	}
+	fileExistsReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	IsImageSignedInternalStub        func(context.Context, string) (bool, error)
 	isImageSignedInternalMutex       sync.RWMutex
 	isImageSignedInternalArgsForCall []struct {
@@ -87,6 +98,19 @@ type FakeImpl struct {
 	}
 	signImageInternalReturnsOnCall map[int]struct {
 		result1 error
+	}
+	TokenFromProvidersStub        func(context.Context) (string, error)
+	tokenFromProvidersMutex       sync.RWMutex
+	tokenFromProvidersArgsForCall []struct {
+		arg1 context.Context
+	}
+	tokenFromProvidersReturns struct {
+		result1 string
+		result2 error
+	}
+	tokenFromProvidersReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
 	}
 	VerifyFileInternalStub        func(*sign.Signer, string) (*sign.SignedObject, error)
 	verifyFileInternalMutex       sync.RWMutex
@@ -180,6 +204,67 @@ func (fake *FakeImpl) EnvDefaultReturnsOnCall(i int, result1 string) {
 	}
 	fake.envDefaultReturnsOnCall[i] = struct {
 		result1 string
+	}{result1}
+}
+
+func (fake *FakeImpl) FileExists(arg1 string) bool {
+	fake.fileExistsMutex.Lock()
+	ret, specificReturn := fake.fileExistsReturnsOnCall[len(fake.fileExistsArgsForCall)]
+	fake.fileExistsArgsForCall = append(fake.fileExistsArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.FileExistsStub
+	fakeReturns := fake.fileExistsReturns
+	fake.recordInvocation("FileExists", []interface{}{arg1})
+	fake.fileExistsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeImpl) FileExistsCallCount() int {
+	fake.fileExistsMutex.RLock()
+	defer fake.fileExistsMutex.RUnlock()
+	return len(fake.fileExistsArgsForCall)
+}
+
+func (fake *FakeImpl) FileExistsCalls(stub func(string) bool) {
+	fake.fileExistsMutex.Lock()
+	defer fake.fileExistsMutex.Unlock()
+	fake.FileExistsStub = stub
+}
+
+func (fake *FakeImpl) FileExistsArgsForCall(i int) string {
+	fake.fileExistsMutex.RLock()
+	defer fake.fileExistsMutex.RUnlock()
+	argsForCall := fake.fileExistsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeImpl) FileExistsReturns(result1 bool) {
+	fake.fileExistsMutex.Lock()
+	defer fake.fileExistsMutex.Unlock()
+	fake.FileExistsStub = nil
+	fake.fileExistsReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeImpl) FileExistsReturnsOnCall(i int, result1 bool) {
+	fake.fileExistsMutex.Lock()
+	defer fake.fileExistsMutex.Unlock()
+	fake.FileExistsStub = nil
+	if fake.fileExistsReturnsOnCall == nil {
+		fake.fileExistsReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.fileExistsReturnsOnCall[i] = struct {
+		result1 bool
 	}{result1}
 }
 
@@ -388,6 +473,70 @@ func (fake *FakeImpl) SignImageInternalReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeImpl) TokenFromProviders(arg1 context.Context) (string, error) {
+	fake.tokenFromProvidersMutex.Lock()
+	ret, specificReturn := fake.tokenFromProvidersReturnsOnCall[len(fake.tokenFromProvidersArgsForCall)]
+	fake.tokenFromProvidersArgsForCall = append(fake.tokenFromProvidersArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.TokenFromProvidersStub
+	fakeReturns := fake.tokenFromProvidersReturns
+	fake.recordInvocation("TokenFromProviders", []interface{}{arg1})
+	fake.tokenFromProvidersMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeImpl) TokenFromProvidersCallCount() int {
+	fake.tokenFromProvidersMutex.RLock()
+	defer fake.tokenFromProvidersMutex.RUnlock()
+	return len(fake.tokenFromProvidersArgsForCall)
+}
+
+func (fake *FakeImpl) TokenFromProvidersCalls(stub func(context.Context) (string, error)) {
+	fake.tokenFromProvidersMutex.Lock()
+	defer fake.tokenFromProvidersMutex.Unlock()
+	fake.TokenFromProvidersStub = stub
+}
+
+func (fake *FakeImpl) TokenFromProvidersArgsForCall(i int) context.Context {
+	fake.tokenFromProvidersMutex.RLock()
+	defer fake.tokenFromProvidersMutex.RUnlock()
+	argsForCall := fake.tokenFromProvidersArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeImpl) TokenFromProvidersReturns(result1 string, result2 error) {
+	fake.tokenFromProvidersMutex.Lock()
+	defer fake.tokenFromProvidersMutex.Unlock()
+	fake.TokenFromProvidersStub = nil
+	fake.tokenFromProvidersReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) TokenFromProvidersReturnsOnCall(i int, result1 string, result2 error) {
+	fake.tokenFromProvidersMutex.Lock()
+	defer fake.tokenFromProvidersMutex.Unlock()
+	fake.TokenFromProvidersStub = nil
+	if fake.tokenFromProvidersReturnsOnCall == nil {
+		fake.tokenFromProvidersReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.tokenFromProvidersReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeImpl) VerifyFileInternal(arg1 *sign.Signer, arg2 string) (*sign.SignedObject, error) {
 	fake.verifyFileInternalMutex.Lock()
 	ret, specificReturn := fake.verifyFileInternalReturnsOnCall[len(fake.verifyFileInternalArgsForCall)]
@@ -529,12 +678,16 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.envDefaultMutex.RLock()
 	defer fake.envDefaultMutex.RUnlock()
+	fake.fileExistsMutex.RLock()
+	defer fake.fileExistsMutex.RUnlock()
 	fake.isImageSignedInternalMutex.RLock()
 	defer fake.isImageSignedInternalMutex.RUnlock()
 	fake.setenvMutex.RLock()
 	defer fake.setenvMutex.RUnlock()
 	fake.signImageInternalMutex.RLock()
 	defer fake.signImageInternalMutex.RUnlock()
+	fake.tokenFromProvidersMutex.RLock()
+	defer fake.tokenFromProvidersMutex.RUnlock()
 	fake.verifyFileInternalMutex.RLock()
 	defer fake.verifyFileInternalMutex.RUnlock()
 	fake.verifyImageInternalMutex.RLock()
