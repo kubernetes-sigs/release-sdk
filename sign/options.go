@@ -17,6 +17,7 @@ limitations under the License.
 package sign
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -27,6 +28,9 @@ import (
 
 // Options can be used to modify the behavior of the signer.
 type Options struct {
+	// Logger is the custom logger to be used for message printing.
+	Logger *logrus.Logger
+
 	// Verbose can be used to enable a higher log verbosity
 	Verbose bool
 
@@ -58,6 +62,7 @@ type Options struct {
 // Default returns a default Options instance.
 func Default() *Options {
 	return &Options{
+		Logger:               logrus.StandardLogger(),
 		Timeout:              3 * time.Minute,
 		PassFunc:             generate.GetPass,
 		EnableTokenProviders: true,
@@ -75,11 +80,14 @@ func (o *Options) verifySignOptions() error {
 	}
 
 	// Ensure that the private key file exists
-	i := defaultImpl{
-		log: logrus.New(),
-	}
+	i := defaultImpl{}
 	if o.PrivateKeyPath != "" && !i.FileExists(o.PrivateKeyPath) {
 		return errors.New("specified private key file not found")
 	}
 	return nil
+}
+
+// context creates a new context with the timeout set within the options.
+func (o *Options) context() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), o.Timeout)
 }

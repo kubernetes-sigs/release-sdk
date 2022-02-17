@@ -21,7 +21,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,7 +59,7 @@ func TestFileExists(t *testing.T) {
 	require.NoError(t, err)
 	defer os.Remove(f.Name())
 	require.NoError(t, os.WriteFile(f.Name(), []byte("hey"), os.FileMode(0o644)))
-	sut := &defaultImpl{log: logrus.New()}
+	sut := &defaultImpl{}
 	require.True(t, sut.FileExists(f.Name()))
 	require.False(t, sut.FileExists(f.Name()+"a"))
 }
