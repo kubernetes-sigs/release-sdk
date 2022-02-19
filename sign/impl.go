@@ -33,9 +33,7 @@ import (
 	"sigs.k8s.io/release-utils/util"
 )
 
-type defaultImpl struct {
-	log *logrus.Logger
-}
+type defaultImpl struct{}
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . impl
@@ -50,7 +48,7 @@ type impl interface {
 		recursive bool, attachment string) error
 	Setenv(string, string) error
 	EnvDefault(string, string) string
-	TokenFromProviders(context.Context) (string, error)
+	TokenFromProviders(context.Context, *logrus.Logger) (string, error)
 	FileExists(string) bool
 }
 
@@ -112,9 +110,9 @@ func (*defaultImpl) IsImageSignedInternal(
 
 // TokenFromProviders will try the cosign OIDC providers to get an
 // oidc token from them.
-func (di *defaultImpl) TokenFromProviders(ctx context.Context) (string, error) {
-	if !di.IdentityProvidersEnabled(ctx) {
-		di.log.Warn("No OIDC provider enabled. Token cannot be obtained autmatically.")
+func (d *defaultImpl) TokenFromProviders(ctx context.Context, logger *logrus.Logger) (string, error) {
+	if !d.IdentityProvidersEnabled(ctx) {
+		logger.Warn("No OIDC provider enabled. Token cannot be obtained autmatically.")
 		return "", nil
 	}
 

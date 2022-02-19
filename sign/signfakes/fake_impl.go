@@ -23,6 +23,7 @@ import (
 
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	signa "github.com/sigstore/cosign/cmd/cosign/cli/sign"
+	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/release-sdk/sign"
 )
 
@@ -99,10 +100,11 @@ type FakeImpl struct {
 	signImageInternalReturnsOnCall map[int]struct {
 		result1 error
 	}
-	TokenFromProvidersStub        func(context.Context) (string, error)
+	TokenFromProvidersStub        func(context.Context, *logrus.Logger) (string, error)
 	tokenFromProvidersMutex       sync.RWMutex
 	tokenFromProvidersArgsForCall []struct {
 		arg1 context.Context
+		arg2 *logrus.Logger
 	}
 	tokenFromProvidersReturns struct {
 		result1 string
@@ -473,18 +475,19 @@ func (fake *FakeImpl) SignImageInternalReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeImpl) TokenFromProviders(arg1 context.Context) (string, error) {
+func (fake *FakeImpl) TokenFromProviders(arg1 context.Context, arg2 *logrus.Logger) (string, error) {
 	fake.tokenFromProvidersMutex.Lock()
 	ret, specificReturn := fake.tokenFromProvidersReturnsOnCall[len(fake.tokenFromProvidersArgsForCall)]
 	fake.tokenFromProvidersArgsForCall = append(fake.tokenFromProvidersArgsForCall, struct {
 		arg1 context.Context
-	}{arg1})
+		arg2 *logrus.Logger
+	}{arg1, arg2})
 	stub := fake.TokenFromProvidersStub
 	fakeReturns := fake.tokenFromProvidersReturns
-	fake.recordInvocation("TokenFromProviders", []interface{}{arg1})
+	fake.recordInvocation("TokenFromProviders", []interface{}{arg1, arg2})
 	fake.tokenFromProvidersMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -498,17 +501,17 @@ func (fake *FakeImpl) TokenFromProvidersCallCount() int {
 	return len(fake.tokenFromProvidersArgsForCall)
 }
 
-func (fake *FakeImpl) TokenFromProvidersCalls(stub func(context.Context) (string, error)) {
+func (fake *FakeImpl) TokenFromProvidersCalls(stub func(context.Context, *logrus.Logger) (string, error)) {
 	fake.tokenFromProvidersMutex.Lock()
 	defer fake.tokenFromProvidersMutex.Unlock()
 	fake.TokenFromProvidersStub = stub
 }
 
-func (fake *FakeImpl) TokenFromProvidersArgsForCall(i int) context.Context {
+func (fake *FakeImpl) TokenFromProvidersArgsForCall(i int) (context.Context, *logrus.Logger) {
 	fake.tokenFromProvidersMutex.RLock()
 	defer fake.tokenFromProvidersMutex.RUnlock()
 	argsForCall := fake.tokenFromProvidersArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeImpl) TokenFromProvidersReturns(result1 string, result2 error) {
