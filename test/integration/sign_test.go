@@ -128,3 +128,33 @@ func TestSuccessSignFile(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, verifiedObject)
 }
+
+func TestIsImageSigned(t *testing.T) {
+	signer := sign.New(sign.Default())
+	for _, tc := range []struct {
+		imageRef  string
+		isSigned  bool
+		shouldErr bool
+	}{
+		{
+			// cosign ~1.5.2 signed image
+			"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2", true, false,
+		},
+		{
+			// k8s/pause ~feb 13 2022. not signed
+			"k8s.gcr.io/pause@sha256:a78c2d6208eff9b672de43f880093100050983047b7b0afe0217d3656e1b0d5f", false, false,
+		},
+		{
+			// nonexistent image, must fail
+			"kornotios/supermegafakeimage", false, true,
+		},
+	} {
+		res, err := signer.IsImageSigned(tc.imageRef)
+		require.Equal(t, tc.isSigned, res, fmt.Sprintf("Checking %s for signature", tc.imageRef))
+		if tc.shouldErr {
+			require.Error(t, err)
+		} else {
+			require.NoError(t, err)
+		}
+	}
+}

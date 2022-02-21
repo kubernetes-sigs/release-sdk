@@ -20,6 +20,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/sigstore/cosign/pkg/oci"
+	"github.com/sigstore/cosign/pkg/oci/static"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/release-sdk/sign"
 	"sigs.k8s.io/release-sdk/sign/signfakes"
@@ -276,7 +278,10 @@ func TestIsImageSigned(t *testing.T) {
 	}{
 		{ // Success, signed
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.IsImageSignedInternalReturns(true, nil)
+				sig, err := static.NewSignature([]byte{}, "s1")
+				require.Nil(t, err)
+
+				mock.SignaturesListReturns([]oci.Signature{sig}, nil)
 			},
 			assert: func(signed bool, err error) {
 				require.True(t, signed)
@@ -284,17 +289,39 @@ func TestIsImageSigned(t *testing.T) {
 			},
 		},
 		{ // Success, not signed
-			prepare: func(mock *signfakes.FakeImpl) {
-				mock.IsImageSignedInternalReturns(false, nil)
-			},
+			prepare: func(mock *signfakes.FakeImpl) {},
 			assert: func(signed bool, err error) {
 				require.False(t, signed)
 				require.Nil(t, err)
 			},
 		},
-		{ // IsImageSignedInternal errors
+		{ // failure SignaturesList errors
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.IsImageSignedInternalReturns(false, errTest)
+				mock.SignaturesListReturns(nil, errTest)
+			},
+			assert: func(signed bool, err error) {
+				require.Error(t, err)
+			},
+		},
+		{ // failure Signatures errors
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.SignaturesReturns(nil, errTest)
+			},
+			assert: func(signed bool, err error) {
+				require.Error(t, err)
+			},
+		},
+		{ // failure SignedEntity errors
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.SignedEntityReturns(nil, errTest)
+			},
+			assert: func(signed bool, err error) {
+				require.Error(t, err)
+			},
+		},
+		{ // failure ParseReference errors
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.ParseReferenceReturns(nil, errTest)
 			},
 			assert: func(signed bool, err error) {
 				require.Error(t, err)

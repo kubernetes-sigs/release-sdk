@@ -211,10 +211,27 @@ func (s *Signer) enableExperimental() (resetFn func(), err error) {
 // signatures available for it. It makes no signature verification, only
 // checks to see if more than one signature is available.
 func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
-	ctx, cancel := s.options.context()
-	defer cancel()
+	ref, err := s.impl.ParseReference(imageRef)
+	if err != nil {
+		return false, errors.Wrap(err, "parsing image reference")
+	}
 
-	return s.impl.IsImageSignedInternal(ctx, imageRef)
+	simg, err := s.impl.SignedEntity(ref)
+	if err != nil {
+		return false, errors.Wrap(err, "getting signed entity from image reference")
+	}
+
+	sigs, err := s.impl.Signatures(simg)
+	if err != nil {
+		return false, errors.Wrap(err, "remote image")
+	}
+
+	signatures, err := s.impl.SignaturesList(sigs)
+	if err != nil {
+		return false, errors.Wrap(err, "fetching signatures")
+	}
+
+	return len(signatures) > 0, nil
 }
 
 // identityToken returns an identity token to perform keyless signing.

@@ -25,7 +25,8 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sigstore/cosign/cmd/cosign/cli/verify"
-	ociremote "github.com/sigstore/cosign/pkg/oci/remote"
+	"github.com/sigstore/cosign/pkg/oci"
+	"github.com/sigstore/cosign/pkg/oci/remote"
 	"github.com/sigstore/cosign/pkg/providers"
 	"github.com/sirupsen/logrus"
 
@@ -41,7 +42,6 @@ type defaultImpl struct{}
 type impl interface {
 	VerifyFileInternal(*Signer, string) (*SignedObject, error)
 	VerifyImageInternal(ctx context.Context, keyPath string, images []string) (*SignedObject, error)
-	IsImageSignedInternal(context.Context, string) (bool, error)
 	SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions,
 		annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 		outputSignature string, outputCertificate string, payloadPath string, force bool,
@@ -50,6 +50,10 @@ type impl interface {
 	EnvDefault(string, string) string
 	TokenFromProviders(context.Context, *logrus.Logger) (string, error)
 	FileExists(string) bool
+	ParseReference(string, ...name.Option) (name.Reference, error)
+	SignedEntity(name.Reference, ...remote.Option) (oci.SignedEntity, error)
+	Signatures(oci.SignedEntity) (oci.Signatures, error)
+	SignaturesList(oci.Signatures) ([]oci.Signature, error)
 }
 
 func (*defaultImpl) VerifyFileInternal(signer *Signer, path string) (*SignedObject, error) {
@@ -79,35 +83,6 @@ func (*defaultImpl) EnvDefault(key, def string) string {
 	return env.Default(key, def)
 }
 
-// IsImageSignedInternal makes a request to the registry to check
-// if there are signatures available for a given reference. Returns
-// true if signatures are found, false otherwise.
-func (*defaultImpl) IsImageSignedInternal(
-	ctx context.Context, imageRef string,
-) (bool, error) {
-	ref, err := name.ParseReference(imageRef)
-	if err != nil {
-		return false, errors.Wrap(err, "parsing image reference")
-	}
-
-	simg, err := ociremote.SignedEntity(ref)
-	if err != nil {
-		return false, errors.Wrap(err, "getting signed entity from image reference")
-	}
-
-	sigs, err := simg.Signatures()
-	if err != nil {
-		return false, errors.Wrap(err, "remote image")
-	}
-
-	signatures, err := sigs.Get()
-	if err != nil {
-		return false, errors.Wrap(err, "fetching signatures")
-	}
-
-	return len(signatures) > 0, nil
-}
-
 // TokenFromProviders will try the cosign OIDC providers to get an
 // oidc token from them.
 func (d *defaultImpl) TokenFromProviders(ctx context.Context, logger *logrus.Logger) (string, error) {
@@ -133,4 +108,28 @@ func (*defaultImpl) FileExists(path string) bool {
 // suitable for keyless signing,
 func (*defaultImpl) IdentityProvidersEnabled(ctx context.Context) bool {
 	return providers.Enabled(ctx)
+}
+
+func (*defaultImpl) ParseReference(
+	s string, opts ...name.Option,
+) (name.Reference, error) {
+	return name.ParseReference(s, opts...)
+}
+
+func (*defaultImpl) SignedEntity(
+	ref name.Reference, opts ...remote.Option,
+) (oci.SignedEntity, error) {
+	return remote.SignedEntity(ref, opts...)
+}
+
+func (*defaultImpl) Signatures(
+	entity oci.SignedEntity,
+) (oci.Signatures, error) {
+	return entity.Signatures()
+}
+
+func (*defaultImpl) SignaturesList(
+	signatures oci.Signatures,
+) ([]oci.Signature, error) {
+	return signatures.Get()
 }
