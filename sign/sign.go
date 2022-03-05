@@ -133,7 +133,7 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	}
 
 	if err := s.impl.SignImageInternal(ctx, ko, regOpts,
-		s.options.Annotations, images, "", true, outputSignature,
+		s.options.Annotations, images, "", s.options.AttachSignature, outputSignature,
 		outputCertificate, "", true, false, "",
 	); err != nil {
 		return nil, errors.Wrapf(err, "sign reference: %s", reference)
