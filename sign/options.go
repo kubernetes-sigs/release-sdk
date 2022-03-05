@@ -38,7 +38,12 @@ type Options struct {
 	// Defaults to 3 minutes
 	Timeout time.Duration
 
-	AllowInsecure         bool
+	AllowInsecure bool
+
+	// AttachSignature tells the signer to attach or not the new
+	// signature to its image
+	AttachSignature bool
+
 	OutputSignaturePath   string
 	OutputCertificatePath string
 	Annotations           map[string]interface{}
@@ -66,6 +71,7 @@ func Default() *Options {
 		Timeout:              3 * time.Minute,
 		PassFunc:             generate.GetPass,
 		EnableTokenProviders: true,
+		AttachSignature:      true,
 	}
 }
 
