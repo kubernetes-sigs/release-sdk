@@ -186,6 +186,13 @@ func TestSignFile(t *testing.T) {
 	}
 }
 
+func prepareSignatureList(t *testing.T, mock *signfakes.FakeImpl) {
+	sig, err := static.NewSignature([]byte{}, "s1")
+	require.Nil(t, err)
+
+	mock.SignaturesListReturns([]oci.Signature{sig}, nil)
+}
+
 func TestVerifyImage(t *testing.T) {
 	t.Parallel()
 
@@ -205,6 +212,7 @@ func TestVerifyImage(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SetenvReturnsOnCall(1, errTest)
+				prepareSignatureList(t, mock)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj)
@@ -216,6 +224,8 @@ func TestVerifyImage(t *testing.T) {
 		{ // Failure on Verify
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(nil, errTest)
+				mock.SetenvReturns(nil)
+				prepareSignatureList(t, mock)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, err)
@@ -224,10 +234,20 @@ func TestVerifyImage(t *testing.T) {
 		},
 		{ // Failure on set experimental
 			prepare: func(mock *signfakes.FakeImpl) {
+				prepareSignatureList(t, mock)
 				mock.SetenvReturns(errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, err)
+				require.Nil(t, obj)
+			},
+		},
+		{ // Skip on no signatures listed
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.SignaturesListReturns([]oci.Signature{}, nil)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, err)
 				require.Nil(t, obj)
 			},
 		},
