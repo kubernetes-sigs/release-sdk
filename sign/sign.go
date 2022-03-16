@@ -139,6 +139,11 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 		return nil, errors.Wrapf(err, "sign reference: %s", reference)
 	}
 
+	if !s.options.AttachSignature {
+		// TODO: https://github.com/kubernetes-sigs/release-sdk/issues/37
+		return &SignedObject{}, nil
+	}
+
 	object, err := s.impl.VerifyImageInternal(ctx, s.options.PublicKeyPath, images)
 	if err != nil {
 		return nil, errors.Wrapf(err, "verify reference: %s", images)
