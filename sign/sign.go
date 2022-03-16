@@ -171,6 +171,18 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 	s.log().Infof("Verifying reference: %s", reference)
 
+	// checking whether the image being verified has a signature
+	// if there is no signature, we should skip
+	// ref: https://kubernetes.slack.com/archives/CJH2GBF7Y/p1647459428848859?thread_ts=1647428695.280269&cid=CJH2GBF7Y
+	isSigned, err := s.IsImageSigned(reference)
+	if err != nil {
+		return nil, errors.Wrapf(err, "checking if %s is signed", reference)
+	}
+
+	if !isSigned {
+		return nil, nil
+	}
+
 	resetFn, err := s.enableExperimental()
 	if err != nil {
 		return nil, err
