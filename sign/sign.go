@@ -180,6 +180,7 @@ func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 	}
 
 	if !isSigned {
+		s.log().Infof("Skipping unsigned image: %s", reference)
 		return nil, nil
 	}
 
