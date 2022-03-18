@@ -46,6 +46,8 @@ type impl interface {
 		annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 		outputSignature string, outputCertificate string, payloadPath string, force bool,
 		recursive bool, attachment string) error
+	SignFileInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions,
+		payloadPath string, b64 bool, outputSignature string, outputCertificate string) error
 	Setenv(string, string) error
 	EnvDefault(string, string) string
 	TokenFromProviders(context.Context, *logrus.Logger) (string, error)
@@ -73,6 +75,16 @@ func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regO
 		ctx, ko, regOpts, annotations, imgs, certPath, upload, outputSignature,
 		outputCertificate, payloadPath, force, recursive, attachment,
 	)
+}
+
+func (*defaultImpl) SignFileInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic
+	payloadPath string, b64 bool, outputSignature string, outputCertificate string,
+) error {
+	// Ignoring the signature return value for now as we are setting the outputSignature path and to keep an consistent impl API
+	// Setting timeout as 0 is acceptable here because SignBlobCmd uses the passed context
+	_, err := sign.SignBlobCmd(ctx, ko, regOpts, payloadPath, b64, outputSignature, outputCertificate, 0)
+
+	return errors.Wrapf(err, "signing file path: %v", payloadPath)
 }
 
 func (*defaultImpl) Setenv(key, value string) error {

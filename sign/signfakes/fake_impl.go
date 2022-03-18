@@ -80,6 +80,23 @@ type FakeImpl struct {
 	setenvReturnsOnCall map[int]struct {
 		result1 error
 	}
+	SignFileInternalStub        func(context.Context, signa.KeyOpts, options.RegistryOptions, string, bool, string, string) error
+	signFileInternalMutex       sync.RWMutex
+	signFileInternalArgsForCall []struct {
+		arg1 context.Context
+		arg2 signa.KeyOpts
+		arg3 options.RegistryOptions
+		arg4 string
+		arg5 bool
+		arg6 string
+		arg7 string
+	}
+	signFileInternalReturns struct {
+		result1 error
+	}
+	signFileInternalReturnsOnCall map[int]struct {
+		result1 error
+	}
 	SignImageInternalStub        func(context.Context, signa.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) error
 	signImageInternalMutex       sync.RWMutex
 	signImageInternalArgsForCall []struct {
@@ -436,6 +453,73 @@ func (fake *FakeImpl) SetenvReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.setenvReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeImpl) SignFileInternal(arg1 context.Context, arg2 signa.KeyOpts, arg3 options.RegistryOptions, arg4 string, arg5 bool, arg6 string, arg7 string) error {
+	fake.signFileInternalMutex.Lock()
+	ret, specificReturn := fake.signFileInternalReturnsOnCall[len(fake.signFileInternalArgsForCall)]
+	fake.signFileInternalArgsForCall = append(fake.signFileInternalArgsForCall, struct {
+		arg1 context.Context
+		arg2 signa.KeyOpts
+		arg3 options.RegistryOptions
+		arg4 string
+		arg5 bool
+		arg6 string
+		arg7 string
+	}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+	stub := fake.SignFileInternalStub
+	fakeReturns := fake.signFileInternalReturns
+	fake.recordInvocation("SignFileInternal", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+	fake.signFileInternalMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeImpl) SignFileInternalCallCount() int {
+	fake.signFileInternalMutex.RLock()
+	defer fake.signFileInternalMutex.RUnlock()
+	return len(fake.signFileInternalArgsForCall)
+}
+
+func (fake *FakeImpl) SignFileInternalCalls(stub func(context.Context, signa.KeyOpts, options.RegistryOptions, string, bool, string, string) error) {
+	fake.signFileInternalMutex.Lock()
+	defer fake.signFileInternalMutex.Unlock()
+	fake.SignFileInternalStub = stub
+}
+
+func (fake *FakeImpl) SignFileInternalArgsForCall(i int) (context.Context, signa.KeyOpts, options.RegistryOptions, string, bool, string, string) {
+	fake.signFileInternalMutex.RLock()
+	defer fake.signFileInternalMutex.RUnlock()
+	argsForCall := fake.signFileInternalArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
+}
+
+func (fake *FakeImpl) SignFileInternalReturns(result1 error) {
+	fake.signFileInternalMutex.Lock()
+	defer fake.signFileInternalMutex.Unlock()
+	fake.SignFileInternalStub = nil
+	fake.signFileInternalReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeImpl) SignFileInternalReturnsOnCall(i int, result1 error) {
+	fake.signFileInternalMutex.Lock()
+	defer fake.signFileInternalMutex.Unlock()
+	fake.SignFileInternalStub = nil
+	if fake.signFileInternalReturnsOnCall == nil {
+		fake.signFileInternalReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.signFileInternalReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -923,6 +1007,8 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	defer fake.parseReferenceMutex.RUnlock()
 	fake.setenvMutex.RLock()
 	defer fake.setenvMutex.RUnlock()
+	fake.signFileInternalMutex.RLock()
+	defer fake.signFileInternalMutex.RUnlock()
 	fake.signImageInternalMutex.RLock()
 	defer fake.signImageInternalMutex.RUnlock()
 	fake.signaturesMutex.RLock()
