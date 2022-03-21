@@ -19,6 +19,7 @@ package github
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -26,7 +27,6 @@ import (
 	"sync"
 
 	"github.com/google/go-github/v39/github"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
