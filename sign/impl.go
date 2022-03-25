@@ -20,7 +20,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
@@ -64,7 +66,25 @@ func (*defaultImpl) VerifyFileInternal(signer *Signer, path string) (*SignedObje
 
 func (*defaultImpl) VerifyImageInternal(ctx context.Context, publickeyPath string, images []string) (*SignedObject, error) {
 	v := verify.VerifyCommand{KeyRef: publickeyPath}
-	return &SignedObject{}, v.Exec(ctx, images)
+	// We only pass one image at time for now
+	ref, err := name.ParseReference(images[0])
+	if err != nil {
+		return &SignedObject{}, v.Exec(ctx, images)
+	}
+
+	dig, err := crane.Digest(ref.String())
+	if err != nil {
+		return &SignedObject{}, v.Exec(ctx, images)
+	}
+
+	sigParsed := strings.ReplaceAll(dig, "sha256:", "sha256-")
+	obj := SignedObject{
+		digest:    dig,
+		reference: ref.String(),
+		sig:       fmt.Sprintf("%s:%s.sig", ref.Context().Name(), sigParsed),
+	}
+
+	return &obj, v.Exec(ctx, images)
 }
 
 func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic

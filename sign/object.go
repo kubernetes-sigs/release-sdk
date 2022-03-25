@@ -21,6 +21,7 @@ package sign
 type SignedObject struct {
 	reference string
 	digest    string
+	sig       string
 }
 
 // Reference returns the OCI registry reference of the object.
