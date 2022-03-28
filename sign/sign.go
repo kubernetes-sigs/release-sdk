@@ -18,10 +18,11 @@ package sign
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
 
 	"github.com/google/go-containerregistry/pkg/logs"
-	"github.com/pkg/errors"
 	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sirupsen/logrus"
@@ -76,7 +77,7 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 
 	// Ensure options to sign are correct
 	if err := s.options.verifySignOptions(); err != nil {
-		return nil, errors.Wrap(err, "checking signing options")
+		return nil, fmt.Errorf("checking signing options: %w", err)
 	}
 
 	resetFn, err := s.enableExperimental()
@@ -95,7 +96,7 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 	if s.options.PrivateKeyPath == "" {
 		tok, err := s.identityToken(ctx)
 		if err != nil {
-			return nil, errors.Wrap(err, "getting identity token for keyless signing")
+			return nil, fmt.Errorf("getting identity token for keyless signing: %w", err)
 		}
 		identityToken = tok
 		if identityToken == "" {
@@ -136,7 +137,7 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 		s.options.Annotations, images, "", s.options.AttachSignature, outputSignature,
 		outputCertificate, "", true, false, "",
 	); err != nil {
-		return nil, errors.Wrapf(err, "sign reference: %s", reference)
+		return nil, fmt.Errorf("sign reference: %s: %w", reference, err)
 	}
 
 	if !s.options.AttachSignature {
@@ -146,7 +147,7 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 
 	object, err := s.impl.VerifyImageInternal(ctx, s.options.PublicKeyPath, images)
 	if err != nil {
-		return nil, errors.Wrapf(err, "verify reference: %s", images)
+		return nil, fmt.Errorf("verify reference: %s: %w", images, err)
 	}
 
 	return object, nil
@@ -193,12 +194,12 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 	if err := s.impl.SignFileInternal(ctx, ko, regOpts, path,
 		true, outputSignature, outputCertificate,
 	); err != nil {
-		return nil, errors.Wrapf(err, "sign file path: %s", path)
+		return nil, fmt.Errorf("sign file path: %s: %w", path, err)
 	}
 
 	object, err := s.impl.VerifyFileInternal(s, path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "verify file path: %s", path)
+		return nil, fmt.Errorf("verify file path: %s: %w", path, err)
 	}
 	return object, nil
 }
@@ -213,7 +214,7 @@ func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 	// ref: https://kubernetes.slack.com/archives/CJH2GBF7Y/p1647459428848859?thread_ts=1647428695.280269&cid=CJH2GBF7Y
 	isSigned, err := s.IsImageSigned(reference)
 	if err != nil {
-		return nil, errors.Wrapf(err, "checking if %s is signed", reference)
+		return nil, fmt.Errorf("checking if %s is signed: %w", reference, err)
 	}
 
 	if !isSigned {
@@ -233,7 +234,7 @@ func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 	images := []string{reference}
 	object, err := s.impl.VerifyImageInternal(ctx, s.options.PublicKeyPath, images)
 	if err != nil {
-		return nil, errors.Wrapf(err, "verify image reference: %s", images)
+		return nil, fmt.Errorf("verify image reference: %s: %w", images, err)
 	}
 	return object, nil
 }
@@ -253,7 +254,7 @@ func (s *Signer) enableExperimental() (resetFn func(), err error) {
 	const key = "COSIGN_EXPERIMENTAL"
 	previousValue := s.impl.EnvDefault(key, "")
 	if err := s.impl.Setenv(key, "true"); err != nil {
-		return nil, errors.Wrap(err, "enable cosign experimental mode")
+		return nil, fmt.Errorf("enable cosign experimental mode: %w", err)
 	}
 	return func() {
 		if err := s.impl.Setenv(key, previousValue); err != nil {
@@ -268,22 +269,22 @@ func (s *Signer) enableExperimental() (resetFn func(), err error) {
 func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 	ref, err := s.impl.ParseReference(imageRef)
 	if err != nil {
-		return false, errors.Wrap(err, "parsing image reference")
+		return false, fmt.Errorf("parsing image reference: %w", err)
 	}
 
 	simg, err := s.impl.SignedEntity(ref)
 	if err != nil {
-		return false, errors.Wrap(err, "getting signed entity from image reference")
+		return false, fmt.Errorf("getting signed entity from image reference: %w", err)
 	}
 
 	sigs, err := s.impl.Signatures(simg)
 	if err != nil {
-		return false, errors.Wrap(err, "remote image")
+		return false, fmt.Errorf("remote image: %w", err)
 	}
 
 	signatures, err := s.impl.SignaturesList(sigs)
 	if err != nil {
-		return false, errors.Wrap(err, "fetching signatures")
+		return false, fmt.Errorf("fetching signatures: %w", err)
 	}
 
 	return len(signatures) > 0, nil
@@ -305,7 +306,7 @@ func (s *Signer) identityToken(ctx context.Context) (string, error) {
 		s.log().Info("No identity token was provided. Attempting to get one from supported providers.")
 		token, err := s.impl.TokenFromProviders(ctx, s.log())
 		if err != nil {
-			return "", errors.Wrap(err, "getting identity token from providers")
+			return "", fmt.Errorf("getting identity token from providers: %w", err)
 		}
 		tok = token
 	}

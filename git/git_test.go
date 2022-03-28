@@ -17,6 +17,7 @@ limitations under the License.
 package git_test
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -28,7 +29,6 @@ import (
 
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 
 	"sigs.k8s.io/release-sdk/git"
@@ -84,14 +84,14 @@ func TestGetDefaultKubernetesRepoURLSuccess(t *testing.T) {
 func createTestRepository() (repoPath string, err error) {
 	repoPath, err = os.MkdirTemp("", "sigrelease-test-repo-*")
 	if err != nil {
-		return "", errors.Wrap(err, "creating a directory for test repository")
+		return "", fmt.Errorf("creating a directory for test repository: %w", err)
 	}
 	if err := os.Chdir(repoPath); err != nil {
-		return "", errors.Wrap(err, "cd'ing into test repository")
+		return "", fmt.Errorf("cd'ing into test repository: %w", err)
 	}
 	out, err := exec.Command("git", "init").Output()
 	if err != nil {
-		return "", errors.Wrapf(err, "initializing test repository: %s", out)
+		return "", fmt.Errorf("initializing test repository: %s: %w", out, err)
 	}
 	return repoPath, nil
 }

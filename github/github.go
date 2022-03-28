@@ -18,6 +18,7 @@ package github
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,7 +27,6 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v39/github"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 
@@ -338,7 +338,7 @@ func (g *githubClient) ListBranches(
 ) ([]*github.Branch, *github.Response, error) {
 	branches, response, err := g.Repositories.ListBranches(ctx, owner, repo, opt)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "fetching brnaches from repo")
+		return nil, nil, fmt.Errorf("fetching brnaches from repo: %w", err)
 	}
 
 	return branches, response, nil
@@ -369,7 +369,7 @@ func (g *githubClient) CreatePullRequest(
 
 	pr, _, err := g.PullRequests.Create(ctx, owner, repo, newPullRequest)
 	if err != nil {
-		return pr, errors.Wrap(err, "creating pull request")
+		return pr, fmt.Errorf("creating pull request: %w", err)
 	}
 
 	logrus.Infof("Successfully created PR #%d", pr.GetNumber())
@@ -382,7 +382,7 @@ func (g *githubClient) CreateIssue(
 	// Create the issue on github
 	issue, _, err := g.Issues.Create(ctx, owner, repo, req)
 	if err != nil {
-		return issue, errors.Wrap(err, "creating new issue")
+		return issue, fmt.Errorf("creating new issue: %w", err)
 	}
 
 	logrus.Infof("Successfully created issue #%d: %s", issue.GetNumber(), issue.GetTitle())
@@ -394,7 +394,7 @@ func (g *githubClient) GetRepository(
 ) (*github.Repository, *github.Response, error) {
 	pr, resp, err := g.Repositories.Get(ctx, owner, repo)
 	if err != nil {
-		return pr, resp, errors.Wrap(err, "getting repository")
+		return pr, resp, fmt.Errorf("getting repository: %w", err)
 	}
 
 	return pr, resp, nil
@@ -412,7 +412,7 @@ func (g *githubClient) UpdateReleasePage(
 	}
 
 	if err != nil {
-		return nil, errors.Wrap(err, "updating release pagin in github")
+		return nil, fmt.Errorf("updating release pagin in github: %w", err)
 	}
 
 	return release, nil
@@ -426,7 +426,7 @@ func (g *githubClient) UploadReleaseAsset(
 		ctx, owner, repo, releaseID, opts, file,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "while uploading asset file")
+		return nil, fmt.Errorf("while uploading asset file: %w", err)
 	}
 
 	return asset, nil
@@ -436,7 +436,7 @@ func (g *githubClient) DeleteReleaseAsset(
 	ctx context.Context, owner string, repo string, assetID int64) error {
 	_, err := g.Repositories.DeleteReleaseAsset(ctx, owner, repo, assetID)
 	if err != nil {
-		return errors.Wrapf(err, "deleting asset %d", assetID)
+		return fmt.Errorf("deleting asset %d: %w", assetID, err)
 	}
 	return nil
 }
@@ -450,7 +450,7 @@ func (g *githubClient) ListReleaseAssets(
 	for {
 		moreAssets, r, err := g.Repositories.ListReleaseAssets(ctx, owner, repo, releaseID, options)
 		if err != nil {
-			return nil, errors.Wrap(err, "getting release assets from GitHub")
+			return nil, fmt.Errorf("getting release assets from GitHub: %w", err)
 		}
 		assets = append(assets, moreAssets...)
 		if r.NextPage == 0 {
@@ -519,7 +519,7 @@ func (g *GitHub) LatestGitHubTagsPerBranch() (TagsPerBranch, error) {
 			opts,
 		)
 		if err != nil {
-			return nil, errors.Wrap(err, "unable to retrieve GitHub tags")
+			return nil, fmt.Errorf("unable to retrieve GitHub tags: %w", err)
 		}
 		allTags = append(allTags, tags...)
 		if resp.NextPage == 0 {
@@ -575,7 +575,7 @@ func (g *GitHub) Releases(owner, repo string, includePrereleases bool) ([]*githu
 		context.Background(), owner, repo, nil,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to retrieve GitHub releases")
+		return nil, fmt.Errorf("unable to retrieve GitHub releases: %w", err)
 	}
 
 	releases := []*github.RepositoryRelease{}
@@ -598,7 +598,7 @@ func (g *GitHub) Releases(owner, repo string, includePrereleases bool) ([]*githu
 func (g *GitHub) GetReleaseTags(owner, repo string, includePrereleases bool) ([]string, error) {
 	releases, err := g.Releases(owner, repo, includePrereleases)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting releases")
+		return nil, fmt.Errorf("getting releases: %w", err)
 	}
 
 	releaseTags := []string{}
@@ -618,7 +618,7 @@ func (g *GitHub) DownloadReleaseAssets(owner, repo string, releaseTags []string,
 		for _, tag := range releaseTags {
 			release, _, err := g.client.GetReleaseByTag(context.Background(), owner, repo, tag)
 			if err != nil {
-				return errors.Wrapf(err, "getting release from tag %s", tag)
+				return fmt.Errorf("getting release from tag %s: %w", tag, err)
 			}
 			releases = append(releases, release)
 		}
@@ -641,12 +641,12 @@ func (g *GitHub) DownloadReleaseAssets(owner, repo string, releaseTags []string,
 
 			releaseDir := filepath.Join(outputDir, owner, repo, releaseTag)
 			if err := os.MkdirAll(releaseDir, os.FileMode(0o775)); err != nil {
-				return errors.Wrap(err, "creating output directory for release assets")
+				return fmt.Errorf("creating output directory for release assets: %w", err)
 			}
 
 			logrus.WithField("release", releaseTag).Infof("Writing assets to %s", releaseDir)
 			if err := g.downloadAssetsParallel(assets, owner, repo, releaseDir); err != nil {
-				return errors.Wrapf(err, "downloading assets for %s", releaseTag)
+				return fmt.Errorf("downloading assets for %s", releaseTag)
 			}
 			return nil
 		})
@@ -658,7 +658,7 @@ func (g *GitHub) DownloadReleaseAssets(owner, repo string, releaseTags []string,
 				finalErr = err
 				continue
 			}
-			finalErr = errors.Wrap(finalErr, err.Error())
+			finalErr = fmt.Errorf("%v: %w", finalErr, err)
 		}
 	}
 	return finalErr
@@ -676,19 +676,19 @@ func (g *GitHub) downloadAssetsParallel(assets []*github.ReleaseAsset, owner, re
 			logrus.Infof("GitHub asset ID: %v, download URL: %s", *asset.ID, *asset.BrowserDownloadURL)
 			assetBody, _, err := g.client.DownloadReleaseAsset(context.Background(), owner, repo, asset.GetID())
 			if err != nil {
-				return errors.Wrap(err, "downloading release assets")
+				return fmt.Errorf("downloading release assets: %w", err)
 			}
 
 			absFile := filepath.Join(releaseDir, asset.GetName())
 			defer assetBody.Close()
 			assetFile, err := os.Create(absFile)
 			if err != nil {
-				return errors.Wrap(err, "creating release asset file")
+				return fmt.Errorf("creating release asset file: %w", err)
 			}
 
 			defer assetFile.Close()
 			if _, err := io.Copy(assetFile, assetBody); err != nil {
-				return errors.Wrap(err, "copying release asset to file")
+				return fmt.Errorf("copying release asset to file: %w", err)
 			}
 			return nil
 		})
@@ -700,7 +700,7 @@ func (g *GitHub) downloadAssetsParallel(assets []*github.ReleaseAsset, owner, re
 				finalErr = err
 				continue
 			}
-			finalErr = errors.Wrap(finalErr, err.Error())
+			finalErr = fmt.Errorf("%v: %w", finalErr, err)
 		}
 	}
 	return finalErr
@@ -727,7 +727,7 @@ func (g *GitHub) UploadReleaseAsset(
 
 	f, err := os.Open(fileName)
 	if err != nil {
-		return nil, errors.Wrap(err, "opening the asset file for reading")
+		return nil, fmt.Errorf("opening the asset file for reading: %w", err)
 	}
 
 	// Only the first 512 bytes are used to sniff the content type.
@@ -735,12 +735,12 @@ func (g *GitHub) UploadReleaseAsset(
 
 	_, err = f.Read(buffer)
 	if err != nil {
-		return nil, errors.Wrap(err, "reading file to determine mimetype")
+		return nil, fmt.Errorf("reading file to determine mimetype: %w", err)
 	}
 	// Reset the pointer to reuse the filehandle
 	_, err = f.Seek(0, 0)
 	if err != nil {
-		return nil, errors.Wrap(err, "rewinding the asset filepointer")
+		return nil, fmt.Errorf("rewinding the asset filepointer: %w", err)
 	}
 
 	contentType := http.DetectContentType(buffer)
@@ -756,7 +756,7 @@ func (g *GitHub) UploadReleaseAsset(
 		context.Background(), owner, repo, releaseID, uopts, f,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "uploading asset file to release")
+		return nil, fmt.Errorf("uploading asset file to release: %w", err)
 	}
 
 	return asset, nil
@@ -823,7 +823,7 @@ func (g *GitHub) GetMilestone(owner, repo, title string) (
 		mstones, resp, err := g.Client().ListMilestones(
 			context.Background(), owner, repo, opts)
 		if err != nil {
-			return nil, exists, errors.Wrap(err, "listing repository milestones")
+			return nil, exists, fmt.Errorf("listing repository milestones: %w", err)
 		}
 		for _, ms = range mstones {
 			if ms.GetTitle() == title {
@@ -863,7 +863,7 @@ func (g *GitHub) ListBranches(
 	for {
 		moreBranches, r, err := g.Client().ListBranches(context.Background(), owner, repo, options)
 		if err != nil {
-			return branches, errors.Wrap(err, "getting branches from client")
+			return branches, fmt.Errorf("getting branches from client: %w", err)
 		}
 		branches = append(branches, moreBranches...)
 		if r.NextPage == 0 {
@@ -881,7 +881,7 @@ func (g *GitHub) RepoIsForkOf(
 ) (bool, error) {
 	repository, _, err := g.Client().GetRepository(context.Background(), forkOwner, forkRepo)
 	if err != nil {
-		return false, errors.Wrap(err, "checking if repository is a fork")
+		return false, fmt.Errorf("checking if repository is a fork: %w", err)
 	}
 
 	// First, repo has to be an actual fork
@@ -906,7 +906,7 @@ func (g *GitHub) BranchExists(
 ) (isBranch bool, err error) {
 	branches, err := g.ListBranches(owner, repo)
 	if err != nil {
-		return false, errors.Wrap(err, "while listing repository branches")
+		return false, fmt.Errorf("while listing repository branches: %w", err)
 	}
 
 	for _, branch := range branches {
@@ -945,7 +945,7 @@ func (g *GitHub) UpdateReleasePage(
 	)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "updating the release page")
+		return nil, fmt.Errorf("updating the release page: %w", err)
 	}
 
 	return release, nil
@@ -953,9 +953,12 @@ func (g *GitHub) UpdateReleasePage(
 
 // DeleteReleaseAsset deletes an asset from a release
 func (g *GitHub) DeleteReleaseAsset(owner, repo string, assetID int64) error {
-	return errors.Wrap(g.Client().DeleteReleaseAsset(
+	if err := g.Client().DeleteReleaseAsset(
 		context.Background(), owner, repo, assetID,
-	), "deleting asset from release")
+	); err != nil {
+		return fmt.Errorf("deleting asset from release: %w", err)
+	}
+	return nil
 }
 
 // ListReleaseAssets gets the assets uploaded to a GitHub release
@@ -967,7 +970,7 @@ func (g *GitHub) ListReleaseAssets(
 		&github.ListOptions{PerPage: g.Options().GetItemsPerPage()},
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "getting release assets")
+		return nil, fmt.Errorf("getting release assets: %w", err)
 	}
 	return assets, nil
 }
@@ -980,7 +983,7 @@ func (g *GitHub) TagExists(owner, repo, tag string) (exists bool, err error) {
 			context.Background(), owner, repo, options,
 		)
 		if err != nil {
-			return exists, errors.Wrap(err, "listing repository tags")
+			return exists, fmt.Errorf("listing repository tags: %w", err)
 		}
 
 		// List all tags returned and check if the one we're looking for exists
@@ -1006,7 +1009,7 @@ func (g *GitHub) ListTags(owner, repo string) ([]*github.RepositoryTag, error) {
 			context.Background(), owner, repo, options,
 		)
 		if err != nil {
-			return tags, errors.Wrap(err, "listing repository tags")
+			return tags, fmt.Errorf("listing repository tags: %w", err)
 		}
 
 		tags = append(tags, repoTags...)

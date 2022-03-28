@@ -18,10 +18,10 @@ package sign
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/google/go-containerregistry/pkg/name"
-	"github.com/pkg/errors"
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sigstore/cosign/cmd/cosign/cli/verify"
@@ -83,8 +83,7 @@ func (*defaultImpl) SignFileInternal(ctx context.Context, ko sign.KeyOpts, regOp
 	// Ignoring the signature return value for now as we are setting the outputSignature path and to keep an consistent impl API
 	// Setting timeout as 0 is acceptable here because SignBlobCmd uses the passed context
 	_, err := sign.SignBlobCmd(ctx, ko, regOpts, payloadPath, b64, outputSignature, outputCertificate, 0)
-
-	return errors.Wrapf(err, "signing file path: %v", payloadPath)
+	return err
 }
 
 func (*defaultImpl) Setenv(key, value string) error {
@@ -105,7 +104,7 @@ func (d *defaultImpl) TokenFromProviders(ctx context.Context, logger *logrus.Log
 
 	tok, err := providers.Provide(ctx, "sigstore")
 	if err != nil {
-		return "", errors.Wrap(err, "fetching oidc token from environment")
+		return "", fmt.Errorf("fetching oidc token from environment: %w", err)
 	}
 	return tok, nil
 }
