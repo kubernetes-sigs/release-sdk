@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
@@ -55,6 +54,7 @@ type impl interface {
 	TokenFromProviders(context.Context, *logrus.Logger) (string, error)
 	FileExists(string) bool
 	ParseReference(string, ...name.Option) (name.Reference, error)
+	Digest(ref string, opt ...crane.Option) (string, error)
 	SignedEntity(name.Reference, ...remote.Option) (oci.SignedEntity, error)
 	Signatures(oci.SignedEntity) (oci.Signatures, error)
 	SignaturesList(oci.Signatures) ([]oci.Signature, error)
@@ -66,25 +66,7 @@ func (*defaultImpl) VerifyFileInternal(signer *Signer, path string) (*SignedObje
 
 func (*defaultImpl) VerifyImageInternal(ctx context.Context, publickeyPath string, images []string) (*SignedObject, error) {
 	v := verify.VerifyCommand{KeyRef: publickeyPath}
-	// We only pass one image at time for now
-	ref, err := name.ParseReference(images[0])
-	if err != nil {
-		return &SignedObject{}, v.Exec(ctx, images)
-	}
-
-	dig, err := crane.Digest(ref.String())
-	if err != nil {
-		return &SignedObject{}, v.Exec(ctx, images)
-	}
-
-	sigParsed := strings.ReplaceAll(dig, "sha256:", "sha256-")
-	obj := SignedObject{
-		digest:    dig,
-		reference: ref.String(),
-		sig:       fmt.Sprintf("%s:%s.sig", ref.Context().Name(), sigParsed),
-	}
-
-	return &obj, v.Exec(ctx, images)
+	return &SignedObject{}, v.Exec(ctx, images)
 }
 
 func (*defaultImpl) SignImageInternal(ctx context.Context, ko sign.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic
@@ -145,6 +127,12 @@ func (*defaultImpl) ParseReference(
 	s string, opts ...name.Option,
 ) (name.Reference, error) {
 	return name.ParseReference(s, opts...)
+}
+
+func (*defaultImpl) Digest(
+	ref string, opts ...crane.Option,
+) (string, error) {
+	return crane.Digest(ref, opts...)
 }
 
 func (*defaultImpl) SignedEntity(

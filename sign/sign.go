@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/google/go-containerregistry/pkg/logs"
 	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
@@ -138,6 +139,28 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 		outputCertificate, "", true, false, "",
 	); err != nil {
 		return nil, fmt.Errorf("sign reference: %s: %w", reference, err)
+	}
+
+	if !s.options.AttachSignature {
+		// We only pass one image at time for now
+		ref, err := s.impl.ParseReference(reference)
+		if err != nil {
+			return &SignedObject{}, fmt.Errorf("parsing reference: %s: %w", reference, err)
+		}
+
+		dig, err := s.impl.Digest(ref.String())
+		if err != nil {
+			return &SignedObject{}, fmt.Errorf("getting the reference digest for %s: %w", reference, err)
+		}
+
+		sigParsed := strings.ReplaceAll(dig, "sha256:", "sha256-")
+		obj := &SignedObject{
+			digest:    dig,
+			reference: ref.String(),
+			signature: fmt.Sprintf("%s:%s.sig", ref.Context().Name(), sigParsed),
+		}
+
+		return obj, nil
 	}
 
 	object, err := s.impl.VerifyImageInternal(ctx, s.options.PublicKeyPath, images)

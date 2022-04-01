@@ -21,6 +21,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	signa "github.com/sigstore/cosign/cmd/cosign/cli/sign"
@@ -31,6 +32,20 @@ import (
 )
 
 type FakeImpl struct {
+	DigestStub        func(string, ...crane.Option) (string, error)
+	digestMutex       sync.RWMutex
+	digestArgsForCall []struct {
+		arg1 string
+		arg2 []crane.Option
+	}
+	digestReturns struct {
+		result1 string
+		result2 error
+	}
+	digestReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	EnvDefaultStub        func(string, string) string
 	envDefaultMutex       sync.RWMutex
 	envDefaultArgsForCall []struct {
@@ -205,6 +220,71 @@ type FakeImpl struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeImpl) Digest(arg1 string, arg2 ...crane.Option) (string, error) {
+	fake.digestMutex.Lock()
+	ret, specificReturn := fake.digestReturnsOnCall[len(fake.digestArgsForCall)]
+	fake.digestArgsForCall = append(fake.digestArgsForCall, struct {
+		arg1 string
+		arg2 []crane.Option
+	}{arg1, arg2})
+	stub := fake.DigestStub
+	fakeReturns := fake.digestReturns
+	fake.recordInvocation("Digest", []interface{}{arg1, arg2})
+	fake.digestMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2...)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeImpl) DigestCallCount() int {
+	fake.digestMutex.RLock()
+	defer fake.digestMutex.RUnlock()
+	return len(fake.digestArgsForCall)
+}
+
+func (fake *FakeImpl) DigestCalls(stub func(string, ...crane.Option) (string, error)) {
+	fake.digestMutex.Lock()
+	defer fake.digestMutex.Unlock()
+	fake.DigestStub = stub
+}
+
+func (fake *FakeImpl) DigestArgsForCall(i int) (string, []crane.Option) {
+	fake.digestMutex.RLock()
+	defer fake.digestMutex.RUnlock()
+	argsForCall := fake.digestArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeImpl) DigestReturns(result1 string, result2 error) {
+	fake.digestMutex.Lock()
+	defer fake.digestMutex.Unlock()
+	fake.DigestStub = nil
+	fake.digestReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) DigestReturnsOnCall(i int, result1 string, result2 error) {
+	fake.digestMutex.Lock()
+	defer fake.digestMutex.Unlock()
+	fake.DigestStub = nil
+	if fake.digestReturnsOnCall == nil {
+		fake.digestReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.digestReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeImpl) EnvDefault(arg1 string, arg2 string) string {
@@ -999,6 +1079,8 @@ func (fake *FakeImpl) VerifyImageInternalReturnsOnCall(i int, result1 *sign.Sign
 func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.digestMutex.RLock()
+	defer fake.digestMutex.RUnlock()
 	fake.envDefaultMutex.RLock()
 	defer fake.envDefaultMutex.RUnlock()
 	fake.fileExistsMutex.RLock()

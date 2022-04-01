@@ -21,7 +21,7 @@ package sign
 type SignedObject struct {
 	reference string
 	digest    string
-	sig       string
+	signature string
 }
 
 // Reference returns the OCI registry reference of the object.
@@ -32,4 +32,9 @@ func (m *SignedObject) Reference() string {
 // Digest returns the digest of the signed object.
 func (m *SignedObject) Digest() string {
 	return m.digest
+}
+
+// Signature returns the signature of the signed object.
+func (m *SignedObject) Signature() string {
+	return m.signature
 }
