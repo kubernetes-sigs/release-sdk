@@ -63,13 +63,11 @@ func TestSignImage(t *testing.T) {
 	token := "DUMMYTOKEN"
 
 	for _, tc := range []struct {
-		attachSignature bool
-		fakeReference   *FakeReferenceStub
-		prepare         func(*signfakes.FakeImpl)
-		assert          func(*sign.SignedObject, error)
+		fakeReference *FakeReferenceStub
+		prepare       func(*signfakes.FakeImpl)
+		assert        func(*sign.SignedObject, error)
 	}{
 		{ // Success
-			attachSignature: false,
 			fakeReference: &FakeReferenceStub{
 				image:      "gcr.io/fake/honk:99.99.99",
 				registry:   "gcr.io",
@@ -78,6 +76,37 @@ func TestSignImage(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SignImageInternalReturns(nil)
+				mock.TokenFromProvidersReturns(token, nil)
+				sig, err := static.NewSignature([]byte{}, "honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Nil(t, err)
+
+				mock.SignaturesListReturns([]oci.Signature{sig}, nil)
+				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.NoError(t, err)
+				require.NotNil(t, obj)
+				require.NotEmpty(t, obj.Reference())
+				require.NotEmpty(t, obj.Digest())
+				require.NotEmpty(t, obj.Signature())
+				require.Equal(t, obj.Reference(), "gcr.io/fake/honk:99.99.99")
+				require.Equal(t, obj.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Equal(t, obj.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
+			},
+		},
+		{ // Success with failed unset experimental
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
+			prepare: func(mock *signfakes.FakeImpl) {
+				sig, err := static.NewSignature([]byte{}, "honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Nil(t, err)
+
+				mock.SignaturesListReturns([]oci.Signature{sig}, nil)
+				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
+				mock.SetenvReturnsOnCall(2, errTest)
 				mock.TokenFromProvidersReturns(token, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 			},
@@ -92,53 +121,17 @@ func TestSignImage(t *testing.T) {
 				require.Equal(t, obj.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 			},
 		},
-		{ // Success
-			attachSignature: true,
-			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
-			},
-			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
-				mock.SignImageInternalReturns(nil)
-				mock.TokenFromProvidersReturns(token, nil)
-			},
-			assert: func(obj *sign.SignedObject, err error) {
-				require.NoError(t, err)
-				require.NotNil(t, obj)
-				require.Empty(t, obj.Reference())
-				require.Empty(t, obj.Digest())
-				require.Empty(t, obj.Signature())
-			},
-		},
-		{ // Success with failed unset experimental
-			attachSignature: true,
-			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
-			},
-			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
-				mock.SetenvReturnsOnCall(1, errTest)
-				mock.TokenFromProvidersReturns(token, nil)
-			},
-			assert: func(obj *sign.SignedObject, err error) {
-				require.NotNil(t, obj)
-				require.Empty(t, obj.Reference())
-				require.Empty(t, obj.Digest())
-				require.NoError(t, err)
-			},
-		},
 		{ // Failure on Verify
-			attachSignature: true,
 			fakeReference: &FakeReferenceStub{
 				image:      "gcr.io/fake/honk:99.99.99",
 				registry:   "gcr.io",
 				repository: "fake/honk",
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
+				sig, err := static.NewSignature([]byte{}, "honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Nil(t, err)
+
+				mock.SignaturesListReturns([]oci.Signature{sig}, nil)
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SignImageInternalReturns(nil)
 				mock.TokenFromProvidersReturns(token, nil)
@@ -149,7 +142,6 @@ func TestSignImage(t *testing.T) {
 			},
 		},
 		{ // Failure on Sign
-			attachSignature: true,
 			fakeReference: &FakeReferenceStub{
 				image:      "gcr.io/fake/honk:99.99.99",
 				registry:   "gcr.io",
@@ -166,7 +158,6 @@ func TestSignImage(t *testing.T) {
 			},
 		},
 		{ // Failure on set experimental
-			attachSignature: true,
 			fakeReference: &FakeReferenceStub{
 				image:      "gcr.io/fake/honk:99.99.99",
 				registry:   "gcr.io",
@@ -182,7 +173,6 @@ func TestSignImage(t *testing.T) {
 			},
 		},
 		{ // Failure getting identity token
-			attachSignature: true,
 			fakeReference: &FakeReferenceStub{
 				image:      "gcr.io/fake/honk:99.99.99",
 				registry:   "gcr.io",
@@ -203,7 +193,6 @@ func TestSignImage(t *testing.T) {
 
 		opts := sign.Default()
 		opts.Verbose = true
-		opts.AttachSignature = tc.attachSignature
 
 		sut := sign.New(opts)
 		sut.SetImpl(mock)
@@ -263,31 +252,53 @@ func TestVerifyImage(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		prepare func(*signfakes.FakeImpl)
-		assert  func(*sign.SignedObject, error)
+		fakeReference *FakeReferenceStub
+		prepare       func(*signfakes.FakeImpl)
+		assert        func(*sign.SignedObject, error)
 	}{
 		{ // Success
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
+				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, err)
 			},
 		},
 		{ // Success with failed unset experimental
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SetenvReturnsOnCall(1, errTest)
 				prepareSignatureList(t, mock)
+				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj)
-				require.Empty(t, obj.Reference())
-				require.Empty(t, obj.Digest())
+				require.NotEmpty(t, obj.Reference())
+				require.NotEmpty(t, obj.Digest())
+				require.NotEmpty(t, obj.Signature())
+				require.Equal(t, obj.Reference(), "gcr.io/fake/honk:99.99.99")
+				require.Equal(t, obj.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Equal(t, obj.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 				require.Nil(t, err)
 			},
 		},
 		{ // Failure on Verify
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SetenvReturns(nil)
@@ -299,6 +310,11 @@ func TestVerifyImage(t *testing.T) {
 			},
 		},
 		{ // Failure on set experimental
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				prepareSignatureList(t, mock)
 				mock.SetenvReturns(errTest)
@@ -309,6 +325,11 @@ func TestVerifyImage(t *testing.T) {
 			},
 		},
 		{ // Skip on no signatures listed
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.SignaturesListReturns([]oci.Signature{}, nil)
 			},
@@ -319,12 +340,13 @@ func TestVerifyImage(t *testing.T) {
 		},
 	} {
 		mock := &signfakes.FakeImpl{}
+		mock.ParseReferenceReturns(tc.fakeReference, nil)
 		tc.prepare(mock)
 
 		sut := sign.New(sign.Default())
 		sut.SetImpl(mock)
 
-		obj, err := sut.VerifyImage("gcr.io/fake/honk:99.99.99")
+		obj, err := sut.VerifyImage(tc.fakeReference.image)
 		tc.assert(obj, err)
 	}
 }

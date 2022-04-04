@@ -141,31 +141,10 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 		return nil, fmt.Errorf("sign reference: %s: %w", reference, err)
 	}
 
-	if !s.options.AttachSignature {
-		// We only pass one image at time for now
-		ref, err := s.impl.ParseReference(reference)
-		if err != nil {
-			return &SignedObject{}, fmt.Errorf("parsing reference: %s: %w", reference, err)
-		}
-
-		dig, err := s.impl.Digest(ref.String())
-		if err != nil {
-			return &SignedObject{}, fmt.Errorf("getting the reference digest for %s: %w", reference, err)
-		}
-
-		sigParsed := strings.ReplaceAll(dig, "sha256:", "sha256-")
-		obj := &SignedObject{
-			digest:    dig,
-			reference: ref.String(),
-			signature: fmt.Sprintf("%s:%s.sig", ref.Context().Name(), sigParsed),
-		}
-
-		return obj, nil
-	}
-
-	object, err := s.impl.VerifyImageInternal(ctx, s.options.PublicKeyPath, images)
+	// We only pass one image at time for now
+	object, err := s.VerifyImage(images[0])
 	if err != nil {
-		return nil, fmt.Errorf("verify reference: %s: %w", images, err)
+		return nil, fmt.Errorf("verify reference: %s: %w", images[0], err)
 	}
 
 	return object, nil
@@ -250,11 +229,29 @@ func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 	defer cancel()
 
 	images := []string{reference}
-	object, err := s.impl.VerifyImageInternal(ctx, s.options.PublicKeyPath, images)
+	_, err = s.impl.VerifyImageInternal(ctx, s.options.PublicKeyPath, images)
 	if err != nil {
 		return nil, fmt.Errorf("verify image reference: %s: %w", images, err)
 	}
-	return object, nil
+
+	ref, err := s.impl.ParseReference(reference)
+	if err != nil {
+		return &SignedObject{}, fmt.Errorf("parsing reference: %s: %w", reference, err)
+	}
+
+	dig, err := s.impl.Digest(ref.String())
+	if err != nil {
+		return &SignedObject{}, fmt.Errorf("getting the reference digest for %s: %w", reference, err)
+	}
+
+	sigParsed := strings.ReplaceAll(dig, "sha256:", "sha256-")
+	obj := &SignedObject{
+		digest:    dig,
+		reference: ref.String(),
+		signature: fmt.Sprintf("%s:%s.sig", ref.Context().Name(), sigParsed),
+	}
+
+	return obj, nil
 }
 
 // VerifyFile can be used to validate any provided file path.
