@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
@@ -53,6 +54,7 @@ type impl interface {
 	TokenFromProviders(context.Context, *logrus.Logger) (string, error)
 	FileExists(string) bool
 	ParseReference(string, ...name.Option) (name.Reference, error)
+	Digest(ref string, opt ...crane.Option) (string, error)
 	SignedEntity(name.Reference, ...remote.Option) (oci.SignedEntity, error)
 	Signatures(oci.SignedEntity) (oci.Signatures, error)
 	SignaturesList(oci.Signatures) ([]oci.Signature, error)
@@ -125,6 +127,12 @@ func (*defaultImpl) ParseReference(
 	s string, opts ...name.Option,
 ) (name.Reference, error) {
 	return name.ParseReference(s, opts...)
+}
+
+func (*defaultImpl) Digest(
+	ref string, opts ...crane.Option,
+) (string, error) {
+	return crane.Digest(ref, opts...)
 }
 
 func (*defaultImpl) SignedEntity(

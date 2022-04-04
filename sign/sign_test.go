@@ -18,8 +18,10 @@ package sign_test
 
 import (
 	"errors"
+	"log"
 	"testing"
 
+	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/sigstore/cosign/pkg/oci"
 	"github.com/sigstore/cosign/pkg/oci/static"
 	"github.com/stretchr/testify/require"
@@ -57,42 +59,79 @@ func TestUploadBlob(t *testing.T) {
 
 func TestSignImage(t *testing.T) {
 	t.Parallel()
-
 	// Some of these tests require a real IDentity token
 	token := "DUMMYTOKEN"
 
 	for _, tc := range []struct {
-		prepare func(*signfakes.FakeImpl)
-		assert  func(*sign.SignedObject, error)
+		fakeReference *FakeReferenceStub
+		prepare       func(*signfakes.FakeImpl)
+		assert        func(*sign.SignedObject, error)
 	}{
 		{ // Success
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SignImageInternalReturns(nil)
 				mock.TokenFromProvidersReturns(token, nil)
+				sig, err := static.NewSignature([]byte{}, "honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Nil(t, err)
+
+				mock.SignaturesListReturns([]oci.Signature{sig}, nil)
+				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NoError(t, err)
 				require.NotNil(t, obj)
-				require.Empty(t, obj.Reference())
-				require.Empty(t, obj.Digest())
+				require.NotEmpty(t, obj.Reference())
+				require.NotEmpty(t, obj.Digest())
+				require.NotEmpty(t, obj.Signature())
+				require.Equal(t, obj.Reference(), "gcr.io/fake/honk:99.99.99")
+				require.Equal(t, obj.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Equal(t, obj.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 			},
 		},
 		{ // Success with failed unset experimental
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
+				sig, err := static.NewSignature([]byte{}, "honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Nil(t, err)
+
+				mock.SignaturesListReturns([]oci.Signature{sig}, nil)
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
-				mock.SetenvReturnsOnCall(1, errTest)
+				mock.SetenvReturnsOnCall(2, errTest)
 				mock.TokenFromProvidersReturns(token, nil)
+				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
-				require.NotNil(t, obj)
-				require.Empty(t, obj.Reference())
-				require.Empty(t, obj.Digest())
 				require.NoError(t, err)
+				require.NotNil(t, obj)
+				require.NotEmpty(t, obj.Reference())
+				require.NotEmpty(t, obj.Digest())
+				require.NotEmpty(t, obj.Signature())
+				require.Equal(t, obj.Reference(), "gcr.io/fake/honk:99.99.99")
+				require.Equal(t, obj.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Equal(t, obj.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 			},
 		},
 		{ // Failure on Verify
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
+				sig, err := static.NewSignature([]byte{}, "honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Nil(t, err)
+
+				mock.SignaturesListReturns([]oci.Signature{sig}, nil)
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SignImageInternalReturns(nil)
 				mock.TokenFromProvidersReturns(token, nil)
@@ -103,6 +142,11 @@ func TestSignImage(t *testing.T) {
 			},
 		},
 		{ // Failure on Sign
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SignImageInternalReturns(errTest)
@@ -114,6 +158,11 @@ func TestSignImage(t *testing.T) {
 			},
 		},
 		{ // Failure on set experimental
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.SetenvReturns(errTest)
 				mock.TokenFromProvidersReturns(token, nil)
@@ -124,6 +173,11 @@ func TestSignImage(t *testing.T) {
 			},
 		},
 		{ // Failure getting identity token
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.TokenFromProvidersReturns(token, errTest)
 			},
@@ -134,6 +188,7 @@ func TestSignImage(t *testing.T) {
 		},
 	} {
 		mock := &signfakes.FakeImpl{}
+		mock.ParseReferenceReturns(tc.fakeReference, nil)
 		tc.prepare(mock)
 
 		opts := sign.Default()
@@ -142,7 +197,7 @@ func TestSignImage(t *testing.T) {
 		sut := sign.New(opts)
 		sut.SetImpl(mock)
 
-		obj, err := sut.SignImage("gcr.io/fake/honk:99.99.99")
+		obj, err := sut.SignImage(tc.fakeReference.image)
 		tc.assert(obj, err)
 	}
 }
@@ -197,31 +252,53 @@ func TestVerifyImage(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		prepare func(*signfakes.FakeImpl)
-		assert  func(*sign.SignedObject, error)
+		fakeReference *FakeReferenceStub
+		prepare       func(*signfakes.FakeImpl)
+		assert        func(*sign.SignedObject, error)
 	}{
 		{ // Success
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
+				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, err)
 			},
 		},
 		{ // Success with failed unset experimental
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SetenvReturnsOnCall(1, errTest)
 				prepareSignatureList(t, mock)
+				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj)
-				require.Empty(t, obj.Reference())
-				require.Empty(t, obj.Digest())
+				require.NotEmpty(t, obj.Reference())
+				require.NotEmpty(t, obj.Digest())
+				require.NotEmpty(t, obj.Signature())
+				require.Equal(t, obj.Reference(), "gcr.io/fake/honk:99.99.99")
+				require.Equal(t, obj.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Equal(t, obj.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 				require.Nil(t, err)
 			},
 		},
 		{ // Failure on Verify
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SetenvReturns(nil)
@@ -233,6 +310,11 @@ func TestVerifyImage(t *testing.T) {
 			},
 		},
 		{ // Failure on set experimental
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				prepareSignatureList(t, mock)
 				mock.SetenvReturns(errTest)
@@ -243,6 +325,11 @@ func TestVerifyImage(t *testing.T) {
 			},
 		},
 		{ // Skip on no signatures listed
+			fakeReference: &FakeReferenceStub{
+				image:      "gcr.io/fake/honk:99.99.99",
+				registry:   "gcr.io",
+				repository: "fake/honk",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.SignaturesListReturns([]oci.Signature{}, nil)
 			},
@@ -253,12 +340,13 @@ func TestVerifyImage(t *testing.T) {
 		},
 	} {
 		mock := &signfakes.FakeImpl{}
+		mock.ParseReferenceReturns(tc.fakeReference, nil)
 		tc.prepare(mock)
 
 		sut := sign.New(sign.Default())
 		sut.SetImpl(mock)
 
-		obj, err := sut.VerifyImage("gcr.io/fake/honk:99.99.99")
+		obj, err := sut.VerifyImage(tc.fakeReference.image)
 		tc.assert(obj, err)
 	}
 }
@@ -357,4 +445,46 @@ func TestIsImageSigned(t *testing.T) {
 		res, err := sut.IsImageSigned("")
 		tc.assert(res, err)
 	}
+}
+
+// FakeReferenceStub implements the name.Reference to we use in the testing
+// type FakeReferenceStub interface {
+// 	fmt.Stringer
+// 	// Context accesses the Repository context of the reference.
+// 	Context() name.Repository
+// 	// Identifier accesses the type-specific portion of the reference.
+// 	Identifier() string
+// 	// Name is the fully-qualified reference name.
+// 	Name() string
+// 	// Scope is the scope needed to access this reference.
+// 	Scope(string)
+// }
+type FakeReferenceStub struct {
+	image      string
+	registry   string
+	repository string
+}
+
+func (fr *FakeReferenceStub) Context() name.Repository {
+	reg, err := name.NewRepository(fr.repository, name.WithDefaultRegistry(fr.registry))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return reg
+}
+
+func (*FakeReferenceStub) Identifier() string {
+	return ""
+}
+
+func (*FakeReferenceStub) Scope(s string) string {
+	return s
+}
+
+func (fr *FakeReferenceStub) Name() string {
+	return fr.image
+}
+
+func (fr *FakeReferenceStub) String() string {
+	return fr.image
 }
