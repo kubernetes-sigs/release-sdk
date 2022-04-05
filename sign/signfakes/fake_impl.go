@@ -95,10 +95,10 @@ type FakeImpl struct {
 	setenvReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SignFileInternalStub        func(context.Context, signa.KeyOpts, options.RegistryOptions, string, bool, string, string) error
+	SignFileInternalStub        func(options.RootOptions, signa.KeyOpts, options.RegistryOptions, string, bool, string, string) error
 	signFileInternalMutex       sync.RWMutex
 	signFileInternalArgsForCall []struct {
-		arg1 context.Context
+		arg1 options.RootOptions
 		arg2 signa.KeyOpts
 		arg3 options.RegistryOptions
 		arg4 string
@@ -112,10 +112,10 @@ type FakeImpl struct {
 	signFileInternalReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SignImageInternalStub        func(context.Context, signa.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) error
+	SignImageInternalStub        func(options.RootOptions, signa.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) error
 	signImageInternalMutex       sync.RWMutex
 	signImageInternalArgsForCall []struct {
-		arg1  context.Context
+		arg1  options.RootOptions
 		arg2  signa.KeyOpts
 		arg3  options.RegistryOptions
 		arg4  map[string]interface{}
@@ -537,11 +537,11 @@ func (fake *FakeImpl) SetenvReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeImpl) SignFileInternal(arg1 context.Context, arg2 signa.KeyOpts, arg3 options.RegistryOptions, arg4 string, arg5 bool, arg6 string, arg7 string) error {
+func (fake *FakeImpl) SignFileInternal(arg1 options.RootOptions, arg2 signa.KeyOpts, arg3 options.RegistryOptions, arg4 string, arg5 bool, arg6 string, arg7 string) error {
 	fake.signFileInternalMutex.Lock()
 	ret, specificReturn := fake.signFileInternalReturnsOnCall[len(fake.signFileInternalArgsForCall)]
 	fake.signFileInternalArgsForCall = append(fake.signFileInternalArgsForCall, struct {
-		arg1 context.Context
+		arg1 options.RootOptions
 		arg2 signa.KeyOpts
 		arg3 options.RegistryOptions
 		arg4 string
@@ -568,13 +568,13 @@ func (fake *FakeImpl) SignFileInternalCallCount() int {
 	return len(fake.signFileInternalArgsForCall)
 }
 
-func (fake *FakeImpl) SignFileInternalCalls(stub func(context.Context, signa.KeyOpts, options.RegistryOptions, string, bool, string, string) error) {
+func (fake *FakeImpl) SignFileInternalCalls(stub func(options.RootOptions, signa.KeyOpts, options.RegistryOptions, string, bool, string, string) error) {
 	fake.signFileInternalMutex.Lock()
 	defer fake.signFileInternalMutex.Unlock()
 	fake.SignFileInternalStub = stub
 }
 
-func (fake *FakeImpl) SignFileInternalArgsForCall(i int) (context.Context, signa.KeyOpts, options.RegistryOptions, string, bool, string, string) {
+func (fake *FakeImpl) SignFileInternalArgsForCall(i int) (options.RootOptions, signa.KeyOpts, options.RegistryOptions, string, bool, string, string) {
 	fake.signFileInternalMutex.RLock()
 	defer fake.signFileInternalMutex.RUnlock()
 	argsForCall := fake.signFileInternalArgsForCall[i]
@@ -604,7 +604,7 @@ func (fake *FakeImpl) SignFileInternalReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeImpl) SignImageInternal(arg1 context.Context, arg2 signa.KeyOpts, arg3 options.RegistryOptions, arg4 map[string]interface{}, arg5 []string, arg6 string, arg7 bool, arg8 string, arg9 string, arg10 string, arg11 bool, arg12 bool, arg13 string) error {
+func (fake *FakeImpl) SignImageInternal(arg1 options.RootOptions, arg2 signa.KeyOpts, arg3 options.RegistryOptions, arg4 map[string]interface{}, arg5 []string, arg6 string, arg7 bool, arg8 string, arg9 string, arg10 string, arg11 bool, arg12 bool, arg13 string) error {
 	var arg5Copy []string
 	if arg5 != nil {
 		arg5Copy = make([]string, len(arg5))
@@ -613,7 +613,7 @@ func (fake *FakeImpl) SignImageInternal(arg1 context.Context, arg2 signa.KeyOpts
 	fake.signImageInternalMutex.Lock()
 	ret, specificReturn := fake.signImageInternalReturnsOnCall[len(fake.signImageInternalArgsForCall)]
 	fake.signImageInternalArgsForCall = append(fake.signImageInternalArgsForCall, struct {
-		arg1  context.Context
+		arg1  options.RootOptions
 		arg2  signa.KeyOpts
 		arg3  options.RegistryOptions
 		arg4  map[string]interface{}
@@ -646,13 +646,13 @@ func (fake *FakeImpl) SignImageInternalCallCount() int {
 	return len(fake.signImageInternalArgsForCall)
 }
 
-func (fake *FakeImpl) SignImageInternalCalls(stub func(context.Context, signa.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) error) {
+func (fake *FakeImpl) SignImageInternalCalls(stub func(options.RootOptions, signa.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) error) {
 	fake.signImageInternalMutex.Lock()
 	defer fake.signImageInternalMutex.Unlock()
 	fake.SignImageInternalStub = stub
 }
 
-func (fake *FakeImpl) SignImageInternalArgsForCall(i int) (context.Context, signa.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) {
+func (fake *FakeImpl) SignImageInternalArgsForCall(i int) (options.RootOptions, signa.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) {
 	fake.signImageInternalMutex.RLock()
 	defer fake.signImageInternalMutex.RUnlock()
 	argsForCall := fake.signImageInternalArgsForCall[i]

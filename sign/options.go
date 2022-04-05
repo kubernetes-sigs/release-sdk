@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/sigstore/cosign/cmd/cosign/cli/generate"
+	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/pkg/cosign"
 	"github.com/sirupsen/logrus"
 )
@@ -72,6 +73,12 @@ func Default() *Options {
 		PassFunc:             generate.GetPass,
 		EnableTokenProviders: true,
 		AttachSignature:      true,
+	}
+}
+
+func (o *Options) ToCosignRootOptions() options.RootOptions {
+	return options.RootOptions{
+		Timeout: o.Timeout,
 	}
 }
 
