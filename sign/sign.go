@@ -124,19 +124,10 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 
 	images := []string{reference}
 
-	outputSignature := ""
-	if s.options.OutputSignaturePath != "" {
-		outputSignature = s.options.OutputSignaturePath
-	}
-
-	outputCertificate := ""
-	if s.options.OutputCertificatePath != "" {
-		outputCertificate = s.options.OutputCertificatePath
-	}
-
-	if err := s.impl.SignImageInternal(ctx, ko, regOpts,
-		s.options.Annotations, images, "", s.options.AttachSignature, outputSignature,
-		outputCertificate, "", true, false, "",
+	if err := s.impl.SignImageInternal(
+		s.options.ToCosignRootOptions(), ko, regOpts, s.options.Annotations,
+		images, "", s.options.AttachSignature, s.options.OutputSignaturePath,
+		s.options.OutputCertificatePath, "", true, false, "",
 	); err != nil {
 		return nil, fmt.Errorf("sign reference: %s: %w", reference, err)
 	}
@@ -175,21 +166,9 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 		AllowInsecure: s.options.AllowInsecure,
 	}
 
-	outputSignature := ""
-	if s.options.OutputSignaturePath != "" {
-		outputSignature = s.options.OutputSignaturePath
-	}
-
-	outputCertificate := ""
-	if s.options.OutputCertificatePath != "" {
-		outputCertificate = s.options.OutputCertificatePath
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), s.options.Timeout)
-	defer cancel()
-
-	if err := s.impl.SignFileInternal(ctx, ko, regOpts, path,
-		true, outputSignature, outputCertificate,
+	if err := s.impl.SignFileInternal(
+		s.options.ToCosignRootOptions(), ko, regOpts, path, true,
+		s.options.OutputSignaturePath, s.options.OutputCertificatePath,
 	); err != nil {
 		return nil, fmt.Errorf("sign file path: %s: %w", path, err)
 	}
