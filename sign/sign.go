@@ -140,7 +140,7 @@ func (s *Signer) SignImage(reference string) (object *SignedObject, err error) {
 	waitErr := wait.ExponentialBackoff(wait.Backoff{
 		Duration: 500 * time.Millisecond,
 		Factor:   1.5,
-		Steps:    s.options.MaxRetries,
+		Steps:    int(s.options.MaxRetries),
 	}, func() (bool, error) {
 		object, err = s.VerifyImage(images[0])
 		if err != nil {

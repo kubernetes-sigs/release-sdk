@@ -66,7 +66,7 @@ type Options struct {
 
 	// MaxRetries indicates the number of times to retry operations
 	// when transient failures occur
-	MaxRetries int
+	MaxRetries uint
 }
 
 // Default returns a default Options instance.
