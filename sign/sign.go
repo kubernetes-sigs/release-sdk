@@ -22,11 +22,13 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/google/go-containerregistry/pkg/logs"
 	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 // Signer is the main structure to be used by API consumers.
@@ -73,7 +75,7 @@ func (s *Signer) UploadBlob(path string) error {
 
 // SignImage can be used to sign any provided container image reference by
 // using keyless signing.
-func (s *Signer) SignImage(reference string) (*SignedObject, error) {
+func (s *Signer) SignImage(reference string) (object *SignedObject, err error) {
 	s.log().Infof("Signing reference: %s", reference)
 
 	// Ensure options to sign are correct
@@ -132,13 +134,27 @@ func (s *Signer) SignImage(reference string) (*SignedObject, error) {
 		return nil, fmt.Errorf("sign reference: %s: %w", reference, err)
 	}
 
-	// We only pass one image at time for now
-	object, err := s.VerifyImage(images[0])
-	if err != nil {
-		return nil, fmt.Errorf("verify reference: %s: %w", images[0], err)
+	// After signing, registry consistency may not be there right
+	// away. Retry the image verification if it fails
+	// ref: https://github.com/kubernetes-sigs/promo-tools/issues/536
+	waitErr := wait.ExponentialBackoff(wait.Backoff{
+		Duration: 500 * time.Millisecond,
+		Factor:   1.5,
+		Steps:    s.options.MaxRetries,
+	}, func() (bool, error) {
+		object, err = s.VerifyImage(images[0])
+		if err != nil {
+			err = fmt.Errorf("verifying reference %s: %w", images[0], err)
+			return false, nil
+		}
+		return true, nil
+	})
+
+	if waitErr != nil {
+		return nil, fmt.Errorf("retrying image verification: %w", waitErr)
 	}
 
-	return object, nil
+	return object, err
 }
 
 // SignFile can be used to sign any provided file path by using keyless
