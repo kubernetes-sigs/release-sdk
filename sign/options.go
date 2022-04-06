@@ -63,6 +63,10 @@ type Options struct {
 	// is provided (i.e. it's not used for keyless signing).
 	// Defaults to a function that reads from stdin and asks for confirmation
 	PassFunc cosign.PassFunc
+
+	// MaxRetries indicates the number of times to retry operations
+	// when transient failures occur
+	MaxRetries uint
 }
 
 // Default returns a default Options instance.
@@ -73,6 +77,7 @@ func Default() *Options {
 		PassFunc:             generate.GetPass,
 		EnableTokenProviders: true,
 		AttachSignature:      true,
+		MaxRetries:           3,
 	}
 }
 
