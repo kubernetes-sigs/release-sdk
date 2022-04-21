@@ -31,7 +31,7 @@ func TestReplayListTags(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(tags) == 0 {
-		t.Fatal("expected tags to be non-zero, but received empty slice")
+	if len(tags) != 19 {
+		t.Fatalf("expected tags to be 19, but received %d", len(tags))
 	}
 }
