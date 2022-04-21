@@ -20,6 +20,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/release-sdk/github"
 )
 
