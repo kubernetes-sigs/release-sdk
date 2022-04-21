@@ -29,7 +29,5 @@ func TestReplayListTags(t *testing.T) {
 	replayer := github.NewReplayer(testDataDir)
 	tags, _, err := replayer.ListTags(context.Background(), "", "", nil)
 	require.Nil(t, err)
-	if len(tags) != 19 {
-		t.Fatalf("expected tags to be 19, but received %d", len(tags))
-	}
+	require.Len(t, tags, 19)
 }
