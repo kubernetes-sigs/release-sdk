@@ -187,11 +187,11 @@ func NewWithToken(token string) (*GitHub, error) {
 	}
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
-		logrus.Infof("unable to retrieve user cache dir: %v", err.Error())
+		logrus.Infof("Unable to retrieve user cache dir: %v", err)
 		cacheDir = os.TempDir()
 	}
 	dir := filepath.Join(cacheDir, "kubernetes", "release-sdk", "github")
-	logrus.Debugf("caching GitHub responses in %v", dir)
+	logrus.Debugf("Caching GitHub responses in %v", dir)
 	t := httpcache.NewTransport(diskcache.New(dir))
 	client.Transport = t.Transport
 
