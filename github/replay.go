@@ -190,7 +190,7 @@ func (c *githubNotesReplayClient) ListTags(
 		return nil, nil, err
 	}
 	result := []*github.RepositoryTag{}
-	record := apiRecord{Result: result}
+	record := apiRecord{Result: &result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
