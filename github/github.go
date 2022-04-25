@@ -27,6 +27,8 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v39/github"
+	"github.com/gregjones/httpcache"
+	"github.com/gregjones/httpcache/diskcache"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 
@@ -183,6 +185,16 @@ func NewWithToken(token string) (*GitHub, error) {
 			&oauth2.Token{AccessToken: token},
 		))
 	}
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		logrus.Infof("Unable to retrieve user cache dir: %v", err)
+		cacheDir = os.TempDir()
+	}
+	dir := filepath.Join(cacheDir, "kubernetes", "release-sdk", "github")
+	logrus.Debugf("Caching GitHub responses in %v", dir)
+	t := httpcache.NewTransport(diskcache.New(dir))
+	client.Transport = t.Transport
+
 	logrus.Debugf("Using %s GitHub client", state)
 	return &GitHub{
 		client:  &githubClient{github.NewClient(client)},
