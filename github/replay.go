@@ -289,7 +289,8 @@ func (c *githubNotesReplayClient) UploadReleaseAsset(
 
 // DeleteReleaseAsset removes an asset from a page, note recorded
 func (c *githubNotesReplayClient) DeleteReleaseAsset(
-	ctx context.Context, owner, repo string, assetID int64) error {
+	ctx context.Context, owner, repo string, assetID int64,
+) error {
 	return nil
 }
 

@@ -188,7 +188,8 @@ func (g *GCS) bucketCopy(src, dst string) error {
 //   gs://<bucket>/<gcsRoot>[/fast][/<version>]
 func (g *GCS) GetReleasePath(
 	bucket, gcsRoot, version string,
-	fast bool) (string, error) {
+	fast bool,
+) (string, error) {
 	gcsPath, err := g.getPath(
 		bucket,
 		gcsRoot,
@@ -209,7 +210,8 @@ func (g *GCS) GetReleasePath(
 // Expected destination format:
 //   gs://<bucket>/<gcsRoot>
 func (g *GCS) GetMarkerPath(
-	bucket, gcsRoot string) (string, error) {
+	bucket, gcsRoot string,
+) (string, error) {
 	gcsPath, err := g.getPath(
 		bucket,
 		gcsRoot,
@@ -232,7 +234,8 @@ func (g *GCS) GetMarkerPath(
 // TODO: Support "release" buildType
 func (g *GCS) getPath(
 	bucket, gcsRoot, version, pathType string,
-	fast bool) (string, error) {
+	fast bool,
+) (string, error) {
 	if gcsRoot == "" {
 		return "", errors.New("GCS root must be specified")
 	}
