@@ -72,7 +72,8 @@ func (*defaultImpl) VerifyImageInternal(ctx context.Context, publickeyPath strin
 func (*defaultImpl) SignImageInternal(ro options.RootOptions, ko sign.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic
 	annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 	outputSignature string, outputCertificate string, payloadPath string, force bool,
-	recursive bool, attachment string) error {
+	recursive bool, attachment string,
+) error {
 	return sign.SignCmd(
 		&ro, ko, regOpts, annotations, imgs, certPath, "", upload, outputSignature,
 		outputCertificate, payloadPath, force, recursive, attachment,

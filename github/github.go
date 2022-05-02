@@ -445,7 +445,8 @@ func (g *githubClient) UploadReleaseAsset(
 }
 
 func (g *githubClient) DeleteReleaseAsset(
-	ctx context.Context, owner string, repo string, assetID int64) error {
+	ctx context.Context, owner string, repo string, assetID int64,
+) error {
 	_, err := g.Repositories.DeleteReleaseAsset(ctx, owner, repo, assetID)
 	if err != nil {
 		return fmt.Errorf("deleting asset %d: %w", assetID, err)
@@ -823,7 +824,8 @@ func (g *GitHub) CreatePullRequest(
 
 // GetMilestone returns a milestone object from its string name
 func (g *GitHub) GetMilestone(owner, repo, title string) (
-	ms *github.Milestone, exists bool, err error) {
+	ms *github.Milestone, exists bool, err error,
+) {
 	if title == "" {
 		return nil, false, errors.New("unable to search milestone. Title is empty")
 	}
@@ -975,7 +977,8 @@ func (g *GitHub) DeleteReleaseAsset(owner, repo string, assetID int64) error {
 
 // ListReleaseAssets gets the assets uploaded to a GitHub release
 func (g *GitHub) ListReleaseAssets(
-	owner, repo string, releaseID int64) ([]*github.ReleaseAsset, error) {
+	owner, repo string, releaseID int64,
+) ([]*github.ReleaseAsset, error) {
 	// Get the assets from the client
 	assets, err := g.Client().ListReleaseAssets(
 		context.Background(), owner, repo, releaseID,
