@@ -407,8 +407,8 @@ github.com/bytecodealliance/wasmtime-go v0.31.0/go.mod h1:q320gUxqyI8yB+ZqRuaJOE
 github.com/bytecodealliance/wasmtime-go v0.33.1 h1:TFep11LiqCy1B6QUIAtqH3KZTbZcKasm89/AF9sqLnA=
 github.com/caarlos0/ctrlc v1.0.0/go.mod h1:CdXpj4rmq0q/1Eb44M9zi2nKB0QraNKuRGYGrrHhcQw=
 github.com/campoy/unique v0.0.0-20180121183637-88950e537e7e/go.mod h1:9IOqJGCPMSc6E5ydlp5NIonxObaeu/Iub/X03EKPVYo=
-github.com/carolynvs/magex v0.7.1 h1:Rn3Hn+uza1doKge0Qbhk9Lj1topOUMZ/sRxOKDseMM0=
-github.com/carolynvs/magex v0.7.1/go.mod h1:vZB3BkRfkd5ZMtkxJkCGbdFyWGoZiuNPKhx6uEQARmY=
+github.com/carolynvs/magex v0.8.0 h1:BCY0A6fLs37NZrIFBKuOMXda5wEIrUeTF4sHB601JVM=
+github.com/carolynvs/magex v0.8.0/go.mod h1:vZB3BkRfkd5ZMtkxJkCGbdFyWGoZiuNPKhx6uEQARmY=
 github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n9yuLkIJQ=
 github.com/cavaliercoder/badio v0.0.0-20160213150051-ce5280129e9e/go.mod h1:V284PjgVwSk4ETmz84rpu9ehpGg7swlIH8npP9k2bGw=
 github.com/cavaliercoder/go-cpio v0.0.0-20180626203310-925f9528c45e/go.mod h1:oDpT4efm8tSYHXV5tHSdRvBet/b/QzxZ+XyyPehvm3A=
