@@ -20,12 +20,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/google/go-containerregistry/pkg/logs"
 	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
+	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
+	"github.com/sigstore/cosign/pkg/blob"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
@@ -188,7 +191,10 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 		return nil, fmt.Errorf("sign file path: %s: %w", path, err)
 	}
 
-	object, err := s.impl.VerifyFileInternal(s, path)
+	ctx, cancel := s.options.context()
+	defer cancel()
+
+	object, err := s.impl.VerifyFileInternal(ctx, ko, s.options.OutputSignaturePath, s.options.OutputCertificatePath, path)
 	if err != nil {
 		return nil, fmt.Errorf("verify file path: %s: %w", path, err)
 	}
@@ -252,9 +258,44 @@ func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 	s.log().Infof("Verifying file path: %s", path)
 
-	// TODO: unimplemented
+	resetFn, err := s.enableExperimental()
+	if err != nil {
+		return nil, err
+	}
+	defer resetFn()
 
-	return &SignedObject{}, nil
+	ko := sign.KeyOpts{
+		KeyRef:     s.options.PrivateKeyPath,
+		PassFunc:   s.options.PassFunc,
+		FulcioURL:  cliOpts.DefaultFulcioURL,
+		RekorURL:   cliOpts.DefaultRekorURL,
+		OIDCIssuer: cliOpts.DefaultOIDCIssuerURL,
+
+		InsecureSkipFulcioVerify: false,
+	}
+
+	ctx, cancel := s.options.context()
+	defer cancel()
+
+	isSigned, err := s.IsFileSigned(ctx, ko, path)
+	if err != nil {
+		return nil, fmt.Errorf("checking if %s is signed: %w", path, err)
+	}
+
+	if !isSigned {
+		s.log().Infof("Skipping unsigned file: %s", path)
+		return nil, nil
+	}
+
+	_, err = s.impl.VerifyFileInternal(ctx, ko, s.options.OutputSignaturePath, s.options.OutputCertificatePath, path)
+	if err != nil {
+		return nil, fmt.Errorf("verify file reference: %s: %w", path, err)
+	}
+
+	return &SignedObject{
+		reference: path,
+		signature: s.options.OutputSignaturePath,
+	}, nil
 }
 
 // enableExperimental sets the cosign experimental mode to true. It also
@@ -299,6 +340,18 @@ func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 	return len(signatures) > 0, nil
 }
 
+func (s *Signer) IsFileSigned(ctx context.Context, ko sign.KeyOpts, path string) (bool, error) {
+
+	var uuids []string
+
+	uuids, err := s.impl.FindTLogEntriesByPayload(ctx, ko, path)
+	if err != nil {
+		return false, err
+	}
+
+	return len(uuids) > 0, nil
+}
+
 // identityToken returns an identity token to perform keyless signing.
 // If there is one set in the options we will use that one. If not,
 // signer will try to get one from the cosign OIDC identity providers
@@ -320,4 +373,18 @@ func (s *Signer) identityToken(ctx context.Context) (string, error) {
 		tok = token
 	}
 	return tok, nil
+}
+
+func payloadBytes(blobRef string) ([]byte, error) {
+	var blobBytes []byte
+	var err error
+	if blobRef == "-" {
+		blobBytes, err = io.ReadAll(os.Stdin)
+	} else {
+		blobBytes, err = blob.LoadFileOrURL(blobRef)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return blobBytes, nil
 }
