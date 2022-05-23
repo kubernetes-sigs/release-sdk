@@ -27,6 +27,7 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/rekor"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sigstore/cosign/cmd/cosign/cli/verify"
+	"github.com/sigstore/cosign/pkg/blob"
 	"github.com/sigstore/cosign/pkg/cosign"
 	"github.com/sigstore/cosign/pkg/oci"
 	"github.com/sigstore/cosign/pkg/oci/remote"
@@ -61,6 +62,7 @@ type impl interface {
 	SignedEntity(name.Reference, ...remote.Option) (oci.SignedEntity, error)
 	Signatures(oci.SignedEntity) (oci.Signatures, error)
 	SignaturesList(oci.Signatures) ([]oci.Signature, error)
+	PayloadBytes(blobRef string) ([]byte, error)
 }
 
 func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko sign.KeyOpts, outputSignature, outputCertificate, path string) error {
@@ -133,7 +135,7 @@ func (*defaultImpl) ParseReference(
 	return name.ParseReference(s, opts...)
 }
 
-func (*defaultImpl) FindTLogEntriesByPayload(
+func (d *defaultImpl) FindTLogEntriesByPayload(
 	ctx context.Context, ko sign.KeyOpts, path string,
 ) ([]string, error) {
 
@@ -142,7 +144,7 @@ func (*defaultImpl) FindTLogEntriesByPayload(
 		return nil, err
 	}
 
-	blobBytes, err := payloadBytes(path)
+	blobBytes, err := d.PayloadBytes(path)
 	if err != nil {
 		return nil, err
 	}
@@ -177,4 +179,12 @@ func (*defaultImpl) SignaturesList(
 	signatures oci.Signatures,
 ) ([]oci.Signature, error) {
 	return signatures.Get()
+}
+
+func (*defaultImpl) PayloadBytes(blobRef string) (blobBytes []byte, err error) {
+	blobBytes, err = blob.LoadFileOrURL(blobRef)
+	if err != nil {
+		return nil, err
+	}
+	return blobBytes, nil
 }

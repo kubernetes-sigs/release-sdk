@@ -20,7 +20,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 	"time"
@@ -28,7 +27,6 @@ import (
 	"github.com/google/go-containerregistry/pkg/logs"
 	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
-	"github.com/sigstore/cosign/pkg/blob"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
@@ -377,18 +375,4 @@ func (s *Signer) identityToken(ctx context.Context) (string, error) {
 		tok = token
 	}
 	return tok, nil
-}
-
-func payloadBytes(blobRef string) ([]byte, error) {
-	var blobBytes []byte
-	var err error
-	if blobRef == "-" {
-		blobBytes, err = io.ReadAll(os.Stdin)
-	} else {
-		blobBytes, err = blob.LoadFileOrURL(blobRef)
-	}
-	if err != nil {
-		return nil, err
-	}
-	return blobBytes, nil
 }

@@ -97,6 +97,19 @@ type FakeImpl struct {
 		result1 name.Reference
 		result2 error
 	}
+	PayloadBytesStub        func(string) ([]byte, error)
+	payloadBytesMutex       sync.RWMutex
+	payloadBytesArgsForCall []struct {
+		arg1 string
+	}
+	payloadBytesReturns struct {
+		result1 []byte
+		result2 error
+	}
+	payloadBytesReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 error
+	}
 	SetenvStub        func(string, string) error
 	setenvMutex       sync.RWMutex
 	setenvArgsForCall []struct {
@@ -552,6 +565,70 @@ func (fake *FakeImpl) ParseReferenceReturnsOnCall(i int, result1 name.Reference,
 	}
 	fake.parseReferenceReturnsOnCall[i] = struct {
 		result1 name.Reference
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) PayloadBytes(arg1 string) ([]byte, error) {
+	fake.payloadBytesMutex.Lock()
+	ret, specificReturn := fake.payloadBytesReturnsOnCall[len(fake.payloadBytesArgsForCall)]
+	fake.payloadBytesArgsForCall = append(fake.payloadBytesArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.PayloadBytesStub
+	fakeReturns := fake.payloadBytesReturns
+	fake.recordInvocation("PayloadBytes", []interface{}{arg1})
+	fake.payloadBytesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeImpl) PayloadBytesCallCount() int {
+	fake.payloadBytesMutex.RLock()
+	defer fake.payloadBytesMutex.RUnlock()
+	return len(fake.payloadBytesArgsForCall)
+}
+
+func (fake *FakeImpl) PayloadBytesCalls(stub func(string) ([]byte, error)) {
+	fake.payloadBytesMutex.Lock()
+	defer fake.payloadBytesMutex.Unlock()
+	fake.PayloadBytesStub = stub
+}
+
+func (fake *FakeImpl) PayloadBytesArgsForCall(i int) string {
+	fake.payloadBytesMutex.RLock()
+	defer fake.payloadBytesMutex.RUnlock()
+	argsForCall := fake.payloadBytesArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeImpl) PayloadBytesReturns(result1 []byte, result2 error) {
+	fake.payloadBytesMutex.Lock()
+	defer fake.payloadBytesMutex.Unlock()
+	fake.PayloadBytesStub = nil
+	fake.payloadBytesReturns = struct {
+		result1 []byte
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) PayloadBytesReturnsOnCall(i int, result1 []byte, result2 error) {
+	fake.payloadBytesMutex.Lock()
+	defer fake.payloadBytesMutex.Unlock()
+	fake.PayloadBytesStub = nil
+	if fake.payloadBytesReturnsOnCall == nil {
+		fake.payloadBytesReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 error
+		})
+	}
+	fake.payloadBytesReturnsOnCall[i] = struct {
+		result1 []byte
 		result2 error
 	}{result1, result2}
 }
@@ -1170,6 +1247,8 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	defer fake.findTLogEntriesByPayloadMutex.RUnlock()
 	fake.parseReferenceMutex.RLock()
 	defer fake.parseReferenceMutex.RUnlock()
+	fake.payloadBytesMutex.RLock()
+	defer fake.payloadBytesMutex.RUnlock()
 	fake.setenvMutex.RLock()
 	defer fake.setenvMutex.RUnlock()
 	fake.signFileInternalMutex.RLock()
