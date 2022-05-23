@@ -255,6 +255,7 @@ func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 }
 
 // VerifyFile can be used to validate any provided file path.
+// If no signed entry is found we skip the file without errors.
 func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 	s.log().Infof("Verifying file path: %s", path)
 
@@ -340,6 +341,9 @@ func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 	return len(signatures) > 0, nil
 }
 
+// IsFileSigned takes an path reference and retrusn true if there is a signature
+// available for it. It makes no signature verification, only checks to see if
+// more then one signature is available.
 func (s *Signer) IsFileSigned(ctx context.Context, ko sign.KeyOpts, path string) (bool, error) {
 
 	var uuids []string
