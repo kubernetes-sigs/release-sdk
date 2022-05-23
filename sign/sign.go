@@ -194,11 +194,11 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 	ctx, cancel := s.options.context()
 	defer cancel()
 
-	object, err := s.impl.VerifyFileInternal(ctx, ko, s.options.OutputSignaturePath, s.options.OutputCertificatePath, path)
+	err = s.impl.VerifyFileInternal(ctx, ko, s.options.OutputSignaturePath, s.options.OutputCertificatePath, path)
 	if err != nil {
 		return nil, fmt.Errorf("verify file path: %s: %w", path, err)
 	}
-	return object, nil
+	return &SignedObject{}, nil
 }
 
 // VerifyImage can be used to validate any provided container image reference by
@@ -287,7 +287,7 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 		return nil, nil
 	}
 
-	_, err = s.impl.VerifyFileInternal(ctx, ko, s.options.OutputSignaturePath, s.options.OutputCertificatePath, path)
+	err = s.impl.VerifyFileInternal(ctx, ko, s.options.OutputSignaturePath, s.options.OutputCertificatePath, path)
 	if err != nil {
 		return nil, fmt.Errorf("verify file reference: %s: %w", path, err)
 	}

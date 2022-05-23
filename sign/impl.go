@@ -43,7 +43,7 @@ type defaultImpl struct{}
 //counterfeiter:generate . impl
 //go:generate /usr/bin/env bash -c "cat ../scripts/boilerplate/boilerplate.generatego.txt signfakes/fake_impl.go > signfakes/_fake_impl.go && mv signfakes/_fake_impl.go signfakes/fake_impl.go"
 type impl interface {
-	VerifyFileInternal(ctx context.Context, ko sign.KeyOpts, outputSignature, outputCertificate, path string) (*SignedObject, error)
+	VerifyFileInternal(ctx context.Context, ko sign.KeyOpts, outputSignature, outputCertificate, path string) error
 	VerifyImageInternal(ctx context.Context, keyPath string, images []string) (*SignedObject, error)
 	SignImageInternal(ro options.RootOptions, ko options.KeyOpts, regOpts options.RegistryOptions,
 		annotations map[string]interface{}, imgs []string, certPath string, upload bool,
@@ -63,9 +63,8 @@ type impl interface {
 	SignaturesList(oci.Signatures) ([]oci.Signature, error)
 }
 
-func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko sign.KeyOpts, outputSignature, outputCertificate, path string) (*SignedObject, error) {
-	err := verify.VerifyBlobCmd(ctx, ko, outputCertificate, "", "", "", outputSignature, path, false)
-	return &SignedObject{}, err
+func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko sign.KeyOpts, outputSignature, outputCertificate, path string) error {
+	return verify.VerifyBlobCmd(ctx, ko, outputCertificate, "", "", "", outputSignature, path, false)
 }
 
 func (*defaultImpl) VerifyImageInternal(ctx context.Context, publickeyPath string, images []string) (*SignedObject, error) {

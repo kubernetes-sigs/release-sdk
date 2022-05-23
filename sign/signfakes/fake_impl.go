@@ -203,7 +203,7 @@ type FakeImpl struct {
 		result1 string
 		result2 error
 	}
-	VerifyFileInternalStub        func(context.Context, signa.KeyOpts, string, string, string) (*sign.SignedObject, error)
+	VerifyFileInternalStub        func(context.Context, signa.KeyOpts, string, string, string) error
 	verifyFileInternalMutex       sync.RWMutex
 	verifyFileInternalArgsForCall []struct {
 		arg1 context.Context
@@ -213,12 +213,10 @@ type FakeImpl struct {
 		arg5 string
 	}
 	verifyFileInternalReturns struct {
-		result1 *sign.SignedObject
-		result2 error
+		result1 error
 	}
 	verifyFileInternalReturnsOnCall map[int]struct {
-		result1 *sign.SignedObject
-		result2 error
+		result1 error
 	}
 	VerifyImageInternalStub        func(context.Context, string, []string) (*sign.SignedObject, error)
 	verifyImageInternalMutex       sync.RWMutex
@@ -1023,7 +1021,7 @@ func (fake *FakeImpl) TokenFromProvidersReturnsOnCall(i int, result1 string, res
 	}{result1, result2}
 }
 
-func (fake *FakeImpl) VerifyFileInternal(arg1 context.Context, arg2 signa.KeyOpts, arg3 string, arg4 string, arg5 string) (*sign.SignedObject, error) {
+func (fake *FakeImpl) VerifyFileInternal(arg1 context.Context, arg2 signa.KeyOpts, arg3 string, arg4 string, arg5 string) error {
 	fake.verifyFileInternalMutex.Lock()
 	ret, specificReturn := fake.verifyFileInternalReturnsOnCall[len(fake.verifyFileInternalArgsForCall)]
 	fake.verifyFileInternalArgsForCall = append(fake.verifyFileInternalArgsForCall, struct {
@@ -1041,9 +1039,9 @@ func (fake *FakeImpl) VerifyFileInternal(arg1 context.Context, arg2 signa.KeyOpt
 		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fakeReturns.result1, fakeReturns.result2
+	return fakeReturns.result1
 }
 
 func (fake *FakeImpl) VerifyFileInternalCallCount() int {
@@ -1052,7 +1050,7 @@ func (fake *FakeImpl) VerifyFileInternalCallCount() int {
 	return len(fake.verifyFileInternalArgsForCall)
 }
 
-func (fake *FakeImpl) VerifyFileInternalCalls(stub func(context.Context, signa.KeyOpts, string, string, string) (*sign.SignedObject, error)) {
+func (fake *FakeImpl) VerifyFileInternalCalls(stub func(context.Context, signa.KeyOpts, string, string, string) error) {
 	fake.verifyFileInternalMutex.Lock()
 	defer fake.verifyFileInternalMutex.Unlock()
 	fake.VerifyFileInternalStub = stub
@@ -1065,30 +1063,27 @@ func (fake *FakeImpl) VerifyFileInternalArgsForCall(i int) (context.Context, sig
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeImpl) VerifyFileInternalReturns(result1 *sign.SignedObject, result2 error) {
+func (fake *FakeImpl) VerifyFileInternalReturns(result1 error) {
 	fake.verifyFileInternalMutex.Lock()
 	defer fake.verifyFileInternalMutex.Unlock()
 	fake.VerifyFileInternalStub = nil
 	fake.verifyFileInternalReturns = struct {
-		result1 *sign.SignedObject
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeImpl) VerifyFileInternalReturnsOnCall(i int, result1 *sign.SignedObject, result2 error) {
+func (fake *FakeImpl) VerifyFileInternalReturnsOnCall(i int, result1 error) {
 	fake.verifyFileInternalMutex.Lock()
 	defer fake.verifyFileInternalMutex.Unlock()
 	fake.VerifyFileInternalStub = nil
 	if fake.verifyFileInternalReturnsOnCall == nil {
 		fake.verifyFileInternalReturnsOnCall = make(map[int]struct {
-			result1 *sign.SignedObject
-			result2 error
+			result1 error
 		})
 	}
 	fake.verifyFileInternalReturnsOnCall[i] = struct {
-		result1 *sign.SignedObject
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeImpl) VerifyImageInternal(arg1 context.Context, arg2 string, arg3 []string) (*sign.SignedObject, error) {
