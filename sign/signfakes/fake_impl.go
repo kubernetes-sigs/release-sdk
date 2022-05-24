@@ -26,6 +26,7 @@ import (
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/pkg/oci"
 	"github.com/sigstore/cosign/pkg/oci/remote"
+	"github.com/sigstore/rekor/pkg/generated/client"
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/release-sdk/sign"
 )
@@ -68,12 +69,12 @@ type FakeImpl struct {
 	fileExistsReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	FindTLogEntriesByPayloadStub        func(context.Context, signa.KeyOpts, string) ([]string, error)
+	FindTLogEntriesByPayloadStub        func(context.Context, *client.Rekor, []byte) ([]string, error)
 	findTLogEntriesByPayloadMutex       sync.RWMutex
 	findTLogEntriesByPayloadArgsForCall []struct {
 		arg1 context.Context
-		arg2 signa.KeyOpts
-		arg3 string
+		arg2 *client.Rekor
+		arg3 []byte
 	}
 	findTLogEntriesByPayloadReturns struct {
 		result1 []string
@@ -81,6 +82,19 @@ type FakeImpl struct {
 	}
 	findTLogEntriesByPayloadReturnsOnCall map[int]struct {
 		result1 []string
+		result2 error
+	}
+	NewRekorClientStub        func(string) (*client.Rekor, error)
+	newRekorClientMutex       sync.RWMutex
+	newRekorClientArgsForCall []struct {
+		arg1 string
+	}
+	newRekorClientReturns struct {
+		result1 *client.Rekor
+		result2 error
+	}
+	newRekorClientReturnsOnCall map[int]struct {
+		result1 *client.Rekor
 		result2 error
 	}
 	ParseReferenceStub        func(string, ...name.Option) (name.Reference, error)
@@ -438,17 +452,22 @@ func (fake *FakeImpl) FileExistsReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeImpl) FindTLogEntriesByPayload(arg1 context.Context, arg2 signa.KeyOpts, arg3 string) ([]string, error) {
+func (fake *FakeImpl) FindTLogEntriesByPayload(arg1 context.Context, arg2 *client.Rekor, arg3 []byte) ([]string, error) {
+	var arg3Copy []byte
+	if arg3 != nil {
+		arg3Copy = make([]byte, len(arg3))
+		copy(arg3Copy, arg3)
+	}
 	fake.findTLogEntriesByPayloadMutex.Lock()
 	ret, specificReturn := fake.findTLogEntriesByPayloadReturnsOnCall[len(fake.findTLogEntriesByPayloadArgsForCall)]
 	fake.findTLogEntriesByPayloadArgsForCall = append(fake.findTLogEntriesByPayloadArgsForCall, struct {
 		arg1 context.Context
-		arg2 signa.KeyOpts
-		arg3 string
-	}{arg1, arg2, arg3})
+		arg2 *client.Rekor
+		arg3 []byte
+	}{arg1, arg2, arg3Copy})
 	stub := fake.FindTLogEntriesByPayloadStub
 	fakeReturns := fake.findTLogEntriesByPayloadReturns
-	fake.recordInvocation("FindTLogEntriesByPayload", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("FindTLogEntriesByPayload", []interface{}{arg1, arg2, arg3Copy})
 	fake.findTLogEntriesByPayloadMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2, arg3)
@@ -465,13 +484,13 @@ func (fake *FakeImpl) FindTLogEntriesByPayloadCallCount() int {
 	return len(fake.findTLogEntriesByPayloadArgsForCall)
 }
 
-func (fake *FakeImpl) FindTLogEntriesByPayloadCalls(stub func(context.Context, signa.KeyOpts, string) ([]string, error)) {
+func (fake *FakeImpl) FindTLogEntriesByPayloadCalls(stub func(context.Context, *client.Rekor, []byte) ([]string, error)) {
 	fake.findTLogEntriesByPayloadMutex.Lock()
 	defer fake.findTLogEntriesByPayloadMutex.Unlock()
 	fake.FindTLogEntriesByPayloadStub = stub
 }
 
-func (fake *FakeImpl) FindTLogEntriesByPayloadArgsForCall(i int) (context.Context, signa.KeyOpts, string) {
+func (fake *FakeImpl) FindTLogEntriesByPayloadArgsForCall(i int) (context.Context, *client.Rekor, []byte) {
 	fake.findTLogEntriesByPayloadMutex.RLock()
 	defer fake.findTLogEntriesByPayloadMutex.RUnlock()
 	argsForCall := fake.findTLogEntriesByPayloadArgsForCall[i]
@@ -500,6 +519,70 @@ func (fake *FakeImpl) FindTLogEntriesByPayloadReturnsOnCall(i int, result1 []str
 	}
 	fake.findTLogEntriesByPayloadReturnsOnCall[i] = struct {
 		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) NewRekorClient(arg1 string) (*client.Rekor, error) {
+	fake.newRekorClientMutex.Lock()
+	ret, specificReturn := fake.newRekorClientReturnsOnCall[len(fake.newRekorClientArgsForCall)]
+	fake.newRekorClientArgsForCall = append(fake.newRekorClientArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.NewRekorClientStub
+	fakeReturns := fake.newRekorClientReturns
+	fake.recordInvocation("NewRekorClient", []interface{}{arg1})
+	fake.newRekorClientMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeImpl) NewRekorClientCallCount() int {
+	fake.newRekorClientMutex.RLock()
+	defer fake.newRekorClientMutex.RUnlock()
+	return len(fake.newRekorClientArgsForCall)
+}
+
+func (fake *FakeImpl) NewRekorClientCalls(stub func(string) (*client.Rekor, error)) {
+	fake.newRekorClientMutex.Lock()
+	defer fake.newRekorClientMutex.Unlock()
+	fake.NewRekorClientStub = stub
+}
+
+func (fake *FakeImpl) NewRekorClientArgsForCall(i int) string {
+	fake.newRekorClientMutex.RLock()
+	defer fake.newRekorClientMutex.RUnlock()
+	argsForCall := fake.newRekorClientArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeImpl) NewRekorClientReturns(result1 *client.Rekor, result2 error) {
+	fake.newRekorClientMutex.Lock()
+	defer fake.newRekorClientMutex.Unlock()
+	fake.NewRekorClientStub = nil
+	fake.newRekorClientReturns = struct {
+		result1 *client.Rekor
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) NewRekorClientReturnsOnCall(i int, result1 *client.Rekor, result2 error) {
+	fake.newRekorClientMutex.Lock()
+	defer fake.newRekorClientMutex.Unlock()
+	fake.NewRekorClientStub = nil
+	if fake.newRekorClientReturnsOnCall == nil {
+		fake.newRekorClientReturnsOnCall = make(map[int]struct {
+			result1 *client.Rekor
+			result2 error
+		})
+	}
+	fake.newRekorClientReturnsOnCall[i] = struct {
+		result1 *client.Rekor
 		result2 error
 	}{result1, result2}
 }
@@ -1245,6 +1328,8 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	defer fake.fileExistsMutex.RUnlock()
 	fake.findTLogEntriesByPayloadMutex.RLock()
 	defer fake.findTLogEntriesByPayloadMutex.RUnlock()
+	fake.newRekorClientMutex.RLock()
+	defer fake.newRekorClientMutex.RUnlock()
 	fake.parseReferenceMutex.RLock()
 	defer fake.parseReferenceMutex.RUnlock()
 	fake.payloadBytesMutex.RLock()

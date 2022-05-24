@@ -32,6 +32,7 @@ import (
 	"github.com/sigstore/cosign/pkg/oci"
 	"github.com/sigstore/cosign/pkg/oci/remote"
 	"github.com/sigstore/cosign/pkg/providers"
+	"github.com/sigstore/rekor/pkg/generated/client"
 	"github.com/sirupsen/logrus"
 
 	"sigs.k8s.io/release-utils/env"
@@ -57,12 +58,13 @@ type impl interface {
 	TokenFromProviders(context.Context, *logrus.Logger) (string, error)
 	FileExists(string) bool
 	ParseReference(string, ...name.Option) (name.Reference, error)
-	FindTLogEntriesByPayload(ctx context.Context, ko sign.KeyOpts, path string) ([]string, error)
+	FindTLogEntriesByPayload(ctx context.Context, rClient *client.Rekor, blobBytes []byte) ([]string, error)
 	Digest(ref string, opt ...crane.Option) (string, error)
 	SignedEntity(name.Reference, ...remote.Option) (oci.SignedEntity, error)
 	Signatures(oci.SignedEntity) (oci.Signatures, error)
 	SignaturesList(oci.Signatures) ([]oci.Signature, error)
 	PayloadBytes(blobRef string) ([]byte, error)
+	NewRekorClient(string) (*client.Rekor, error)
 }
 
 func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko sign.KeyOpts, outputSignature, outputCertificate, path string) error {
@@ -136,25 +138,9 @@ func (*defaultImpl) ParseReference(
 }
 
 func (d *defaultImpl) FindTLogEntriesByPayload(
-	ctx context.Context, ko sign.KeyOpts, path string,
+	ctx context.Context, rClient *client.Rekor, blobBytes []byte,
 ) ([]string, error) {
-
-	rClient, err := rekor.NewClient(ko.RekorURL)
-	if err != nil {
-		return nil, err
-	}
-
-	blobBytes, err := d.PayloadBytes(path)
-	if err != nil {
-		return nil, err
-	}
-
-	uuids, err := cosign.FindTLogEntriesByPayload(ctx, rClient, blobBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return uuids, nil
+	return cosign.FindTLogEntriesByPayload(ctx, rClient, blobBytes)
 }
 
 func (*defaultImpl) Digest(
@@ -187,4 +173,8 @@ func (*defaultImpl) PayloadBytes(blobRef string) (blobBytes []byte, err error) {
 		return nil, fmt.Errorf("load file or url of sign payload: %w", err)
 	}
 	return blobBytes, nil
+}
+
+func (*defaultImpl) NewRekorClient(rekorUrl string) (*client.Rekor, error) {
+	return rekor.NewClient(rekorUrl)
 }

@@ -344,9 +344,17 @@ func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 // more then one signature is available.
 func (s *Signer) IsFileSigned(ctx context.Context, ko sign.KeyOpts, path string) (bool, error) {
 
-	var uuids []string
+	rClient, err := s.impl.NewRekorClient(ko.RekorURL)
+	if err != nil {
+		return false, fmt.Errorf("creating rekor client", err)
+	}
 
-	uuids, err := s.impl.FindTLogEntriesByPayload(ctx, ko, path)
+	blobBytes, err := s.impl.PayloadBytes(path)
+	if err != nil {
+		return false, err
+	}
+
+	uuids, err := s.impl.FindTLogEntriesByPayload(ctx, rClient, blobBytes)
 	if err != nil {
 		return false, fmt.Errorf("find rekor tlog entries: %w", err)
 	}
