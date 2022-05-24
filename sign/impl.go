@@ -184,7 +184,7 @@ func (*defaultImpl) SignaturesList(
 func (*defaultImpl) PayloadBytes(blobRef string) (blobBytes []byte, err error) {
 	blobBytes, err = blob.LoadFileOrURL(blobRef)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load file or url of sign payload: %w", err)
 	}
 	return blobBytes, nil
 }

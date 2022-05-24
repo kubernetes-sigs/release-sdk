@@ -348,7 +348,7 @@ func (s *Signer) IsFileSigned(ctx context.Context, ko sign.KeyOpts, path string)
 
 	uuids, err := s.impl.FindTLogEntriesByPayload(ctx, ko, path)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("find rekor tlog entries: %w", err)
 	}
 
 	return len(uuids) > 0, nil
