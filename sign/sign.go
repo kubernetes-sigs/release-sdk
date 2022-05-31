@@ -342,11 +342,10 @@ func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 // IsFileSigned takes an path reference and retrusn true if there is a signature
 // available for it. It makes no signature verification, only checks to see if
 // more then one signature is available.
-func (s *Signer) IsFileSigned(ctx context.Context, ko sign.KeyOpts, path string) (bool, error) {
-
+func (s *Signer) IsFileSigned(ctx context.Context, ko sign.KeyOpts, path string) (bool, error) { // nolint: gocritic
 	rClient, err := s.impl.NewRekorClient(ko.RekorURL)
 	if err != nil {
-		return false, fmt.Errorf("creating rekor client", err)
+		return false, fmt.Errorf("creating rekor client: %w", err)
 	}
 
 	blobBytes, err := s.impl.PayloadBytes(path)

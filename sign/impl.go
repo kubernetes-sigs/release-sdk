@@ -67,7 +67,9 @@ type impl interface {
 	NewRekorClient(string) (*client.Rekor, error)
 }
 
-func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko sign.KeyOpts, outputSignature, outputCertificate, path string) error {
+func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko sign.KeyOpts, outputSignature, // nolint: gocritic
+	outputCertificate, path string,
+) error {
 	return verify.VerifyBlobCmd(ctx, ko, outputCertificate, "", "", "", outputSignature, path, false)
 }
 
@@ -175,6 +177,6 @@ func (*defaultImpl) PayloadBytes(blobRef string) (blobBytes []byte, err error) {
 	return blobBytes, nil
 }
 
-func (*defaultImpl) NewRekorClient(rekorUrl string) (*client.Rekor, error) {
-	return rekor.NewClient(rekorUrl)
+func (*defaultImpl) NewRekorClient(rekorURL string) (*client.Rekor, error) {
+	return rekor.NewClient(rekorURL)
 }

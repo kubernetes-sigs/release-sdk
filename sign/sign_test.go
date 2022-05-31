@@ -211,7 +211,7 @@ func TestSignFile(t *testing.T) {
 	}{
 		{ // Success
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyFileInternalReturns(&sign.SignedObject{}, nil)
+				mock.VerifyFileInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj)
@@ -222,7 +222,7 @@ func TestSignFile(t *testing.T) {
 		},
 		{ // Failure on Verify
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyFileInternalReturns(nil, errTest)
+				mock.VerifyFileInternalReturns(errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, err)
