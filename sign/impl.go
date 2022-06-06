@@ -43,11 +43,11 @@ type defaultImpl struct{}
 type impl interface {
 	VerifyFileInternal(*Signer, string) (*SignedObject, error)
 	VerifyImageInternal(ctx context.Context, keyPath string, images []string) (*SignedObject, error)
-	SignImageInternal(ro options.RootOptions, ko sign.KeyOpts, regOpts options.RegistryOptions,
+	SignImageInternal(ro options.RootOptions, ko options.KeyOpts, regOpts options.RegistryOptions,
 		annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 		outputSignature string, outputCertificate string, payloadPath string, force bool,
 		recursive bool, attachment string) error
-	SignFileInternal(ro options.RootOptions, ko sign.KeyOpts, regOpts options.RegistryOptions,
+	SignFileInternal(ro options.RootOptions, ko options.KeyOpts, regOpts options.RegistryOptions,
 		payloadPath string, b64 bool, outputSignature string, outputCertificate string) error
 	Setenv(string, string) error
 	EnvDefault(string, string) string
@@ -69,7 +69,7 @@ func (*defaultImpl) VerifyImageInternal(ctx context.Context, publickeyPath strin
 	return &SignedObject{}, v.Exec(ctx, images)
 }
 
-func (*defaultImpl) SignImageInternal(ro options.RootOptions, ko sign.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic
+func (*defaultImpl) SignImageInternal(ro options.RootOptions, ko options.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic
 	annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 	outputSignature string, outputCertificate string, payloadPath string, force bool,
 	recursive bool, attachment string,
@@ -80,7 +80,7 @@ func (*defaultImpl) SignImageInternal(ro options.RootOptions, ko sign.KeyOpts, r
 	)
 }
 
-func (*defaultImpl) SignFileInternal(ro options.RootOptions, ko sign.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic
+func (*defaultImpl) SignFileInternal(ro options.RootOptions, ko options.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic
 	payloadPath string, b64 bool, outputSignature string, outputCertificate string,
 ) error {
 	// Ignoring the signature return value for now as we are setting the outputSignature path and to keep an consistent impl API
