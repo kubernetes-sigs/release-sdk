@@ -26,7 +26,6 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/logs"
 	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
-	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
@@ -109,7 +108,7 @@ func (s *Signer) SignImage(reference string) (object *SignedObject, err error) {
 		}
 	}
 
-	ko := sign.KeyOpts{
+	ko := cliOpts.KeyOpts{
 		KeyRef:     s.options.PrivateKeyPath,
 		IDToken:    identityToken,
 		PassFunc:   s.options.PassFunc,
@@ -168,7 +167,7 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 	}
 	defer resetFn()
 
-	ko := sign.KeyOpts{
+	ko := cliOpts.KeyOpts{
 		KeyRef:     s.options.PrivateKeyPath,
 		PassFunc:   s.options.PassFunc,
 		FulcioURL:  cliOpts.DefaultFulcioURL,
