@@ -13,7 +13,7 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/sigstore/cosign v1.9.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	k8s.io/apimachinery v0.24.1
 	sigs.k8s.io/release-utils v0.6.1-0.20220405215325-d4a2a2f0e8fd
@@ -265,7 +265,7 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.24.0 // indirect
 	k8s.io/client-go v0.24.0 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect
