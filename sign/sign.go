@@ -18,6 +18,8 @@ package sign
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
@@ -181,11 +183,23 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 		AllowInsecure: s.options.AllowInsecure,
 	}
 
+	if s.options.OutputCertificatePath == "" {
+		s.options.OutputCertificatePath = fmt.Sprintf("%v.cert", path)
+	}
+	if s.options.OutputSignaturePath == "" {
+		s.options.OutputSignaturePath = fmt.Sprintf("%v.sig", path)
+	}
+
 	if err := s.impl.SignFileInternal(
 		s.options.ToCosignRootOptions(), ko, regOpts, path, true,
 		s.options.OutputSignaturePath, s.options.OutputCertificatePath,
 	); err != nil {
 		return nil, fmt.Errorf("sign file path: %s: %w", path, err)
+	}
+
+	sha256, err := s.FileSha256(path)
+	if err != nil {
+		return nil, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
 	}
 
 	ctx, cancel := s.options.context()
@@ -195,7 +209,15 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 	if err != nil {
 		return nil, fmt.Errorf("verify file path: %s: %w", path, err)
 	}
-	return &SignedObject{}, nil
+
+	return &SignedObject{
+		File: &SignedFile{
+			path:            path,
+			sha256:          sha256,
+			signaturePath:   s.options.OutputSignaturePath,
+			certificatePath: s.options.OutputCertificatePath,
+		},
+	}, nil
 }
 
 // VerifyImage can be used to validate any provided container image reference by
@@ -243,9 +265,11 @@ func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 
 	sigParsed := strings.ReplaceAll(dig, "sha256:", "sha256-")
 	obj := &SignedObject{
-		digest:    dig,
-		reference: ref.String(),
-		signature: fmt.Sprintf("%s:%s.sig", ref.Context().Name(), sigParsed),
+		Image: &SignedImage{
+			digest:    dig,
+			reference: ref.String(),
+			signature: fmt.Sprintf("%s:%s.sig", ref.Context().Name(), sigParsed),
+		},
 	}
 
 	return obj, nil
@@ -291,8 +315,12 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 	}
 
 	return &SignedObject{
-		reference: path,
-		signature: s.options.OutputSignaturePath,
+		File: &SignedFile{
+			path: path,
+			// sha256: ,
+			signaturePath:   s.options.OutputSignaturePath,
+			certificatePath: s.options.OutputCertificatePath,
+		},
 	}, nil
 }
 
@@ -358,6 +386,18 @@ func (s *Signer) IsFileSigned(ctx context.Context, ko cliOpts.KeyOpts, path stri
 	}
 
 	return len(uuids) > 0, nil
+}
+
+// FileSha256 return a sha256 has of a file based on the
+func (s *Signer) FileSha256(path string) (string, error) {
+	blobBytes, err := s.impl.PayloadBytes(path)
+	if err != nil {
+		return "", fmt.Errorf("load file payload: %w", err)
+	}
+
+	h := sha256.New()
+	h.Write(blobBytes)
+	return strings.ToLower(hex.EncodeToString(h.Sum(nil))), nil
 }
 
 // identityToken returns an identity token to perform keyless signing.

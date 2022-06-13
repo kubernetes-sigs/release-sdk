@@ -99,6 +99,7 @@ func TestSuccessSignFile(t *testing.T) {
 
 	// Write the test file
 	testFilePath := filepath.Join(tempDir, "test")
+	testFileCertPath := filepath.Join(tempDir, "test.cert")
 	testFileSigPath := filepath.Join(tempDir, "test.sig")
 	require.Nil(t, os.WriteFile(testFilePath, []byte(testFile), 0o644))
 
@@ -116,17 +117,18 @@ func TestSuccessSignFile(t *testing.T) {
 	opts.PrivateKeyPath = privateKeyPath
 	opts.PublicKeyPath = publicKeyPath
 	opts.PassFunc = getPass
-	opts.OutputCertificatePath = testFileSigPath
+	opts.OutputCertificatePath = testFileCertPath
+	opts.OutputSignaturePath = testFileSigPath
 
 	signer := sign.New(opts)
 
 	signedObject, err := signer.SignFile(testFilePath)
 	require.Nil(t, err)
-	require.NotNil(t, signedObject)
+	require.NotNil(t, signedObject.File)
 
 	verifiedObject, err := signer.VerifyFile(testFilePath)
 	require.Nil(t, err)
-	require.NotNil(t, verifiedObject)
+	require.NotNil(t, verifiedObject.File)
 }
 
 func TestIsImageSigned(t *testing.T) {
