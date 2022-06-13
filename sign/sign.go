@@ -184,10 +184,10 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 	}
 
 	if s.options.OutputCertificatePath == "" {
-		s.options.OutputCertificatePath = fmt.Sprintf("%v.cert", path)
+		s.options.OutputCertificatePath = fmt.Sprintf("%s.cert", path)
 	}
 	if s.options.OutputSignaturePath == "" {
-		s.options.OutputSignaturePath = fmt.Sprintf("%v.sig", path)
+		s.options.OutputSignaturePath = fmt.Sprintf("%s.sig", path)
 	}
 
 	fileSHA, err := s.FileSha256(path)
@@ -295,6 +295,13 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 
 		InsecureSkipFulcioVerify: false,
 	}
+
+	if s.options.OutputCertificatePath == "" {
+		s.options.OutputCertificatePath = fmt.Sprintf("%s.cert", path)
+	}
+	if s.options.OutputSignaturePath == "" {
+		s.options.OutputSignaturePath = fmt.Sprintf("%s.sig", path)
+	}	
 
 	ctx, cancel := s.options.context()
 	defer cancel()
