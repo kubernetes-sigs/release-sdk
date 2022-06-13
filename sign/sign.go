@@ -26,7 +26,6 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/logs"
 	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
-	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
@@ -263,7 +262,7 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 	}
 	defer resetFn()
 
-	ko := sign.KeyOpts{
+	ko := cliOpts.KeyOpts{
 		KeyRef:     s.options.PrivateKeyPath,
 		PassFunc:   s.options.PassFunc,
 		FulcioURL:  cliOpts.DefaultFulcioURL,
@@ -342,7 +341,7 @@ func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 // IsFileSigned takes an path reference and retrusn true if there is a signature
 // available for it. It makes no signature verification, only checks to see if
 // more then one signature is available.
-func (s *Signer) IsFileSigned(ctx context.Context, ko sign.KeyOpts, path string) (bool, error) { // nolint: gocritic
+func (s *Signer) IsFileSigned(ctx context.Context, ko cliOpts.KeyOpts, path string) (bool, error) { // nolint: gocritic
 	rClient, err := s.impl.NewRekorClient(ko.RekorURL)
 	if err != nil {
 		return false, fmt.Errorf("creating rekor client: %w", err)

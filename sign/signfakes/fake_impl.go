@@ -230,11 +230,11 @@ type FakeImpl struct {
 		result1 string
 		result2 error
 	}
-	VerifyFileInternalStub        func(context.Context, signa.KeyOpts, string, string, string) error
+	VerifyFileInternalStub        func(context.Context, options.KeyOpts, string, string, string) error
 	verifyFileInternalMutex       sync.RWMutex
 	verifyFileInternalArgsForCall []struct {
 		arg1 context.Context
-		arg2 signa.KeyOpts
+		arg2 options.KeyOpts
 		arg3 string
 		arg4 string
 		arg5 string
@@ -1181,12 +1181,12 @@ func (fake *FakeImpl) TokenFromProvidersReturnsOnCall(i int, result1 string, res
 	}{result1, result2}
 }
 
-func (fake *FakeImpl) VerifyFileInternal(arg1 context.Context, arg2 signa.KeyOpts, arg3 string, arg4 string, arg5 string) error {
+func (fake *FakeImpl) VerifyFileInternal(arg1 context.Context, arg2 options.KeyOpts, arg3 string, arg4 string, arg5 string) error {
 	fake.verifyFileInternalMutex.Lock()
 	ret, specificReturn := fake.verifyFileInternalReturnsOnCall[len(fake.verifyFileInternalArgsForCall)]
 	fake.verifyFileInternalArgsForCall = append(fake.verifyFileInternalArgsForCall, struct {
 		arg1 context.Context
-		arg2 signa.KeyOpts
+		arg2 options.KeyOpts
 		arg3 string
 		arg4 string
 		arg5 string
@@ -1210,13 +1210,13 @@ func (fake *FakeImpl) VerifyFileInternalCallCount() int {
 	return len(fake.verifyFileInternalArgsForCall)
 }
 
-func (fake *FakeImpl) VerifyFileInternalCalls(stub func(context.Context, signa.KeyOpts, string, string, string) error) {
+func (fake *FakeImpl) VerifyFileInternalCalls(stub func(context.Context, options.KeyOpts, string, string, string) error) {
 	fake.verifyFileInternalMutex.Lock()
 	defer fake.verifyFileInternalMutex.Unlock()
 	fake.VerifyFileInternalStub = stub
 }
 
-func (fake *FakeImpl) VerifyFileInternalArgsForCall(i int) (context.Context, signa.KeyOpts, string, string, string) {
+func (fake *FakeImpl) VerifyFileInternalArgsForCall(i int) (context.Context, options.KeyOpts, string, string, string) {
 	fake.verifyFileInternalMutex.RLock()
 	defer fake.verifyFileInternalMutex.RUnlock()
 	argsForCall := fake.verifyFileInternalArgsForCall[i]
