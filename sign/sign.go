@@ -197,7 +197,7 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 		return nil, fmt.Errorf("sign file path: %s: %w", path, err)
 	}
 
-	sha256, err := s.FileSha256(path)
+	fileSHA, err := s.FileSha256(path)
 	if err != nil {
 		return nil, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
 	}
@@ -213,7 +213,7 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 	return &SignedObject{
 		File: &SignedFile{
 			path:            path,
-			sha256:          sha256,
+			sha256:          fileSHA,
 			signaturePath:   s.options.OutputSignaturePath,
 			certificatePath: s.options.OutputCertificatePath,
 		},
