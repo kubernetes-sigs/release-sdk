@@ -212,6 +212,21 @@ func TestSignFile(t *testing.T) {
 		assert  func(*sign.SignedObject, error)
 	}{
 		{ // Success
+			path:    "/tmp/test-file",
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyFileInternalReturns(nil)
+				mock.SignFileInternalReturns(nil)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, obj)
+				require.NotEmpty(t, obj.File.Path())
+				require.NotEmpty(t, obj.File.CertificatePath())
+				require.NotEmpty(t, obj.File.SignaturePath())
+				require.Nil(t, err)
+			},
+		},
+		{ // Success custom sig and cert.
 			path: "/tmp/test-file",
 			options: &sign.Options{
 				OutputSignaturePath:   "/tmp/test-file.sig",
@@ -229,10 +244,59 @@ func TestSignFile(t *testing.T) {
 				require.Nil(t, err)
 			},
 		},
-		// TODO: Expand test cases.
+		{ // File does not exist.
+			path:    "/tmp/test-file-no-file",
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.PayloadBytesReturns(nil, errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.ErrorContains(t, err, "file retrieve sha256 error")
+			},
+		},
+		{ // File does can't sign.
+			path:    "/tmp/test-file",
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.SignFileInternalReturns(errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.ErrorContains(t, err, "sign file path")
+			},
+		},
+		{ // Default sig and cert file test
+			path:    "/tmp/test-file",
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyFileInternalReturns(nil)
+				mock.SignFileInternalReturns(nil)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, obj)
+				require.NotEmpty(t, obj.File.Path())
+				require.NotEmpty(t, obj.File.CertificatePath())
+				require.NotEmpty(t, obj.File.SignaturePath())
 
-		// - No file. Failure on signing.
-		// - No verification possible.
+				require.Equal(t, obj.File.Path()+".cert", obj.File.CertificatePath())
+				require.Equal(t, obj.File.Path()+".sig", obj.File.SignaturePath())
+
+				require.Nil(t, err)
+			},
+		},
+		{ // Verify failed.
+			path:    "/tmp/test-file",
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyFileInternalReturns(errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.NotNil(t, err)
+				require.ErrorContains(t, err, "verify signed file")
+			},
+		},
 	} {
 		mock := &signfakes.FakeImpl{}
 		tc.prepare(mock)
@@ -361,25 +425,96 @@ func TestVerifyImage(t *testing.T) {
 func TestVerifyFile(t *testing.T) {
 	t.Parallel()
 
+	payload := []byte("honk")
+	payloadSha256 := "4de18cc93efe15c1d1cc2407cfc9f054b4d9217975538ac005dba541acee1954"
+	uuids := []string{
+		"uuid",
+	}
+
 	for _, tc := range []struct {
+		path    string
+		options *sign.Options
 		prepare func(*signfakes.FakeImpl)
 		assert  func(*sign.SignedObject, error)
 	}{
 		{ // Success
+			path:    "/tmp/test-file",
+			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
+				mock.PayloadBytesReturns(payload, nil)
+				mock.FindTLogEntriesByPayloadReturns(uuids, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, obj.File)
+				require.Equal(t, obj.File.Path(), "/tmp/test-file")
+				require.Equal(t, obj.File.SHA256(), payloadSha256)
 				require.Nil(t, err)
 			},
 		},
+		{ // No file
+			path:    "/tmp/test-no-file",
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.PayloadBytesReturns(nil, errTest)
+				mock.FindTLogEntriesByPayloadReturns(uuids, nil)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.NotNil(t, err)
+				require.ErrorContains(t, err, "file retrieve sha256 error")
+			},
+		},	
+		{ // File not signed
+			path:    "/tmp/test-not-signed",
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.PayloadBytesReturns(nil, nil)
+				mock.FindTLogEntriesByPayloadReturns(nil, nil)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.Nil(t, err)
+			},
+		},
+		{ // File tlog not found
+			path:    "/tmp/test-tlog-not-found",
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.PayloadBytesReturns(payload, nil)
+				mock.FindTLogEntriesByPayloadReturns(uuids, nil)
+				mock.VerifyFileInternalReturns(errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.NotNil(t, err)
+				require.ErrorContains(t, err, "verify file reference")
+			},
+		},
+		{ // File tlog error
+			path:    "/tmp/test-tlog-error",
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.PayloadBytesReturns(payload, nil)
+				mock.FindTLogEntriesByPayloadReturns(nil, errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.NotNil(t, err)
+				require.ErrorContains(t, err, "find rekor tlog entries")
+			},
+		},					
 	} {
+
 		mock := &signfakes.FakeImpl{}
 		tc.prepare(mock)
 
-		sut := sign.New(sign.Default())
+		opts := tc.options
+		opts.Verbose = true
+
+		sut := sign.New(opts)
 		sut.SetImpl(mock)
 
-		obj, err := sut.VerifyFile("")
+		obj, err := sut.VerifyFile(tc.path)
 		tc.assert(obj, err)
 	}
 }

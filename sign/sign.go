@@ -190,6 +190,11 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 		s.options.OutputSignaturePath = fmt.Sprintf("%v.sig", path)
 	}
 
+	fileSHA, err := s.FileSha256(path)
+	if err != nil {
+		return nil, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
+	}	
+
 	if err := s.impl.SignFileInternal(
 		s.options.ToCosignRootOptions(), ko, regOpts, path, true,
 		s.options.OutputSignaturePath, s.options.OutputCertificatePath,
@@ -197,17 +202,12 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 		return nil, fmt.Errorf("sign file path: %s: %w", path, err)
 	}
 
-	fileSHA, err := s.FileSha256(path)
-	if err != nil {
-		return nil, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
-	}
-
 	ctx, cancel := s.options.context()
 	defer cancel()
 
 	err = s.impl.VerifyFileInternal(ctx, ko, s.options.OutputSignaturePath, s.options.OutputCertificatePath, path)
 	if err != nil {
-		return nil, fmt.Errorf("verify file path: %s: %w", path, err)
+		return nil, fmt.Errorf("verify signed file: %s: %w", path, err)
 	}
 
 	return &SignedObject{
@@ -299,9 +299,14 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 	ctx, cancel := s.options.context()
 	defer cancel()
 
+	fileSHA, err := s.FileSha256(path)
+	if err != nil {
+		return nil, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
+	}
+
 	isSigned, err := s.IsFileSigned(ctx, ko, path)
 	if err != nil {
-		return nil, fmt.Errorf("checking if %s is signed: %w", path, err)
+		return nil, fmt.Errorf("checking if file is signed. file: %s, error: %w", path, err)
 	}
 
 	if !isSigned {
@@ -317,7 +322,7 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 	return &SignedObject{
 		File: &SignedFile{
 			path: path,
-			// sha256: ,
+			sha256: fileSHA,
 			signaturePath:   s.options.OutputSignaturePath,
 			certificatePath: s.options.OutputCertificatePath,
 		},
@@ -368,7 +373,7 @@ func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 
 // IsFileSigned takes an path reference and retrusn true if there is a signature
 // available for it. It makes no signature verification, only checks to see if
-// more then one signature is available.
+// there is a TLog to be found on Rekor.
 func (s *Signer) IsFileSigned(ctx context.Context, ko cliOpts.KeyOpts, path string) (bool, error) { // nolint: gocritic
 	rClient, err := s.impl.NewRekorClient(ko.RekorURL)
 	if err != nil {
