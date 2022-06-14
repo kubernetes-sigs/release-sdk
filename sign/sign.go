@@ -193,7 +193,7 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 	fileSHA, err := s.FileSha256(path)
 	if err != nil {
 		return nil, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
-	}	
+	}
 
 	if err := s.impl.SignFileInternal(
 		s.options.ToCosignRootOptions(), ko, regOpts, path, true,
@@ -301,7 +301,7 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 	}
 	if s.options.OutputSignaturePath == "" {
 		s.options.OutputSignaturePath = fmt.Sprintf("%s.sig", path)
-	}	
+	}
 
 	ctx, cancel := s.options.context()
 	defer cancel()
@@ -328,8 +328,8 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 
 	return &SignedObject{
 		File: &SignedFile{
-			path: path,
-			sha256: fileSHA,
+			path:            path,
+			sha256:          fileSHA,
 			signaturePath:   s.options.OutputSignaturePath,
 			certificatePath: s.options.OutputCertificatePath,
 		},

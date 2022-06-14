@@ -463,7 +463,7 @@ func TestVerifyFile(t *testing.T) {
 				require.NotNil(t, err)
 				require.ErrorContains(t, err, "file retrieve sha256 error")
 			},
-		},	
+		},
 		{ // File not signed
 			path:    "/tmp/test-not-signed",
 			options: sign.Default(),
@@ -502,7 +502,7 @@ func TestVerifyFile(t *testing.T) {
 				require.NotNil(t, err)
 				require.ErrorContains(t, err, "find rekor tlog entries")
 			},
-		},					
+		},
 	} {
 
 		mock := &signfakes.FakeImpl{}
