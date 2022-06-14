@@ -504,7 +504,6 @@ func TestVerifyFile(t *testing.T) {
 			},
 		},
 	} {
-
 		mock := &signfakes.FakeImpl{}
 		tc.prepare(mock)
 
