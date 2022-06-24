@@ -16,6 +16,8 @@ limitations under the License.
 
 package sign
 
+// SignedObject contains additional metadata from the signing and verification
+// process.
 type SignedObject struct {
 	Image *SignedImage
 	File  *SignedFile
