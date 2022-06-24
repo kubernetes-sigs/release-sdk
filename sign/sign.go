@@ -169,8 +169,29 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 	}
 	defer resetFn()
 
+	ctx, cancel := s.options.context()
+	defer cancel()
+
+	// If we don't have a key path, we must ensure we can get an OIDC
+	// token or there is no way to sign. Depending on the options set,
+	// we may get the ID token from the cosign providers
+	identityToken := ""
+	if s.options.PrivateKeyPath == "" {
+		tok, err := s.identityToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("getting identity token for keyless signing: %w", err)
+		}
+		identityToken = tok
+		if identityToken == "" {
+			return nil, errors.New(
+				"no private key or identity token are available, unable to sign",
+			)
+		}
+	}
+
 	ko := cliOpts.KeyOpts{
 		KeyRef:     s.options.PrivateKeyPath,
+		IDToken:    identityToken,
 		PassFunc:   s.options.PassFunc,
 		FulcioURL:  cliOpts.DefaultFulcioURL,
 		RekorURL:   cliOpts.DefaultRekorURL,
@@ -192,22 +213,19 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 
 	fileSHA, err := s.FileSha256(path)
 	if err != nil {
-		return nil, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
+		return nil, fmt.Errorf("file retrieve sha256: %s: %w", path, err)
 	}
 
 	if err := s.impl.SignFileInternal(
 		s.options.ToCosignRootOptions(), ko, regOpts, path, true,
 		s.options.OutputSignaturePath, s.options.OutputCertificatePath,
 	); err != nil {
-		return nil, fmt.Errorf("sign file path: %s: %w", path, err)
+		return nil, fmt.Errorf("sign file: %s: %w", path, err)
 	}
-
-	ctx, cancel := s.options.context()
-	defer cancel()
 
 	err = s.impl.VerifyFileInternal(ctx, ko, s.options.OutputSignaturePath, s.options.OutputCertificatePath, path)
 	if err != nil {
-		return nil, fmt.Errorf("verify signed file: %s: %w", path, err)
+		return nil, fmt.Errorf("verifying signed file: %s: %w", path, err)
 	}
 
 	return &SignedObject{
@@ -287,13 +305,7 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 	defer resetFn()
 
 	ko := cliOpts.KeyOpts{
-		KeyRef:     s.options.PrivateKeyPath,
-		PassFunc:   s.options.PassFunc,
-		FulcioURL:  cliOpts.DefaultFulcioURL,
-		RekorURL:   cliOpts.DefaultRekorURL,
-		OIDCIssuer: cliOpts.DefaultOIDCIssuerURL,
-
-		InsecureSkipFulcioVerify: false,
+		RekorURL: cliOpts.DefaultRekorURL,
 	}
 
 	if s.options.OutputCertificatePath == "" {

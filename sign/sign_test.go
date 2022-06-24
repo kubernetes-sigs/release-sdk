@@ -205,6 +205,9 @@ func TestSignImage(t *testing.T) {
 func TestSignFile(t *testing.T) {
 	t.Parallel()
 
+	opts := sign.Default()
+	opts.PrivateKeyPath = "/tmp/private.key"
+
 	for _, tc := range []struct {
 		path    string
 		options *sign.Options
@@ -213,7 +216,7 @@ func TestSignFile(t *testing.T) {
 	}{
 		{ // Success
 			path:    "/tmp/test-file",
-			options: sign.Default(),
+			options: opts,
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyFileInternalReturns(nil)
 				mock.SignFileInternalReturns(nil)
@@ -229,6 +232,7 @@ func TestSignFile(t *testing.T) {
 		{ // Success custom sig and cert.
 			path: "/tmp/test-file",
 			options: &sign.Options{
+				PrivateKeyPath:        opts.PrivateKeyPath,
 				OutputSignaturePath:   "/tmp/test-file.sig",
 				OutputCertificatePath: "/tmp/test-file.cert",
 			},
@@ -246,29 +250,29 @@ func TestSignFile(t *testing.T) {
 		},
 		{ // File does not exist.
 			path:    "/tmp/test-file-no-file",
-			options: sign.Default(),
+			options: opts,
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.PayloadBytesReturns(nil, errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
-				require.ErrorContains(t, err, "file retrieve sha256 error")
+				require.ErrorContains(t, err, "file retrieve sha256:")
 			},
 		},
 		{ // File does can't sign.
 			path:    "/tmp/test-file",
-			options: sign.Default(),
+			options: opts,
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.SignFileInternalReturns(errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
-				require.ErrorContains(t, err, "sign file path")
+				require.ErrorContains(t, err, "sign file:")
 			},
 		},
 		{ // Default sig and cert file test
 			path:    "/tmp/test-file",
-			options: sign.Default(),
+			options: opts,
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyFileInternalReturns(nil)
 				mock.SignFileInternalReturns(nil)
@@ -287,14 +291,14 @@ func TestSignFile(t *testing.T) {
 		},
 		{ // Verify failed.
 			path:    "/tmp/test-file",
-			options: sign.Default(),
+			options: opts,
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyFileInternalReturns(errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
 				require.NotNil(t, err)
-				require.ErrorContains(t, err, "verify signed file")
+				require.ErrorContains(t, err, "verifying signed file:")
 			},
 		},
 	} {
