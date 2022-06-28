@@ -223,7 +223,10 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 		return nil, fmt.Errorf("sign file: %s: %w", path, err)
 	}
 
-	err = s.impl.VerifyFileInternal(ctx, ko, s.options.OutputSignaturePath, s.options.OutputCertificatePath, path)
+	verifyKo := ko
+	verifyKo.KeyRef = s.options.PublicKeyPath
+
+	err = s.impl.VerifyFileInternal(ctx, verifyKo, s.options.OutputSignaturePath, s.options.OutputCertificatePath, path)
 	if err != nil {
 		return nil, fmt.Errorf("verifying signed file: %s: %w", path, err)
 	}
@@ -305,6 +308,7 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 	defer resetFn()
 
 	ko := cliOpts.KeyOpts{
+		KeyRef:   s.options.PublicKeyPath,
 		RekorURL: cliOpts.DefaultRekorURL,
 	}
 
