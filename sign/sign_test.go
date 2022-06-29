@@ -206,8 +206,8 @@ func TestSignFile(t *testing.T) {
 	t.Parallel()
 
 	opts := sign.Default()
-	opts.PrivateKeyPath = "/tmp/private.key"
-	opts.PublicKeyPath = "/tmp/private.pub"
+	opts.PrivateKeyPath = "/dummy/cosign.key"
+	opts.PublicKeyPath = "/dummy/cosign.pub"
 
 	for _, tc := range []struct {
 		path    string
