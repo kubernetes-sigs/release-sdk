@@ -443,11 +443,22 @@ func TestVerifyImage(t *testing.T) {
 func TestVerifyFile(t *testing.T) {
 	t.Parallel()
 
+	// Create temporary directory for files.
+	tempDir, err := os.MkdirTemp("", "k8s-test-file-")
+	require.Nil(t, err)
+	defer func() {
+		require.Nil(t, os.RemoveAll(tempDir))
+	}()
+
+	// Create temporary file for test.
+	tempFile := filepath.Join(tempDir, "test-file")
+
 	payload := []byte("honk")
 	payloadSha256 := "4de18cc93efe15c1d1cc2407cfc9f054b4d9217975538ac005dba541acee1954"
 	uuids := []string{
 		"uuid",
 	}
+	require.Nil(t, os.WriteFile(tempFile, []byte(payload), 0o644))
 
 	for _, tc := range []struct {
 		path    string
@@ -456,7 +467,7 @@ func TestVerifyFile(t *testing.T) {
 		assert  func(*sign.SignedObject, error)
 	}{
 		{ // Success
-			path:    "/tmp/test-file",
+			path:    tempFile,
 			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.PayloadBytesReturns(payload, nil)
@@ -464,26 +475,13 @@ func TestVerifyFile(t *testing.T) {
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj.File)
-				require.Equal(t, obj.File.Path(), "/tmp/test-file")
+				require.Equal(t, obj.File.Path(), tempFile)
 				require.Equal(t, obj.File.SHA256(), payloadSha256)
 				require.Nil(t, err)
 			},
 		},
-		{ // No file
-			path:    "/tmp/test-no-file",
-			options: sign.Default(),
-			prepare: func(mock *signfakes.FakeImpl) {
-				mock.PayloadBytesReturns(nil, errTest)
-				mock.FindTLogEntriesByPayloadReturns(uuids, nil)
-			},
-			assert: func(obj *sign.SignedObject, err error) {
-				require.Nil(t, obj)
-				require.NotNil(t, err)
-				require.ErrorContains(t, err, "file retrieve sha256 error")
-			},
-		},
 		{ // File not signed
-			path:    "/tmp/test-not-signed",
+			path:    tempFile,
 			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.PayloadBytesReturns(nil, nil)
@@ -495,7 +493,7 @@ func TestVerifyFile(t *testing.T) {
 			},
 		},
 		{ // File tlog not found
-			path:    "/tmp/test-tlog-not-found",
+			path:    tempFile,
 			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.PayloadBytesReturns(payload, nil)
@@ -509,7 +507,7 @@ func TestVerifyFile(t *testing.T) {
 			},
 		},
 		{ // File tlog error
-			path:    "/tmp/test-tlog-error",
+			path:    tempFile,
 			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.PayloadBytesReturns(payload, nil)
