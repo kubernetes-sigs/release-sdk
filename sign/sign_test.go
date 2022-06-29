@@ -19,6 +19,8 @@ package sign_test
 import (
 	"errors"
 	"log"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-containerregistry/pkg/name"
@@ -209,6 +211,17 @@ func TestSignFile(t *testing.T) {
 	opts.PrivateKeyPath = "/dummy/cosign.key"
 	opts.PublicKeyPath = "/dummy/cosign.pub"
 
+	// Create temporary directory for files.
+	tempDir, err := os.MkdirTemp("", "k8s-test-file-")
+	require.Nil(t, err)
+	defer func() {
+		require.Nil(t, os.RemoveAll(tempDir))
+	}()
+
+	// Create temporary file for test.
+	tempFile := filepath.Join(tempDir, "test-file")
+	require.Nil(t, os.WriteFile(tempFile, []byte("dummy-content"), 0o644))
+
 	for _, tc := range []struct {
 		path    string
 		options *sign.Options
@@ -216,22 +229,22 @@ func TestSignFile(t *testing.T) {
 		assert  func(*sign.SignedObject, error)
 	}{
 		{ // Success
-			path:    "/tmp/test-file",
+			path:    tempFile,
 			options: opts,
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyFileInternalReturns(nil)
 				mock.SignFileInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, err)
 				require.NotNil(t, obj)
 				require.NotEmpty(t, obj.File.Path())
 				require.NotEmpty(t, obj.File.CertificatePath())
 				require.NotEmpty(t, obj.File.SignaturePath())
-				require.Nil(t, err)
 			},
 		},
 		{ // Success custom sig and cert.
-			path: "/tmp/test-file",
+			path: tempFile,
 			options: &sign.Options{
 				PrivateKeyPath:        opts.PrivateKeyPath,
 				OutputSignaturePath:   "/tmp/test-file.sig",
@@ -242,15 +255,15 @@ func TestSignFile(t *testing.T) {
 				mock.SignFileInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, err)
 				require.NotNil(t, obj)
 				require.NotEmpty(t, obj.File.Path())
 				require.NotEmpty(t, obj.File.CertificatePath())
 				require.NotEmpty(t, obj.File.SignaturePath())
-				require.Nil(t, err)
 			},
 		},
 		{ // File does not exist.
-			path:    "/tmp/test-file-no-file",
+			path:    "/dummy/test-no-file",
 			options: opts,
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.PayloadBytesReturns(nil, errTest)
@@ -261,7 +274,7 @@ func TestSignFile(t *testing.T) {
 			},
 		},
 		{ // File does can't sign.
-			path:    "/tmp/test-file",
+			path:    tempFile,
 			options: opts,
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.SignFileInternalReturns(errTest)
@@ -272,13 +285,15 @@ func TestSignFile(t *testing.T) {
 			},
 		},
 		{ // Default sig and cert file test
-			path:    "/tmp/test-file",
+			path:    tempFile,
 			options: opts,
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyFileInternalReturns(nil)
 				mock.SignFileInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, err)
+
 				require.NotNil(t, obj)
 				require.NotEmpty(t, obj.File.Path())
 				require.NotEmpty(t, obj.File.CertificatePath())
@@ -286,12 +301,10 @@ func TestSignFile(t *testing.T) {
 
 				require.Equal(t, obj.File.Path()+".cert", obj.File.CertificatePath())
 				require.Equal(t, obj.File.Path()+".sig", obj.File.SignaturePath())
-
-				require.Nil(t, err)
 			},
 		},
 		{ // Verify failed.
-			path:    "/tmp/test-file",
+			path:    tempFile,
 			options: opts,
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyFileInternalReturns(errTest)
