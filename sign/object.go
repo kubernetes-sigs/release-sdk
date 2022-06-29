@@ -23,6 +23,8 @@ type SignedObject struct {
 	File  *SignedFile
 }
 
+// SignedFile contains additional metadata from the signing and verification
+// process.
 type SignedFile struct {
 	path            string
 	sha256          string
