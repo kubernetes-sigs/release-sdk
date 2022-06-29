@@ -326,7 +326,7 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 		return nil, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
 	}
 
-	isSigned, err := s.IsFileSigned(ctx, ko, path)
+	isSigned, err := s.IsFileSigned(ctx, path)
 	if err != nil {
 		return nil, fmt.Errorf("checking if file is signed. file: %s, error: %w", path, err)
 	}
@@ -396,7 +396,12 @@ func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 // IsFileSigned takes an path reference and retrusn true if there is a signature
 // available for it. It makes no signature verification, only checks to see if
 // there is a TLog to be found on Rekor.
-func (s *Signer) IsFileSigned(ctx context.Context, ko cliOpts.KeyOpts, path string) (bool, error) { // nolint: gocritic
+func (s *Signer) IsFileSigned(ctx context.Context, path string) (bool, error) {
+	ko := cliOpts.KeyOpts{
+		KeyRef:   s.options.PublicKeyPath,
+		RekorURL: cliOpts.DefaultRekorURL,
+	}
+
 	rClient, err := s.impl.NewRekorClient(ko.RekorURL)
 	if err != nil {
 		return false, fmt.Errorf("creating rekor client: %w", err)
