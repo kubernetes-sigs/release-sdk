@@ -458,7 +458,7 @@ func TestVerifyFile(t *testing.T) {
 	uuids := []string{
 		"uuid",
 	}
-	require.Nil(t, os.WriteFile(tempFile, []byte(payload), 0o644))
+	require.Nil(t, os.WriteFile(tempFile, payload, 0o644))
 
 	for _, tc := range []struct {
 		path    string
