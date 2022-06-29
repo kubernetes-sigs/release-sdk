@@ -321,14 +321,14 @@ func (s *Signer) VerifyFile(path string) (*SignedObject, error) {
 	ctx, cancel := s.options.context()
 	defer cancel()
 
-	fileSHA, err := hash.SHA256ForFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
-	}
-
 	isSigned, err := s.IsFileSigned(ctx, path)
 	if err != nil {
 		return nil, fmt.Errorf("checking if file is signed. file: %s, error: %w", path, err)
+	}
+
+	fileSHA, err := hash.SHA256ForFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
 	}
 
 	if !isSigned {
