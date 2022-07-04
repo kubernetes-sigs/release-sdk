@@ -19,6 +19,8 @@ package sign_test
 import (
 	"errors"
 	"log"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-containerregistry/pkg/name"
@@ -86,12 +88,12 @@ func TestSignImage(t *testing.T) {
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NoError(t, err)
 				require.NotNil(t, obj)
-				require.NotEmpty(t, obj.Reference())
-				require.NotEmpty(t, obj.Digest())
-				require.NotEmpty(t, obj.Signature())
-				require.Equal(t, obj.Reference(), "gcr.io/fake/honk:99.99.99")
-				require.Equal(t, obj.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Equal(t, obj.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
+				require.NotEmpty(t, obj.Image.Reference())
+				require.NotEmpty(t, obj.Image.Digest())
+				require.NotEmpty(t, obj.Image.Signature())
+				require.Equal(t, obj.Image.Reference(), "gcr.io/fake/honk:99.99.99")
+				require.Equal(t, obj.Image.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Equal(t, obj.Image.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 			},
 		},
 		{ // Success with failed unset experimental
@@ -113,12 +115,12 @@ func TestSignImage(t *testing.T) {
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NoError(t, err)
 				require.NotNil(t, obj)
-				require.NotEmpty(t, obj.Reference())
-				require.NotEmpty(t, obj.Digest())
-				require.NotEmpty(t, obj.Signature())
-				require.Equal(t, obj.Reference(), "gcr.io/fake/honk:99.99.99")
-				require.Equal(t, obj.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Equal(t, obj.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
+				require.NotEmpty(t, obj.Image.Reference())
+				require.NotEmpty(t, obj.Image.Digest())
+				require.NotEmpty(t, obj.Image.Signature())
+				require.Equal(t, obj.Image.Reference(), "gcr.io/fake/honk:99.99.99")
+				require.Equal(t, obj.Image.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Equal(t, obj.Image.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 			},
 		},
 		{ // Failure on Verify
@@ -205,38 +207,125 @@ func TestSignImage(t *testing.T) {
 func TestSignFile(t *testing.T) {
 	t.Parallel()
 
+	opts := sign.Default()
+	opts.PrivateKeyPath = "/dummy/cosign.key"
+	opts.PublicKeyPath = "/dummy/cosign.pub"
+
+	// Create temporary directory for files.
+	tempDir, err := os.MkdirTemp("", "k8s-test-file-")
+	require.Nil(t, err)
+	defer func() {
+		require.Nil(t, os.RemoveAll(tempDir))
+	}()
+
+	// Create temporary file for test.
+	tempFile := filepath.Join(tempDir, "test-file")
+	require.Nil(t, os.WriteFile(tempFile, []byte("dummy-content"), 0o644))
+
 	for _, tc := range []struct {
+		path    string
+		options *sign.Options
 		prepare func(*signfakes.FakeImpl)
 		assert  func(*sign.SignedObject, error)
 	}{
 		{ // Success
+			path:    tempFile,
+			options: opts,
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyFileInternalReturns(&sign.SignedObject{}, nil)
+				mock.VerifyFileInternalReturns(nil)
+				mock.SignFileInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
-				require.NotNil(t, obj)
-				require.Empty(t, obj.Reference())
-				require.Empty(t, obj.Digest())
 				require.Nil(t, err)
+				require.NotNil(t, obj)
+				require.NotEmpty(t, obj.File.Path())
+				require.NotEmpty(t, obj.File.CertificatePath())
+				require.NotEmpty(t, obj.File.SignaturePath())
 			},
 		},
-		{ // Failure on Verify
+		{ // Success custom sig and cert.
+			path: tempFile,
+			options: &sign.Options{
+				PrivateKeyPath:        opts.PrivateKeyPath,
+				OutputSignaturePath:   "/tmp/test-file.sig",
+				OutputCertificatePath: "/tmp/test-file.cert",
+			},
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyFileInternalReturns(nil, errTest)
+				mock.VerifyFileInternalReturns(nil)
+				mock.SignFileInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
-				require.NotNil(t, err)
+				require.Nil(t, err)
+				require.NotNil(t, obj)
+				require.NotEmpty(t, obj.File.Path())
+				require.NotEmpty(t, obj.File.CertificatePath())
+				require.NotEmpty(t, obj.File.SignaturePath())
+			},
+		},
+		{ // File does not exist.
+			path:    "/dummy/test-no-file",
+			options: opts,
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.PayloadBytesReturns(nil, errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
+				require.ErrorContains(t, err, "file retrieve sha256:")
+			},
+		},
+		{ // File does can't sign.
+			path:    tempFile,
+			options: opts,
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.SignFileInternalReturns(errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.ErrorContains(t, err, "sign file:")
+			},
+		},
+		{ // Default sig and cert file test
+			path:    tempFile,
+			options: opts,
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyFileInternalReturns(nil)
+				mock.SignFileInternalReturns(nil)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, err)
+
+				require.NotNil(t, obj)
+				require.NotEmpty(t, obj.File.Path())
+				require.NotEmpty(t, obj.File.CertificatePath())
+				require.NotEmpty(t, obj.File.SignaturePath())
+
+				require.Equal(t, obj.File.Path()+".cert", obj.File.CertificatePath())
+				require.Equal(t, obj.File.Path()+".sig", obj.File.SignaturePath())
+			},
+		},
+		{ // Verify failed.
+			path:    tempFile,
+			options: opts,
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.VerifyFileInternalReturns(errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.NotNil(t, err)
+				require.ErrorContains(t, err, "verifying signed file:")
 			},
 		},
 	} {
 		mock := &signfakes.FakeImpl{}
 		tc.prepare(mock)
 
-		sut := sign.New(&sign.Options{Verbose: true})
+		opts := tc.options
+		opts.Verbose = true
+
+		sut := sign.New(opts)
 		sut.SetImpl(mock)
 
-		obj, err := sut.SignFile("")
+		obj, err := sut.SignFile(tc.path)
 		tc.assert(obj, err)
 	}
 }
@@ -284,12 +373,12 @@ func TestVerifyImage(t *testing.T) {
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj)
-				require.NotEmpty(t, obj.Reference())
-				require.NotEmpty(t, obj.Digest())
-				require.NotEmpty(t, obj.Signature())
-				require.Equal(t, obj.Reference(), "gcr.io/fake/honk:99.99.99")
-				require.Equal(t, obj.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Equal(t, obj.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
+				require.NotEmpty(t, obj.Image.Reference())
+				require.NotEmpty(t, obj.Image.Digest())
+				require.NotEmpty(t, obj.Image.Signature())
+				require.Equal(t, obj.Image.Reference(), "gcr.io/fake/honk:99.99.99")
+				require.Equal(t, obj.Image.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Equal(t, obj.Image.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 				require.Nil(t, err)
 			},
 		},
@@ -354,25 +443,93 @@ func TestVerifyImage(t *testing.T) {
 func TestVerifyFile(t *testing.T) {
 	t.Parallel()
 
+	// Create temporary directory for files.
+	tempDir, err := os.MkdirTemp("", "k8s-test-file-")
+	require.Nil(t, err)
+	defer func() {
+		require.Nil(t, os.RemoveAll(tempDir))
+	}()
+
+	// Create temporary file for test.
+	tempFile := filepath.Join(tempDir, "test-file")
+
+	payload := []byte("honk")
+	payloadSha256 := "4de18cc93efe15c1d1cc2407cfc9f054b4d9217975538ac005dba541acee1954"
+	uuids := []string{
+		"uuid",
+	}
+	require.Nil(t, os.WriteFile(tempFile, payload, 0o644))
+
 	for _, tc := range []struct {
+		path    string
+		options *sign.Options
 		prepare func(*signfakes.FakeImpl)
 		assert  func(*sign.SignedObject, error)
 	}{
 		{ // Success
+			path:    tempFile,
+			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
+				mock.PayloadBytesReturns(payload, nil)
+				mock.FindTLogEntriesByPayloadReturns(uuids, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
+				require.NotNil(t, obj.File)
+				require.Equal(t, obj.File.Path(), tempFile)
+				require.Equal(t, obj.File.SHA256(), payloadSha256)
 				require.Nil(t, err)
+			},
+		},
+		{ // File not signed
+			path:    tempFile,
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.PayloadBytesReturns(nil, nil)
+				mock.FindTLogEntriesByPayloadReturns(nil, nil)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.Nil(t, err)
+			},
+		},
+		{ // File tlog not found
+			path:    tempFile,
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.PayloadBytesReturns(payload, nil)
+				mock.FindTLogEntriesByPayloadReturns(uuids, nil)
+				mock.VerifyFileInternalReturns(errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.NotNil(t, err)
+				require.ErrorContains(t, err, "verify file reference")
+			},
+		},
+		{ // File tlog error
+			path:    tempFile,
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.PayloadBytesReturns(payload, nil)
+				mock.FindTLogEntriesByPayloadReturns(nil, errTest)
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.NotNil(t, err)
+				require.ErrorContains(t, err, "find rekor tlog entries")
 			},
 		},
 	} {
 		mock := &signfakes.FakeImpl{}
 		tc.prepare(mock)
 
-		sut := sign.New(sign.Default())
+		opts := tc.options
+		opts.Verbose = true
+
+		sut := sign.New(opts)
 		sut.SetImpl(mock)
 
-		obj, err := sut.VerifyFile("")
+		obj, err := sut.VerifyFile(tc.path)
 		tc.assert(obj, err)
 	}
 }
