@@ -11,7 +11,7 @@ require (
 	github.com/magefile/mage v1.13.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/sigstore/cosign v1.9.1-0.20220614200746-190e679f4cf8
-	github.com/sigstore/rekor v0.8.0
+	github.com/sigstore/rekor v0.9.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401
@@ -190,7 +190,7 @@ require (
 	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
-	github.com/spf13/cobra v1.4.0 // indirect
+	github.com/spf13/cobra v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.12.0 // indirect
