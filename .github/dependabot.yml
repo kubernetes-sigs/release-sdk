@@ -12,7 +12,7 @@ updates:
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
-      interval: "daily"
+    interval: "daily"
   labels:
     - "area/dependency"
     - "release-note-none"
