@@ -38,11 +38,11 @@ const (
 
 type cleanupFn func() error
 
-func generateCosignKeyPair(t *testing.T, getPassFunc cosign.PassFunc) (privateKeyPath, publicKeyPath string, fn cleanupFn) {
+func generateCosignKeyPair(t *testing.T) (privateKeyPath, publicKeyPath string, fn cleanupFn) {
 	tempDir, err := os.MkdirTemp("", "k8s-cosign-keys-")
 	require.Nil(t, err)
 
-	keys, err := cosign.GenerateKeyPair(getPassFunc)
+	keys, err := cosign.GenerateKeyPair(nil)
 	require.Nil(t, err)
 	require.NotNil(t, keys)
 
@@ -64,12 +64,7 @@ func TestSuccessSignImage(t *testing.T) {
 	reg := runDockerRegistryWithDummyImage(t, imageName)
 	defer deleteRegistryContainer(t)
 
-	getPass := func(confirm bool) ([]byte, error) {
-		return []byte("key-pass"), nil
-	}
-
-	// TODO(xmudrii): This can be removed once cosign 1.5.2 or newer is available
-	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t, getPass)
+	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t)
 	defer func() {
 		require.Nil(t, cleanup())
 	}()
@@ -77,7 +72,6 @@ func TestSuccessSignImage(t *testing.T) {
 	opts := sign.Default()
 	opts.PrivateKeyPath = privateKeyPath
 	opts.PublicKeyPath = publicKeyPath
-	opts.PassFunc = getPass
 
 	signer := sign.New(opts)
 
@@ -103,12 +97,7 @@ func TestSuccessSignFile(t *testing.T) {
 	testFileSigPath := filepath.Join(tempDir, "test.sig")
 	require.Nil(t, os.WriteFile(testFilePath, []byte(testFile), 0o644))
 
-	getPass := func(confirm bool) ([]byte, error) {
-		return []byte("key-pass"), nil
-	}
-
-	// TODO(xmudrii): This can be removed once cosign 1.5.2 or newer is available
-	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t, getPass)
+	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t)
 	defer func() {
 		require.Nil(t, cleanup())
 	}()
@@ -116,7 +105,6 @@ func TestSuccessSignFile(t *testing.T) {
 	opts := sign.Default()
 	opts.PrivateKeyPath = privateKeyPath
 	opts.PublicKeyPath = publicKeyPath
-	opts.PassFunc = getPass
 	opts.OutputCertificatePath = testFileCertPath
 	opts.OutputSignaturePath = testFileSigPath
 
