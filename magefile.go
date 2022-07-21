@@ -75,6 +75,19 @@ func IntegrationTest() error {
 	return nil
 }
 
+// E2ETest runs the end-to-end test functions.
+func E2ETest() error {
+	if err := mage.EnsureGitConfig(); err != nil {
+		return err
+	}
+
+	if err := mage.TestGoWithTags(true, "e2e", "test/e2e"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Verify runs repository verification scripts
 func Verify() error {
 	fmt.Println("Ensuring mage is available...")

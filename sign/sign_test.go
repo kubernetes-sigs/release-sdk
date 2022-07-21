@@ -88,12 +88,12 @@ func TestSignImage(t *testing.T) {
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NoError(t, err)
 				require.NotNil(t, obj)
-				require.NotEmpty(t, obj.Image.Reference())
-				require.NotEmpty(t, obj.Image.Digest())
-				require.NotEmpty(t, obj.Image.Signature())
-				require.Equal(t, obj.Image.Reference(), "gcr.io/fake/honk:99.99.99")
-				require.Equal(t, obj.Image.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Equal(t, obj.Image.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
+				require.NotEmpty(t, obj.Image().Reference())
+				require.NotEmpty(t, obj.Image().Digest())
+				require.NotEmpty(t, obj.Image().Signature())
+				require.Equal(t, obj.Image().Reference(), "gcr.io/fake/honk:99.99.99")
+				require.Equal(t, obj.Image().Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Equal(t, obj.Image().Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 			},
 		},
 		{ // Success with failed unset experimental
@@ -115,12 +115,12 @@ func TestSignImage(t *testing.T) {
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NoError(t, err)
 				require.NotNil(t, obj)
-				require.NotEmpty(t, obj.Image.Reference())
-				require.NotEmpty(t, obj.Image.Digest())
-				require.NotEmpty(t, obj.Image.Signature())
-				require.Equal(t, obj.Image.Reference(), "gcr.io/fake/honk:99.99.99")
-				require.Equal(t, obj.Image.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Equal(t, obj.Image.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
+				require.NotEmpty(t, obj.Image().Reference())
+				require.NotEmpty(t, obj.Image().Digest())
+				require.NotEmpty(t, obj.Image().Signature())
+				require.Equal(t, obj.Image().Reference(), "gcr.io/fake/honk:99.99.99")
+				require.Equal(t, obj.Image().Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Equal(t, obj.Image().Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 			},
 		},
 		{ // Failure on Verify
@@ -238,9 +238,9 @@ func TestSignFile(t *testing.T) {
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, err)
 				require.NotNil(t, obj)
-				require.NotEmpty(t, obj.File.Path())
-				require.NotEmpty(t, obj.File.CertificatePath())
-				require.NotEmpty(t, obj.File.SignaturePath())
+				require.NotEmpty(t, obj.File().Path())
+				require.NotEmpty(t, obj.File().CertificatePath())
+				require.NotEmpty(t, obj.File().SignaturePath())
 			},
 		},
 		{ // Success custom sig and cert.
@@ -257,9 +257,9 @@ func TestSignFile(t *testing.T) {
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, err)
 				require.NotNil(t, obj)
-				require.NotEmpty(t, obj.File.Path())
-				require.NotEmpty(t, obj.File.CertificatePath())
-				require.NotEmpty(t, obj.File.SignaturePath())
+				require.NotEmpty(t, obj.File().Path())
+				require.NotEmpty(t, obj.File().CertificatePath())
+				require.NotEmpty(t, obj.File().SignaturePath())
 			},
 		},
 		{ // File does not exist.
@@ -295,12 +295,12 @@ func TestSignFile(t *testing.T) {
 				require.Nil(t, err)
 
 				require.NotNil(t, obj)
-				require.NotEmpty(t, obj.File.Path())
-				require.NotEmpty(t, obj.File.CertificatePath())
-				require.NotEmpty(t, obj.File.SignaturePath())
+				require.NotEmpty(t, obj.File().Path())
+				require.NotEmpty(t, obj.File().CertificatePath())
+				require.NotEmpty(t, obj.File().SignaturePath())
 
-				require.Equal(t, obj.File.Path()+".cert", obj.File.CertificatePath())
-				require.Equal(t, obj.File.Path()+".sig", obj.File.SignaturePath())
+				require.Equal(t, obj.File().Path()+".cert", obj.File().CertificatePath())
+				require.Equal(t, obj.File().Path()+".sig", obj.File().SignaturePath())
 			},
 		},
 		{ // Verify failed.
@@ -373,12 +373,12 @@ func TestVerifyImage(t *testing.T) {
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj)
-				require.NotEmpty(t, obj.Image.Reference())
-				require.NotEmpty(t, obj.Image.Digest())
-				require.NotEmpty(t, obj.Image.Signature())
-				require.Equal(t, obj.Image.Reference(), "gcr.io/fake/honk:99.99.99")
-				require.Equal(t, obj.Image.Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Equal(t, obj.Image.Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
+				require.NotEmpty(t, obj.Image().Reference())
+				require.NotEmpty(t, obj.Image().Digest())
+				require.NotEmpty(t, obj.Image().Signature())
+				require.Equal(t, obj.Image().Reference(), "gcr.io/fake/honk:99.99.99")
+				require.Equal(t, obj.Image().Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
+				require.Equal(t, obj.Image().Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 				require.Nil(t, err)
 			},
 		},
@@ -475,8 +475,8 @@ func TestVerifyFile(t *testing.T) {
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj.File)
-				require.Equal(t, obj.File.Path(), tempFile)
-				require.Equal(t, obj.File.SHA256(), payloadSha256)
+				require.Equal(t, obj.File().Path(), tempFile)
+				require.Equal(t, obj.File().SHA256(), payloadSha256)
 				require.Nil(t, err)
 			},
 		},
