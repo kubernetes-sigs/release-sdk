@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/blang/semver/v4 v4.0.0
-	github.com/carolynvs/magex v0.8.1
+	github.com/carolynvs/magex v0.9.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/google/go-containerregistry v0.11.0
 	github.com/google/go-github/v45 v45.2.0
@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/oauth2 v0.0.0-20220718184931-c8730f7fcb92
 	k8s.io/apimachinery v0.24.3
-	sigs.k8s.io/release-utils v0.7.2
+	sigs.k8s.io/release-utils v0.7.3
 )
 
 require (
@@ -32,6 +32,7 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
+	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/PaesslerAG/gval v1.0.0 // indirect
