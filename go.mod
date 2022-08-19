@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/oauth2 v0.0.0-20220718184931-c8730f7fcb92
-	k8s.io/apimachinery v0.24.3
+	k8s.io/apimachinery v0.24.4
 	sigs.k8s.io/release-utils v0.7.3
 )
 
