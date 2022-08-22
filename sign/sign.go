@@ -133,7 +133,7 @@ func (s *Signer) SignImage(reference string) (object *SignedObject, err error) {
 	if err := s.impl.SignImageInternal(
 		s.options.ToCosignRootOptions(), ko, regOpts, s.options.Annotations,
 		images, "", s.options.AttachSignature, s.options.OutputSignaturePath,
-		s.options.OutputCertificatePath, "", true, false, "",
+		s.options.OutputCertificatePath, "", true, false, "", false,
 	); err != nil {
 		return nil, fmt.Errorf("sign reference: %s: %w", reference, err)
 	}

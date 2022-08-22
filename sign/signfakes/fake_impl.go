@@ -153,7 +153,7 @@ type FakeImpl struct {
 	signFileInternalReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SignImageInternalStub        func(options.RootOptions, options.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) error
+	SignImageInternalStub        func(options.RootOptions, options.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string, bool) error
 	signImageInternalMutex       sync.RWMutex
 	signImageInternalArgsForCall []struct {
 		arg1  options.RootOptions
@@ -169,6 +169,7 @@ type FakeImpl struct {
 		arg11 bool
 		arg12 bool
 		arg13 string
+		arg14 bool
 	}
 	signImageInternalReturns struct {
 		result1 error
@@ -845,7 +846,7 @@ func (fake *FakeImpl) SignFileInternalReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeImpl) SignImageInternal(arg1 options.RootOptions, arg2 options.KeyOpts, arg3 options.RegistryOptions, arg4 map[string]interface{}, arg5 []string, arg6 string, arg7 bool, arg8 string, arg9 string, arg10 string, arg11 bool, arg12 bool, arg13 string) error {
+func (fake *FakeImpl) SignImageInternal(arg1 options.RootOptions, arg2 options.KeyOpts, arg3 options.RegistryOptions, arg4 map[string]interface{}, arg5 []string, arg6 string, arg7 bool, arg8 string, arg9 string, arg10 string, arg11 bool, arg12 bool, arg13 string, arg14 bool) error {
 	var arg5Copy []string
 	if arg5 != nil {
 		arg5Copy = make([]string, len(arg5))
@@ -867,13 +868,14 @@ func (fake *FakeImpl) SignImageInternal(arg1 options.RootOptions, arg2 options.K
 		arg11 bool
 		arg12 bool
 		arg13 string
-	}{arg1, arg2, arg3, arg4, arg5Copy, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13})
+		arg14 bool
+	}{arg1, arg2, arg3, arg4, arg5Copy, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14})
 	stub := fake.SignImageInternalStub
 	fakeReturns := fake.signImageInternalReturns
-	fake.recordInvocation("SignImageInternal", []interface{}{arg1, arg2, arg3, arg4, arg5Copy, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13})
+	fake.recordInvocation("SignImageInternal", []interface{}{arg1, arg2, arg3, arg4, arg5Copy, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14})
 	fake.signImageInternalMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13)
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14)
 	}
 	if specificReturn {
 		return ret.result1
@@ -887,17 +889,17 @@ func (fake *FakeImpl) SignImageInternalCallCount() int {
 	return len(fake.signImageInternalArgsForCall)
 }
 
-func (fake *FakeImpl) SignImageInternalCalls(stub func(options.RootOptions, options.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) error) {
+func (fake *FakeImpl) SignImageInternalCalls(stub func(options.RootOptions, options.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string, bool) error) {
 	fake.signImageInternalMutex.Lock()
 	defer fake.signImageInternalMutex.Unlock()
 	fake.SignImageInternalStub = stub
 }
 
-func (fake *FakeImpl) SignImageInternalArgsForCall(i int) (options.RootOptions, options.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string) {
+func (fake *FakeImpl) SignImageInternalArgsForCall(i int) (options.RootOptions, options.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string, bool) {
 	fake.signImageInternalMutex.RLock()
 	defer fake.signImageInternalMutex.RUnlock()
 	argsForCall := fake.signImageInternalArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7, argsForCall.arg8, argsForCall.arg9, argsForCall.arg10, argsForCall.arg11, argsForCall.arg12, argsForCall.arg13
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7, argsForCall.arg8, argsForCall.arg9, argsForCall.arg10, argsForCall.arg11, argsForCall.arg12, argsForCall.arg13, argsForCall.arg14
 }
 
 func (fake *FakeImpl) SignImageInternalReturns(result1 error) {
