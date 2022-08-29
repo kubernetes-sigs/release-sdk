@@ -100,7 +100,7 @@ func TestGetUserName(t *testing.T) {
 	const fakeUserName = "SIG Release Test User"
 	currentDir, err := os.Getwd()
 	require.Nil(t, err, "error reading the current directory")
-	defer os.Chdir(currentDir) // nolint: errcheck
+	defer os.Chdir(currentDir) //nolint: errcheck
 
 	// Create an empty repo and configure the users name to test
 	repoPath, err := createTestRepository()
@@ -112,7 +112,7 @@ func TestGetUserName(t *testing.T) {
 
 	testRepo, err := git.OpenRepo(repoPath)
 	require.Nil(t, err, fmt.Sprintf("opening test repo in %s", repoPath))
-	defer testRepo.Cleanup() // nolint: errcheck
+	defer testRepo.Cleanup() //nolint: errcheck
 
 	actual, err := git.GetUserName()
 	require.Nil(t, err)
@@ -124,7 +124,7 @@ func TestGetUserEmail(t *testing.T) {
 	const fakeUserEmail = "kubernetes-test@example.com"
 	currentDir, err := os.Getwd()
 	require.Nil(t, err, "error reading the current directory")
-	defer os.Chdir(currentDir) // nolint: errcheck
+	defer os.Chdir(currentDir) //nolint: errcheck
 
 	// Create an empty repo and configure the users name to test
 	repoPath, err := createTestRepository()
@@ -136,7 +136,7 @@ func TestGetUserEmail(t *testing.T) {
 
 	testRepo, err := git.OpenRepo(repoPath)
 	require.Nil(t, err, fmt.Sprintf("opening test repo in %s", repoPath))
-	defer testRepo.Cleanup() // nolint: errcheck
+	defer testRepo.Cleanup() //nolint: errcheck
 
 	// Do the actual call
 	actual, err := git.GetUserEmail()
@@ -358,7 +358,7 @@ func TestHasBranch(t *testing.T) {
 	// Now, open the repo and test to see if branches are there
 	testRepo, err := git.OpenRepo(repoPath)
 	require.Nil(t, err, fmt.Sprintf("opening test repo in %s", repoPath))
-	defer testRepo.Cleanup() // nolint: errcheck
+	defer testRepo.Cleanup() //nolint: errcheck
 
 	actual, err := testRepo.HasBranch(testBranchName)
 	require.Nil(t, err)
@@ -383,7 +383,7 @@ func TestStatus(t *testing.T) {
 
 	testRepo, err := git.OpenRepo(rawRepoDir)
 	require.Nil(t, err)
-	defer testRepo.Cleanup() // nolint: errcheck
+	defer testRepo.Cleanup() //nolint: errcheck
 
 	// Get the status object
 	status, err := testRepo.Status()
@@ -429,7 +429,7 @@ func TestShowLastCommit(t *testing.T) {
 
 	testRepo, err := git.OpenRepo(rawRepoDir)
 	require.Nil(t, err)
-	defer testRepo.Cleanup() // nolint: errcheck
+	defer testRepo.Cleanup() //nolint: errcheck
 
 	// Create an untracked file
 	require.Nil(t, os.WriteFile(filepath.Join(testRepo.Dir(), testFile), []byte("Hello SIG Release"), 0o644))
@@ -466,12 +466,12 @@ func TestFetchRemote(t *testing.T) {
 
 	branchName, err := originRepo.CurrentBranch()
 	require.Nil(t, err)
-	defer originRepo.Cleanup() // nolint: errcheck
+	defer originRepo.Cleanup() //nolint: errcheck
 
 	// Create a new clone of the original repo
 	testRepo, err := git.CloneOrOpenRepo("", rawRepoDir, false)
 	require.Nil(t, err)
-	defer testRepo.Cleanup() // nolint: errcheck
+	defer testRepo.Cleanup() //nolint: errcheck
 
 	// The initial clone must not have any tags
 	testTags, err := testRepo.TagsForBranch(branchName)
@@ -525,12 +525,12 @@ func TestRebase(t *testing.T) {
 
 	branchName, err := originRepo.CurrentBranch()
 	require.Nil(t, err)
-	defer originRepo.Cleanup() // nolint: errcheck
+	defer originRepo.Cleanup() //nolint: errcheck
 
 	// Create a new clone of the original repo
 	testRepo, err := git.CloneOrOpenRepo("", rawRepoDir, false)
 	require.Nil(t, err)
-	defer testRepo.Cleanup() // nolint: errcheck
+	defer testRepo.Cleanup() //nolint: errcheck
 
 	// Test 1. Rebase should not fail if both repos are in sync
 	require.Nil(t, testRepo.Rebase(fmt.Sprintf("origin/%s", branchName)), "cloning synchronizaed repos")

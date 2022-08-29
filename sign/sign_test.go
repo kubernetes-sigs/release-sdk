@@ -605,17 +605,18 @@ func TestIsImageSigned(t *testing.T) {
 }
 
 // FakeReferenceStub implements the name.Reference to we use in the testing
-// type FakeReferenceStub interface {
-// 	fmt.Stringer
-// 	// Context accesses the Repository context of the reference.
-// 	Context() name.Repository
-// 	// Identifier accesses the type-specific portion of the reference.
-// 	Identifier() string
-// 	// Name is the fully-qualified reference name.
-// 	Name() string
-// 	// Scope is the scope needed to access this reference.
-// 	Scope(string)
-// }
+//
+//	type FakeReferenceStub interface {
+//		fmt.Stringer
+//		// Context accesses the Repository context of the reference.
+//		Context() name.Repository
+//		// Identifier accesses the type-specific portion of the reference.
+//		Identifier() string
+//		// Name is the fully-qualified reference name.
+//		Name() string
+//		// Scope is the scope needed to access this reference.
+//		Scope(string)
+//	}
 type FakeReferenceStub struct {
 	image      string
 	registry   string
