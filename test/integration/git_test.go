@@ -76,11 +76,11 @@ type testRepo struct {
 // |
 // |     Second commit
 // |
-// * commit `firstCommit` (tag: `firstTagName`, origin/master, origin/HEAD, master)
-//   Author: John Doe <john@doe.org>
 //
-//       First commit
+//   - commit `firstCommit` (tag: `firstTagName`, origin/master, origin/HEAD, master)
+//     Author: John Doe <john@doe.org>
 //
+//     First commit
 func newTestRepo(t *testing.T) *testRepo {
 	// Setup the bare repo as base
 	bareTempDir, err := os.MkdirTemp("", "k8s-test-bare-")

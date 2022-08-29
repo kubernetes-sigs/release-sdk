@@ -67,7 +67,7 @@ type impl interface {
 	NewRekorClient(string) (*client.Rekor, error)
 }
 
-func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko options.KeyOpts, outputSignature, // nolint: gocritic
+func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko options.KeyOpts, outputSignature, //nolint: gocritic
 	outputCertificate, path string,
 ) error {
 	return verify.VerifyBlobCmd(ctx, ko, outputCertificate, "", "", "", outputSignature, path, "", "", "", "", "", false)
@@ -78,7 +78,7 @@ func (*defaultImpl) VerifyImageInternal(ctx context.Context, publickeyPath strin
 	return &SignedObject{}, v.Exec(ctx, images)
 }
 
-func (*defaultImpl) SignImageInternal(ro options.RootOptions, ko options.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic
+func (*defaultImpl) SignImageInternal(ro options.RootOptions, ko options.KeyOpts, regOpts options.RegistryOptions, //nolint: gocritic
 	annotations map[string]interface{}, imgs []string, certPath string, upload bool,
 	outputSignature string, outputCertificate string, payloadPath string, force bool,
 	recursive bool, attachment string, noTlogUpload bool,
@@ -89,7 +89,7 @@ func (*defaultImpl) SignImageInternal(ro options.RootOptions, ko options.KeyOpts
 	)
 }
 
-func (*defaultImpl) SignFileInternal(ro options.RootOptions, ko options.KeyOpts, regOpts options.RegistryOptions, // nolint: gocritic
+func (*defaultImpl) SignFileInternal(ro options.RootOptions, ko options.KeyOpts, regOpts options.RegistryOptions, //nolint: gocritic
 	payloadPath string, b64 bool, outputSignature string, outputCertificate string,
 ) error {
 	// Ignoring the signature return value for now as we are setting the outputSignature path and to keep an consistent impl API

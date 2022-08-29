@@ -166,7 +166,7 @@ type NewIssueOptions struct {
 // GitHub requests.
 func New() *GitHub {
 	token := env.Default(TokenEnvKey, "")
-	client, _ := NewWithToken(token) // nolint: errcheck
+	client, _ := NewWithToken(token) //nolint: errcheck
 	return client
 }
 
