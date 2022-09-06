@@ -126,7 +126,7 @@ func (s *Signer) SignImage(reference string) (object *SignedObject, err error) {
 
 	regOpts := cliOpts.RegistryOptions{
 		AllowInsecure: s.options.AllowInsecure,
-		Keychain: s.options.Keychain,
+		Keychain:      s.options.Keychain,
 	}
 
 	images := []string{reference}
