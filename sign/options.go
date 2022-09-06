@@ -21,6 +21,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/pkg/cosign"
 	"github.com/sirupsen/logrus"
@@ -66,6 +67,9 @@ type Options struct {
 	// MaxRetries indicates the number of times to retry operations
 	// when transient failures occur
 	MaxRetries uint
+
+	// TLDR, we want to pass the auth client configured in other tools
+	Keychain authn.Keychain
 }
 
 // Default returns a default Options instance.
