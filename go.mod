@@ -7,7 +7,7 @@ require (
 	github.com/carolynvs/magex v0.9.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/google/go-containerregistry v0.11.0
-	github.com/google/go-github/v45 v45.2.0
+	github.com/google/go-github/v47 v47.0.0
 	github.com/magefile/mage v1.13.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/sigstore/cosign v1.11.1
@@ -121,6 +121,7 @@ require (
 	github.com/google/certificate-transparency-go v1.1.3 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/google/go-github/v45 v45.2.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/trillian v1.4.1 // indirect
