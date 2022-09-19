@@ -8,7 +8,7 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/google/go-containerregistry v0.11.0
 	github.com/google/go-github/v47 v47.0.0
-	github.com/magefile/mage v1.13.0
+	github.com/magefile/mage v1.14.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/sigstore/cosign v1.12.0
 	github.com/sigstore/rekor v0.11.0
