@@ -70,7 +70,7 @@ type impl interface {
 func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko options.KeyOpts, outputSignature, //nolint: gocritic
 	outputCertificate, path string,
 ) error {
-	return verify.VerifyBlobCmd(ctx, ko, outputCertificate, "", "", "", outputSignature, path, "", "", "", "", "", false)
+	return verify.VerifyBlobCmd(ctx, ko, outputCertificate, "", "", "", "", outputSignature, path, "", "", "", "", "", false)
 }
 
 func (*defaultImpl) VerifyImageInternal(ctx context.Context, publickeyPath string, images []string) (*SignedObject, error) {
