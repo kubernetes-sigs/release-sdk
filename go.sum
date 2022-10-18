@@ -1437,8 +1437,8 @@ github.com/sigstore/cosign v1.13.0 h1:K0a0RIVRd+ZF9yYhdEa/cD8jqZu3pLP+PSnExaz5/z
 github.com/sigstore/cosign v1.13.0/go.mod h1:skm4FeAWJOH/dznlNBSQ2R8TMdyPNutfA6Uc37Qwgsg=
 github.com/sigstore/fulcio v0.6.0 h1:YNfnGm9EjYPlzHiPDcIVhslYj846jkPtHQH+FTKNncw=
 github.com/sigstore/fulcio v0.6.0/go.mod h1:lwxzHDYYQ0lVVWqaj68ZQNkcP847aoF7AIa7ra9rRqA=
-github.com/sigstore/rekor v0.12.2 h1:Ooe/aguLdb6BPVim2OaT+icfCsGFuS0UDaaf/hU5Qj0=
-github.com/sigstore/rekor v0.12.2/go.mod h1:7zGUsdw+hVtHLysHi7g4OSBJSQReNn7mllfjF2UCbo0=
+github.com/sigstore/rekor v1.0.0 h1:64IeShnl8n862APKu4MyDObAOjwNL//je6okig4uQw8=
+github.com/sigstore/rekor v1.0.0/go.mod h1:8FPG2wHngSA4Bo8tgOn0C/PIDDNi4iiNePhAiyJlv5Q=
 github.com/sigstore/sigstore v1.4.2 h1:fTppzuZBAmQ/skgl7FWJRLyby70pxCqJGKyWfkSuMR8=
 github.com/sigstore/sigstore v1.4.2/go.mod h1:wCv58Fia7u1snVJyPcxdgIh/3uw1XdOLhxPExTwwyt4=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
@@ -2459,8 +2459,8 @@ google.golang.org/grpc v1.46.0/go.mod h1:vN9eftEi1UMyUsIF80+uQXhHjbXYbm0uXoFCACu
 google.golang.org/grpc v1.46.2/go.mod h1:vN9eftEi1UMyUsIF80+uQXhHjbXYbm0uXoFCACuMGWk=
 google.golang.org/grpc v1.47.0/go.mod h1:vN9eftEi1UMyUsIF80+uQXhHjbXYbm0uXoFCACuMGWk=
 google.golang.org/grpc v1.48.0/go.mod h1:vN9eftEi1UMyUsIF80+uQXhHjbXYbm0uXoFCACuMGWk=
-google.golang.org/grpc v1.49.0 h1:WTLtQzmQori5FUH25Pq4WT22oCsv8USpQ+F6rqtsmxw=
-google.golang.org/grpc v1.49.0/go.mod h1:ZgQEeidpAuNRZ8iRrlBKXZQP1ghovWIVhdJRyCDK+GI=
+google.golang.org/grpc v1.50.0 h1:fPVVDxY9w++VjTZsYvXWqEf9Rqar/e+9zYfxKK+W+YU=
+google.golang.org/grpc v1.50.0/go.mod h1:ZgQEeidpAuNRZ8iRrlBKXZQP1ghovWIVhdJRyCDK+GI=
 google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0/go.mod h1:6Kw0yEErY5E/yWrBtf03jp27GLLJujG4z/JK95pnjjw=
 google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0/go.mod h1:DNq5QpG7LJqD2AamLZ7zvKE0DEpVl2BSEVjFycAAjRY=
 google.golang.org/grpc/examples v0.0.0-20201130180447-c456688b1860/go.mod h1:Ly7ZA/ARzg8fnPU9TyZIxoz33sEUuWX7txiqs8lPTgE=
