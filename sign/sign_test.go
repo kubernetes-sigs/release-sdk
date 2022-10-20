@@ -27,8 +27,6 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
-	"github.com/sigstore/cosign/pkg/oci"
-	"github.com/sigstore/cosign/pkg/oci/static"
 	"github.com/stretchr/testify/http"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/release-sdk/sign"
@@ -83,10 +81,9 @@ func TestSignImage(t *testing.T) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SignImageInternalReturns(nil)
 				mock.TokenFromProvidersReturns(token, nil)
-				sig, err := static.NewSignature([]byte{}, "honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Nil(t, err)
-
-				mock.SignaturesListReturns([]oci.Signature{sig}, nil)
+				m := &sync.Map{}
+				m.Store("gcr.io/fake/honk:99.99.99", true)
+				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -107,13 +104,12 @@ func TestSignImage(t *testing.T) {
 				repository: "fake/honk",
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
-				sig, err := static.NewSignature([]byte{}, "honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Nil(t, err)
-
-				mock.SignaturesListReturns([]oci.Signature{sig}, nil)
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SetenvReturnsOnCall(2, errTest)
 				mock.TokenFromProvidersReturns(token, nil)
+				m := &sync.Map{}
+				m.Store("gcr.io/fake/honk:99.99.99", true)
+				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -134,10 +130,9 @@ func TestSignImage(t *testing.T) {
 				repository: "fake/honk",
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
-				sig, err := static.NewSignature([]byte{}, "honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Nil(t, err)
-
-				mock.SignaturesListReturns([]oci.Signature{sig}, nil)
+				m := &sync.Map{}
+				m.Store("gcr.io/fake/honk:99.99.99", true)
+				mock.ImagesSignedReturns(m, nil)
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SignImageInternalReturns(nil)
 				mock.TokenFromProvidersReturns(token, nil)
@@ -334,13 +329,6 @@ func TestSignFile(t *testing.T) {
 	}
 }
 
-func prepareSignatureList(t *testing.T, mock *signfakes.FakeImpl) {
-	sig, err := static.NewSignature([]byte{}, "s1")
-	require.Nil(t, err)
-
-	mock.SignaturesListReturns([]oci.Signature{sig}, nil)
-}
-
 func TestVerifyImage(t *testing.T) {
 	t.Parallel()
 
@@ -357,6 +345,9 @@ func TestVerifyImage(t *testing.T) {
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
+				m := &sync.Map{}
+				m.Store("gcr.io/fake/honk:99.99.99", true)
+				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -372,7 +363,9 @@ func TestVerifyImage(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SetenvReturnsOnCall(1, errTest)
-				prepareSignatureList(t, mock)
+				m := &sync.Map{}
+				m.Store("gcr.io/fake/honk:99.99.99", true)
+				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -395,7 +388,9 @@ func TestVerifyImage(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SetenvReturns(nil)
-				prepareSignatureList(t, mock)
+				m := &sync.Map{}
+				m.Store("gcr.io/fake/honk:99.99.99", true)
+				mock.ImagesSignedReturns(m, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, err)
@@ -409,7 +404,9 @@ func TestVerifyImage(t *testing.T) {
 				repository: "fake/honk",
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
-				prepareSignatureList(t, mock)
+				m := &sync.Map{}
+				m.Store("gcr.io/fake/honk:99.99.99", true)
+				mock.ImagesSignedReturns(m, nil)
 				mock.SetenvReturns(errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -424,7 +421,9 @@ func TestVerifyImage(t *testing.T) {
 				repository: "fake/honk",
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.SignaturesListReturns([]oci.Signature{}, nil)
+				m := &sync.Map{}
+				m.Store("gcr.io/fake/honk:99.99.99", false)
+				mock.ImagesSignedReturns(m, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, err)
@@ -547,10 +546,9 @@ func TestIsImageSigned(t *testing.T) {
 	}{
 		{ // Success, signed
 			prepare: func(mock *signfakes.FakeImpl) {
-				sig, err := static.NewSignature([]byte{}, "s1")
-				require.Nil(t, err)
-
-				mock.SignaturesListReturns([]oci.Signature{sig}, nil)
+				m := &sync.Map{}
+				m.Store("", true)
+				mock.ImagesSignedReturns(m, nil)
 			},
 			assert: func(signed bool, err error) {
 				require.True(t, signed)
@@ -558,39 +556,38 @@ func TestIsImageSigned(t *testing.T) {
 			},
 		},
 		{ // Success, not signed
-			prepare: func(mock *signfakes.FakeImpl) {},
+			prepare: func(mock *signfakes.FakeImpl) {
+				m := &sync.Map{}
+				m.Store("", false)
+				mock.ImagesSignedReturns(m, nil)
+			},
 			assert: func(signed bool, err error) {
 				require.False(t, signed)
 				require.Nil(t, err)
 			},
 		},
-		{ // failure SignaturesList errors
+		{ // failure ImagesSigned errors
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.SignaturesListReturns(nil, errTest)
+				mock.ImagesSignedReturns(nil, errTest)
 			},
 			assert: func(signed bool, err error) {
 				require.Error(t, err)
 			},
 		},
-		{ // failure Signatures errors
+		{ // failure ref not part of the result
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.SignaturesReturns(nil, errTest)
+				m := &sync.Map{}
+				mock.ImagesSignedReturns(m, nil)
 			},
 			assert: func(signed bool, err error) {
 				require.Error(t, err)
 			},
 		},
-		{ // failure SignedEntity errors
+		{ // failure on interface conversion
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.SignedEntityReturns(nil, errTest)
-			},
-			assert: func(signed bool, err error) {
-				require.Error(t, err)
-			},
-		},
-		{ // failure ParseReference errors
-			prepare: func(mock *signfakes.FakeImpl) {
-				mock.ParseReferenceReturns(nil, errTest)
+				m := &sync.Map{}
+				m.Store("", 1)
+				mock.ImagesSignedReturns(m, nil)
 			},
 			assert: func(signed bool, err error) {
 				require.Error(t, err)

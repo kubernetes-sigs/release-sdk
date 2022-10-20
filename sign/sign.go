@@ -381,27 +381,20 @@ func (s *Signer) enableExperimental() (resetFn func(), err error) {
 // signatures available for it. It makes no signature verification, only
 // checks to see if more than one signature is available.
 func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
-	ref, err := s.impl.ParseReference(imageRef)
+	res, err := s.impl.ImagesSigned(context.Background(), s, imageRef)
 	if err != nil {
-		return false, fmt.Errorf("parsing image reference: %w", err)
+		return false, fmt.Errorf("check if image is signed: %w", err)
+	}
+	signed, ok := res.Load(imageRef)
+	if !ok {
+		return false, errors.New("ref is not part of result")
+	}
+	signedBool, ok := signed.(bool)
+	if !ok {
+		return false, fmt.Errorf("interface conversion error, result is not a bool: %v", signed)
 	}
 
-	simg, err := s.impl.SignedEntity(ref)
-	if err != nil {
-		return false, fmt.Errorf("getting signed entity from image reference: %w", err)
-	}
-
-	sigs, err := s.impl.Signatures(simg)
-	if err != nil {
-		return false, fmt.Errorf("remote image: %w", err)
-	}
-
-	signatures, err := s.impl.SignaturesList(sigs)
-	if err != nil {
-		return false, fmt.Errorf("fetching signatures: %w", err)
-	}
-
-	return len(signatures) > 0, nil
+	return signedBool, nil
 }
 
 // ImagesSigned verifies if the provided image references are signed. It
