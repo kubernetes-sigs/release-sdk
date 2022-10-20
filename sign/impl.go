@@ -19,18 +19,20 @@ package sign
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
+	"sync"
 
+	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/rekor"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
 	"github.com/sigstore/cosign/cmd/cosign/cli/verify"
 	"github.com/sigstore/cosign/pkg/blob"
 	"github.com/sigstore/cosign/pkg/cosign"
-	"github.com/sigstore/cosign/pkg/oci"
-	"github.com/sigstore/cosign/pkg/oci/remote"
 	"github.com/sigstore/cosign/pkg/providers"
 	"github.com/sigstore/rekor/pkg/generated/client"
 	"github.com/sirupsen/logrus"
@@ -60,11 +62,10 @@ type impl interface {
 	ParseReference(string, ...name.Option) (name.Reference, error)
 	FindTLogEntriesByPayload(ctx context.Context, rClient *client.Rekor, blobBytes []byte) ([]string, error)
 	Digest(ref string, opt ...crane.Option) (string, error)
-	SignedEntity(name.Reference, ...remote.Option) (oci.SignedEntity, error)
-	Signatures(oci.SignedEntity) (oci.Signatures, error)
-	SignaturesList(oci.Signatures) ([]oci.Signature, error)
 	PayloadBytes(blobRef string) ([]byte, error)
 	NewRekorClient(string) (*client.Rekor, error)
+	NewWithContext(context.Context, name.Registry, authn.Authenticator, http.RoundTripper, []string) (http.RoundTripper, error)
+	ImagesSigned(context.Context, *Signer, string) (*sync.Map, error)
 }
 
 func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko options.KeyOpts, outputSignature, //nolint: gocritic
@@ -151,24 +152,6 @@ func (*defaultImpl) Digest(
 	return crane.Digest(ref, opts...)
 }
 
-func (*defaultImpl) SignedEntity(
-	ref name.Reference, opts ...remote.Option,
-) (oci.SignedEntity, error) {
-	return remote.SignedEntity(ref, opts...)
-}
-
-func (*defaultImpl) Signatures(
-	entity oci.SignedEntity,
-) (oci.Signatures, error) {
-	return entity.Signatures()
-}
-
-func (*defaultImpl) SignaturesList(
-	signatures oci.Signatures,
-) ([]oci.Signature, error) {
-	return signatures.Get()
-}
-
 func (*defaultImpl) PayloadBytes(blobRef string) (blobBytes []byte, err error) {
 	blobBytes, err = blob.LoadFileOrURL(blobRef)
 	if err != nil {
@@ -179,4 +162,18 @@ func (*defaultImpl) PayloadBytes(blobRef string) (blobBytes []byte, err error) {
 
 func (*defaultImpl) NewRekorClient(rekorURL string) (*client.Rekor, error) {
 	return rekor.NewClient(rekorURL)
+}
+
+func (*defaultImpl) NewWithContext(
+	ctx context.Context,
+	reg name.Registry,
+	auth authn.Authenticator,
+	t http.RoundTripper,
+	scopes []string,
+) (http.RoundTripper, error) {
+	return transport.NewWithContext(ctx, reg, auth, t, scopes)
+}
+
+func (d *defaultImpl) ImagesSigned(ctx context.Context, s *Signer, ref string) (*sync.Map, error) {
+	return s.ImagesSigned(ctx, ref)
 }

@@ -19,13 +19,13 @@ package signfakes
 
 import (
 	"context"
+	"net/http"
 	"sync"
 
+	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
-	"github.com/sigstore/cosign/pkg/oci"
-	"github.com/sigstore/cosign/pkg/oci/remote"
 	"github.com/sigstore/rekor/pkg/generated/client"
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/release-sdk/sign"
@@ -84,6 +84,21 @@ type FakeImpl struct {
 		result1 []string
 		result2 error
 	}
+	ImagesSignedStub        func(context.Context, *sign.Signer, string) (*sync.Map, error)
+	imagesSignedMutex       sync.RWMutex
+	imagesSignedArgsForCall []struct {
+		arg1 context.Context
+		arg2 *sign.Signer
+		arg3 string
+	}
+	imagesSignedReturns struct {
+		result1 *sync.Map
+		result2 error
+	}
+	imagesSignedReturnsOnCall map[int]struct {
+		result1 *sync.Map
+		result2 error
+	}
 	NewRekorClientStub        func(string) (*client.Rekor, error)
 	newRekorClientMutex       sync.RWMutex
 	newRekorClientArgsForCall []struct {
@@ -95,6 +110,23 @@ type FakeImpl struct {
 	}
 	newRekorClientReturnsOnCall map[int]struct {
 		result1 *client.Rekor
+		result2 error
+	}
+	NewWithContextStub        func(context.Context, name.Registry, authn.Authenticator, http.RoundTripper, []string) (http.RoundTripper, error)
+	newWithContextMutex       sync.RWMutex
+	newWithContextArgsForCall []struct {
+		arg1 context.Context
+		arg2 name.Registry
+		arg3 authn.Authenticator
+		arg4 http.RoundTripper
+		arg5 []string
+	}
+	newWithContextReturns struct {
+		result1 http.RoundTripper
+		result2 error
+	}
+	newWithContextReturnsOnCall map[int]struct {
+		result1 http.RoundTripper
 		result2 error
 	}
 	ParseReferenceStub        func(string, ...name.Option) (name.Reference, error)
@@ -176,46 +208,6 @@ type FakeImpl struct {
 	}
 	signImageInternalReturnsOnCall map[int]struct {
 		result1 error
-	}
-	SignaturesStub        func(oci.SignedEntity) (oci.Signatures, error)
-	signaturesMutex       sync.RWMutex
-	signaturesArgsForCall []struct {
-		arg1 oci.SignedEntity
-	}
-	signaturesReturns struct {
-		result1 oci.Signatures
-		result2 error
-	}
-	signaturesReturnsOnCall map[int]struct {
-		result1 oci.Signatures
-		result2 error
-	}
-	SignaturesListStub        func(oci.Signatures) ([]oci.Signature, error)
-	signaturesListMutex       sync.RWMutex
-	signaturesListArgsForCall []struct {
-		arg1 oci.Signatures
-	}
-	signaturesListReturns struct {
-		result1 []oci.Signature
-		result2 error
-	}
-	signaturesListReturnsOnCall map[int]struct {
-		result1 []oci.Signature
-		result2 error
-	}
-	SignedEntityStub        func(name.Reference, ...remote.Option) (oci.SignedEntity, error)
-	signedEntityMutex       sync.RWMutex
-	signedEntityArgsForCall []struct {
-		arg1 name.Reference
-		arg2 []remote.Option
-	}
-	signedEntityReturns struct {
-		result1 oci.SignedEntity
-		result2 error
-	}
-	signedEntityReturnsOnCall map[int]struct {
-		result1 oci.SignedEntity
-		result2 error
 	}
 	TokenFromProvidersStub        func(context.Context, *logrus.Logger) (string, error)
 	tokenFromProvidersMutex       sync.RWMutex
@@ -524,6 +516,72 @@ func (fake *FakeImpl) FindTLogEntriesByPayloadReturnsOnCall(i int, result1 []str
 	}{result1, result2}
 }
 
+func (fake *FakeImpl) ImagesSigned(arg1 context.Context, arg2 *sign.Signer, arg3 string) (*sync.Map, error) {
+	fake.imagesSignedMutex.Lock()
+	ret, specificReturn := fake.imagesSignedReturnsOnCall[len(fake.imagesSignedArgsForCall)]
+	fake.imagesSignedArgsForCall = append(fake.imagesSignedArgsForCall, struct {
+		arg1 context.Context
+		arg2 *sign.Signer
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.ImagesSignedStub
+	fakeReturns := fake.imagesSignedReturns
+	fake.recordInvocation("ImagesSigned", []interface{}{arg1, arg2, arg3})
+	fake.imagesSignedMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeImpl) ImagesSignedCallCount() int {
+	fake.imagesSignedMutex.RLock()
+	defer fake.imagesSignedMutex.RUnlock()
+	return len(fake.imagesSignedArgsForCall)
+}
+
+func (fake *FakeImpl) ImagesSignedCalls(stub func(context.Context, *sign.Signer, string) (*sync.Map, error)) {
+	fake.imagesSignedMutex.Lock()
+	defer fake.imagesSignedMutex.Unlock()
+	fake.ImagesSignedStub = stub
+}
+
+func (fake *FakeImpl) ImagesSignedArgsForCall(i int) (context.Context, *sign.Signer, string) {
+	fake.imagesSignedMutex.RLock()
+	defer fake.imagesSignedMutex.RUnlock()
+	argsForCall := fake.imagesSignedArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeImpl) ImagesSignedReturns(result1 *sync.Map, result2 error) {
+	fake.imagesSignedMutex.Lock()
+	defer fake.imagesSignedMutex.Unlock()
+	fake.ImagesSignedStub = nil
+	fake.imagesSignedReturns = struct {
+		result1 *sync.Map
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) ImagesSignedReturnsOnCall(i int, result1 *sync.Map, result2 error) {
+	fake.imagesSignedMutex.Lock()
+	defer fake.imagesSignedMutex.Unlock()
+	fake.ImagesSignedStub = nil
+	if fake.imagesSignedReturnsOnCall == nil {
+		fake.imagesSignedReturnsOnCall = make(map[int]struct {
+			result1 *sync.Map
+			result2 error
+		})
+	}
+	fake.imagesSignedReturnsOnCall[i] = struct {
+		result1 *sync.Map
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeImpl) NewRekorClient(arg1 string) (*client.Rekor, error) {
 	fake.newRekorClientMutex.Lock()
 	ret, specificReturn := fake.newRekorClientReturnsOnCall[len(fake.newRekorClientArgsForCall)]
@@ -584,6 +642,79 @@ func (fake *FakeImpl) NewRekorClientReturnsOnCall(i int, result1 *client.Rekor, 
 	}
 	fake.newRekorClientReturnsOnCall[i] = struct {
 		result1 *client.Rekor
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) NewWithContext(arg1 context.Context, arg2 name.Registry, arg3 authn.Authenticator, arg4 http.RoundTripper, arg5 []string) (http.RoundTripper, error) {
+	var arg5Copy []string
+	if arg5 != nil {
+		arg5Copy = make([]string, len(arg5))
+		copy(arg5Copy, arg5)
+	}
+	fake.newWithContextMutex.Lock()
+	ret, specificReturn := fake.newWithContextReturnsOnCall[len(fake.newWithContextArgsForCall)]
+	fake.newWithContextArgsForCall = append(fake.newWithContextArgsForCall, struct {
+		arg1 context.Context
+		arg2 name.Registry
+		arg3 authn.Authenticator
+		arg4 http.RoundTripper
+		arg5 []string
+	}{arg1, arg2, arg3, arg4, arg5Copy})
+	stub := fake.NewWithContextStub
+	fakeReturns := fake.newWithContextReturns
+	fake.recordInvocation("NewWithContext", []interface{}{arg1, arg2, arg3, arg4, arg5Copy})
+	fake.newWithContextMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeImpl) NewWithContextCallCount() int {
+	fake.newWithContextMutex.RLock()
+	defer fake.newWithContextMutex.RUnlock()
+	return len(fake.newWithContextArgsForCall)
+}
+
+func (fake *FakeImpl) NewWithContextCalls(stub func(context.Context, name.Registry, authn.Authenticator, http.RoundTripper, []string) (http.RoundTripper, error)) {
+	fake.newWithContextMutex.Lock()
+	defer fake.newWithContextMutex.Unlock()
+	fake.NewWithContextStub = stub
+}
+
+func (fake *FakeImpl) NewWithContextArgsForCall(i int) (context.Context, name.Registry, authn.Authenticator, http.RoundTripper, []string) {
+	fake.newWithContextMutex.RLock()
+	defer fake.newWithContextMutex.RUnlock()
+	argsForCall := fake.newWithContextArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+}
+
+func (fake *FakeImpl) NewWithContextReturns(result1 http.RoundTripper, result2 error) {
+	fake.newWithContextMutex.Lock()
+	defer fake.newWithContextMutex.Unlock()
+	fake.NewWithContextStub = nil
+	fake.newWithContextReturns = struct {
+		result1 http.RoundTripper
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) NewWithContextReturnsOnCall(i int, result1 http.RoundTripper, result2 error) {
+	fake.newWithContextMutex.Lock()
+	defer fake.newWithContextMutex.Unlock()
+	fake.NewWithContextStub = nil
+	if fake.newWithContextReturnsOnCall == nil {
+		fake.newWithContextReturnsOnCall = make(map[int]struct {
+			result1 http.RoundTripper
+			result2 error
+		})
+	}
+	fake.newWithContextReturnsOnCall[i] = struct {
+		result1 http.RoundTripper
 		result2 error
 	}{result1, result2}
 }
@@ -925,199 +1056,6 @@ func (fake *FakeImpl) SignImageInternalReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeImpl) Signatures(arg1 oci.SignedEntity) (oci.Signatures, error) {
-	fake.signaturesMutex.Lock()
-	ret, specificReturn := fake.signaturesReturnsOnCall[len(fake.signaturesArgsForCall)]
-	fake.signaturesArgsForCall = append(fake.signaturesArgsForCall, struct {
-		arg1 oci.SignedEntity
-	}{arg1})
-	stub := fake.SignaturesStub
-	fakeReturns := fake.signaturesReturns
-	fake.recordInvocation("Signatures", []interface{}{arg1})
-	fake.signaturesMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeImpl) SignaturesCallCount() int {
-	fake.signaturesMutex.RLock()
-	defer fake.signaturesMutex.RUnlock()
-	return len(fake.signaturesArgsForCall)
-}
-
-func (fake *FakeImpl) SignaturesCalls(stub func(oci.SignedEntity) (oci.Signatures, error)) {
-	fake.signaturesMutex.Lock()
-	defer fake.signaturesMutex.Unlock()
-	fake.SignaturesStub = stub
-}
-
-func (fake *FakeImpl) SignaturesArgsForCall(i int) oci.SignedEntity {
-	fake.signaturesMutex.RLock()
-	defer fake.signaturesMutex.RUnlock()
-	argsForCall := fake.signaturesArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeImpl) SignaturesReturns(result1 oci.Signatures, result2 error) {
-	fake.signaturesMutex.Lock()
-	defer fake.signaturesMutex.Unlock()
-	fake.SignaturesStub = nil
-	fake.signaturesReturns = struct {
-		result1 oci.Signatures
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeImpl) SignaturesReturnsOnCall(i int, result1 oci.Signatures, result2 error) {
-	fake.signaturesMutex.Lock()
-	defer fake.signaturesMutex.Unlock()
-	fake.SignaturesStub = nil
-	if fake.signaturesReturnsOnCall == nil {
-		fake.signaturesReturnsOnCall = make(map[int]struct {
-			result1 oci.Signatures
-			result2 error
-		})
-	}
-	fake.signaturesReturnsOnCall[i] = struct {
-		result1 oci.Signatures
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeImpl) SignaturesList(arg1 oci.Signatures) ([]oci.Signature, error) {
-	fake.signaturesListMutex.Lock()
-	ret, specificReturn := fake.signaturesListReturnsOnCall[len(fake.signaturesListArgsForCall)]
-	fake.signaturesListArgsForCall = append(fake.signaturesListArgsForCall, struct {
-		arg1 oci.Signatures
-	}{arg1})
-	stub := fake.SignaturesListStub
-	fakeReturns := fake.signaturesListReturns
-	fake.recordInvocation("SignaturesList", []interface{}{arg1})
-	fake.signaturesListMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeImpl) SignaturesListCallCount() int {
-	fake.signaturesListMutex.RLock()
-	defer fake.signaturesListMutex.RUnlock()
-	return len(fake.signaturesListArgsForCall)
-}
-
-func (fake *FakeImpl) SignaturesListCalls(stub func(oci.Signatures) ([]oci.Signature, error)) {
-	fake.signaturesListMutex.Lock()
-	defer fake.signaturesListMutex.Unlock()
-	fake.SignaturesListStub = stub
-}
-
-func (fake *FakeImpl) SignaturesListArgsForCall(i int) oci.Signatures {
-	fake.signaturesListMutex.RLock()
-	defer fake.signaturesListMutex.RUnlock()
-	argsForCall := fake.signaturesListArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeImpl) SignaturesListReturns(result1 []oci.Signature, result2 error) {
-	fake.signaturesListMutex.Lock()
-	defer fake.signaturesListMutex.Unlock()
-	fake.SignaturesListStub = nil
-	fake.signaturesListReturns = struct {
-		result1 []oci.Signature
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeImpl) SignaturesListReturnsOnCall(i int, result1 []oci.Signature, result2 error) {
-	fake.signaturesListMutex.Lock()
-	defer fake.signaturesListMutex.Unlock()
-	fake.SignaturesListStub = nil
-	if fake.signaturesListReturnsOnCall == nil {
-		fake.signaturesListReturnsOnCall = make(map[int]struct {
-			result1 []oci.Signature
-			result2 error
-		})
-	}
-	fake.signaturesListReturnsOnCall[i] = struct {
-		result1 []oci.Signature
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeImpl) SignedEntity(arg1 name.Reference, arg2 ...remote.Option) (oci.SignedEntity, error) {
-	fake.signedEntityMutex.Lock()
-	ret, specificReturn := fake.signedEntityReturnsOnCall[len(fake.signedEntityArgsForCall)]
-	fake.signedEntityArgsForCall = append(fake.signedEntityArgsForCall, struct {
-		arg1 name.Reference
-		arg2 []remote.Option
-	}{arg1, arg2})
-	stub := fake.SignedEntityStub
-	fakeReturns := fake.signedEntityReturns
-	fake.recordInvocation("SignedEntity", []interface{}{arg1, arg2})
-	fake.signedEntityMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2...)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeImpl) SignedEntityCallCount() int {
-	fake.signedEntityMutex.RLock()
-	defer fake.signedEntityMutex.RUnlock()
-	return len(fake.signedEntityArgsForCall)
-}
-
-func (fake *FakeImpl) SignedEntityCalls(stub func(name.Reference, ...remote.Option) (oci.SignedEntity, error)) {
-	fake.signedEntityMutex.Lock()
-	defer fake.signedEntityMutex.Unlock()
-	fake.SignedEntityStub = stub
-}
-
-func (fake *FakeImpl) SignedEntityArgsForCall(i int) (name.Reference, []remote.Option) {
-	fake.signedEntityMutex.RLock()
-	defer fake.signedEntityMutex.RUnlock()
-	argsForCall := fake.signedEntityArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeImpl) SignedEntityReturns(result1 oci.SignedEntity, result2 error) {
-	fake.signedEntityMutex.Lock()
-	defer fake.signedEntityMutex.Unlock()
-	fake.SignedEntityStub = nil
-	fake.signedEntityReturns = struct {
-		result1 oci.SignedEntity
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeImpl) SignedEntityReturnsOnCall(i int, result1 oci.SignedEntity, result2 error) {
-	fake.signedEntityMutex.Lock()
-	defer fake.signedEntityMutex.Unlock()
-	fake.SignedEntityStub = nil
-	if fake.signedEntityReturnsOnCall == nil {
-		fake.signedEntityReturnsOnCall = make(map[int]struct {
-			result1 oci.SignedEntity
-			result2 error
-		})
-	}
-	fake.signedEntityReturnsOnCall[i] = struct {
-		result1 oci.SignedEntity
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeImpl) TokenFromProviders(arg1 context.Context, arg2 *logrus.Logger) (string, error) {
 	fake.tokenFromProvidersMutex.Lock()
 	ret, specificReturn := fake.tokenFromProvidersReturnsOnCall[len(fake.tokenFromProvidersArgsForCall)]
@@ -1330,8 +1268,12 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	defer fake.fileExistsMutex.RUnlock()
 	fake.findTLogEntriesByPayloadMutex.RLock()
 	defer fake.findTLogEntriesByPayloadMutex.RUnlock()
+	fake.imagesSignedMutex.RLock()
+	defer fake.imagesSignedMutex.RUnlock()
 	fake.newRekorClientMutex.RLock()
 	defer fake.newRekorClientMutex.RUnlock()
+	fake.newWithContextMutex.RLock()
+	defer fake.newWithContextMutex.RUnlock()
 	fake.parseReferenceMutex.RLock()
 	defer fake.parseReferenceMutex.RUnlock()
 	fake.payloadBytesMutex.RLock()
@@ -1342,12 +1284,6 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	defer fake.signFileInternalMutex.RUnlock()
 	fake.signImageInternalMutex.RLock()
 	defer fake.signImageInternalMutex.RUnlock()
-	fake.signaturesMutex.RLock()
-	defer fake.signaturesMutex.RUnlock()
-	fake.signaturesListMutex.RLock()
-	defer fake.signaturesListMutex.RUnlock()
-	fake.signedEntityMutex.RLock()
-	defer fake.signedEntityMutex.RUnlock()
 	fake.tokenFromProvidersMutex.RLock()
 	defer fake.tokenFromProvidersMutex.RUnlock()
 	fake.verifyFileInternalMutex.RLock()

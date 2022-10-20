@@ -66,6 +66,10 @@ type Options struct {
 	// MaxRetries indicates the number of times to retry operations
 	// when transient failures occur
 	MaxRetries uint
+
+	// The amount of maximum workers for parallel executions.
+	// Defaults to 100.
+	MaxWorkers uint
 }
 
 // Default returns a default Options instance.
@@ -76,6 +80,7 @@ func Default() *Options {
 		EnableTokenProviders: true,
 		AttachSignature:      true,
 		MaxRetries:           3,
+		MaxWorkers:           100,
 	}
 }
 
