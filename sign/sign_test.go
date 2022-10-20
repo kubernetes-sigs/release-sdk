@@ -17,15 +17,19 @@ limitations under the License.
 package sign_test
 
 import (
+	"context"
 	"errors"
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 	"github.com/sigstore/cosign/pkg/oci"
 	"github.com/sigstore/cosign/pkg/oci/static"
+	"github.com/stretchr/testify/http"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/release-sdk/sign"
 	"sigs.k8s.io/release-sdk/sign/signfakes"
@@ -645,4 +649,101 @@ func (fr *FakeReferenceStub) Name() string {
 
 func (fr *FakeReferenceStub) String() string {
 	return fr.image
+}
+
+func TestImagesSigned(t *testing.T) {
+	t.Parallel()
+
+	fakeRef := &FakeReferenceStub{
+		image:      "gcr.io/fake/honk:99.99.99",
+		registry:   "gcr.io",
+		repository: "fake/honk",
+	}
+
+	for _, tc := range []struct {
+		prepare func(*signfakes.FakeImpl)
+		assert  func(*sync.Map, error)
+	}{
+		{ // Success, signed
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.ParseReferenceReturns(fakeRef, nil)
+				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
+			},
+			assert: func(res *sync.Map, err error) {
+				require.Nil(t, err)
+
+				signed, ok := res.Load("")
+				require.True(t, ok)
+				require.True(t, signed.(bool))
+			},
+		},
+		{ // Success, unsigned
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.ParseReferenceReturns(fakeRef, nil)
+				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
+				mock.DigestReturnsOnCall(1, "", &transport.Error{
+					Errors: []transport.Diagnostic{
+						{Code: transport.ManifestUnknownErrorCode},
+					},
+				})
+			},
+			assert: func(res *sync.Map, err error) {
+				require.Nil(t, err)
+
+				signed, ok := res.Load("")
+				require.True(t, ok)
+				require.False(t, signed.(bool))
+			},
+		},
+		{ // failure on ParseReference
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.ParseReferenceReturns(nil, errTest)
+			},
+			assert: func(res *sync.Map, err error) {
+				require.NotNil(t, err)
+				require.Nil(t, res)
+			},
+		},
+		{ // failure on NewWithContext
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.ParseReferenceReturns(fakeRef, nil)
+				mock.NewWithContextReturns(nil, errTest)
+			},
+			assert: func(res *sync.Map, err error) {
+				require.NotNil(t, err)
+				require.Nil(t, res)
+			},
+		},
+		{ // failure on first Digest
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.ParseReferenceReturns(fakeRef, nil)
+				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
+				mock.DigestReturns("", errTest)
+			},
+			assert: func(res *sync.Map, err error) {
+				require.NotNil(t, err)
+				require.NotNil(t, res) // partial results are possible
+			},
+		},
+		{ // failure on second Digest
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.ParseReferenceReturns(fakeRef, nil)
+				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
+				mock.DigestReturnsOnCall(1, "", errTest)
+			},
+			assert: func(res *sync.Map, err error) {
+				require.NotNil(t, err)
+				require.NotNil(t, res) // partial results are possible
+			},
+		},
+	} {
+		mock := &signfakes.FakeImpl{}
+		tc.prepare(mock)
+
+		sut := sign.New(sign.Default())
+		sut.SetImpl(mock)
+
+		res, err := sut.ImagesSigned(context.TODO(), "")
+		tc.assert(res, err)
+	}
 }

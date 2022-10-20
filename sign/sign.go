@@ -20,11 +20,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/google/go-containerregistry/pkg/authn"
+	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/logs"
+	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/remote"
+	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
+	"github.com/nozzle/throttler"
 	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -287,12 +295,11 @@ func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 		return &SignedObject{}, fmt.Errorf("getting the reference digest for %s: %w", reference, err)
 	}
 
-	sigParsed := strings.ReplaceAll(dig, "sha256:", "sha256-")
 	obj := &SignedObject{
 		image: &SignedImage{
 			digest:    dig,
 			reference: ref.String(),
-			signature: fmt.Sprintf("%s:%s.sig", ref.Context().Name(), sigParsed),
+			signature: repoDigestToSig(ref.Context(), dig),
 		},
 	}
 
@@ -395,6 +402,135 @@ func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 	}
 
 	return len(signatures) > 0, nil
+}
+
+// ImagesSigned verifies if the provided image references are signed. It
+// returns a sync map where the key is the ref and the value is a boolean which
+// indicates if the image is signed or not. The method runs highly parallel.
+func (s *Signer) ImagesSigned(ctx context.Context, refs ...string) (*sync.Map, error) {
+	s.log().Debug("Parsing references")
+	repos := []name.Repository{}
+	for _, ref := range refs {
+		parsedRef, err := s.impl.ParseReference(ref)
+		if err != nil {
+			return nil, fmt.Errorf("parsing image reference: %w", err)
+		}
+
+		repos = append(repos, parsedRef.Context())
+	}
+
+	s.log().Debug("Building transports")
+	transports, count, err := s.transportsForRefs(ctx, repos...)
+	if err != nil {
+		return nil, fmt.Errorf("build transports: %w", err)
+	}
+	s.log().Debugf("Built %d transports for %d refs", count, len(refs))
+
+	s.log().Debugf("Checking if refs are signed")
+	t := throttler.New(int(s.options.MaxWorkers), len(refs))
+	res := &sync.Map{}
+	for i, repo := range repos {
+		go func(repo name.Repository, i int) {
+			trans, ok := transports.Load(repo)
+			if !ok {
+				t.Done(fmt.Errorf("no transport found for repo: %s", repo.String()))
+				return
+			}
+			tr, ok := trans.(http.RoundTripper)
+			if !ok {
+				t.Done(fmt.Errorf("transport has wrong type: %v", tr))
+				return
+			}
+
+			digest, err := s.impl.Digest(refs[i], crane.WithTransport(tr))
+			if err != nil {
+				t.Done(fmt.Errorf("get digest for image reference: %w", err))
+				return
+			}
+
+			if _, err := s.impl.Digest(repoDigestToSig(repo, digest), crane.WithTransport(tr)); err != nil {
+				if transportErr, ok := err.(*transport.Error); ok && len(transportErr.Errors) > 0 {
+					if transportErr.Errors[0].Code == transport.ManifestUnknownErrorCode {
+						res.Store(refs[i], false)
+						t.Done(nil)
+						return
+					}
+				}
+
+				t.Done(fmt.Errorf("get digest for signature: %w", err))
+				return
+			}
+
+			res.Store(refs[i], true)
+			t.Done(nil)
+		}(repo, i)
+
+		if t.Throttle() > 0 {
+			break
+		}
+	}
+
+	s.log().Debugf("Done checking if refs are signed")
+
+	if err := t.Err(); err != nil {
+		return res, fmt.Errorf("check if images are signed: %w", err)
+	}
+
+	return res, nil
+}
+
+func (s *Signer) transportsForRefs(ctx context.Context, repos ...name.Repository) (*sync.Map, int, error) {
+	count := 0
+	t := throttler.New(int(s.options.MaxWorkers), len(repos))
+	transports := &sync.Map{}
+
+	for _, repo := range repos {
+		go func(repo name.Repository) {
+			if _, loaded := transports.LoadOrStore(repo, nil); loaded {
+				t.Done(nil)
+				return
+			}
+
+			tr, err := s.transportForRepo(ctx, repo)
+			if err != nil {
+				t.Done(fmt.Errorf("create transport for repo %s: %w", repo.String(), err))
+				return
+			}
+			transports.Store(repo, tr)
+			count++
+			t.Done(nil)
+		}(repo)
+
+		if t.Throttle() > 0 {
+			break
+		}
+	}
+
+	if err := t.Err(); err != nil {
+		return nil, 0, fmt.Errorf("building transports: %w", err)
+	}
+
+	return transports, count, nil
+}
+
+func (s *Signer) transportForRepo(ctx context.Context, repo name.Repository) (http.RoundTripper, error) {
+	scopes := []string{repo.Scope(transport.PullScope)}
+
+	t := remote.DefaultTransport
+	t = transport.NewLogger(t)
+	t = transport.NewRetry(t)
+	t = transport.NewUserAgent(t, "k8s-release-sdk")
+
+	t, err := s.impl.NewWithContext(ctx, repo.Registry, authn.Anonymous, t, scopes)
+	if err != nil {
+		return nil, fmt.Errorf("create new transport: %w", err)
+	}
+
+	return t, nil
+}
+
+func repoDigestToSig(repo name.Repository, digest string) string {
+	return repo.Name() + ":" + strings.Replace(digest, ":", "-", 1) + ".sig"
 }
 
 // IsFileSigned takes an path reference and retrusn true if there is a signature

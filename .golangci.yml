@@ -118,6 +118,8 @@ linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
+  gocognit:
+    min-complexity: 40
   gocritic:
     enabled-checks:
       # Diagnostic

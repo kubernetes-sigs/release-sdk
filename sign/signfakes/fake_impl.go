@@ -19,8 +19,10 @@ package signfakes
 
 import (
 	"context"
+	"net/http"
 	"sync"
 
+	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
@@ -95,6 +97,23 @@ type FakeImpl struct {
 	}
 	newRekorClientReturnsOnCall map[int]struct {
 		result1 *client.Rekor
+		result2 error
+	}
+	NewWithContextStub        func(context.Context, name.Registry, authn.Authenticator, http.RoundTripper, []string) (http.RoundTripper, error)
+	newWithContextMutex       sync.RWMutex
+	newWithContextArgsForCall []struct {
+		arg1 context.Context
+		arg2 name.Registry
+		arg3 authn.Authenticator
+		arg4 http.RoundTripper
+		arg5 []string
+	}
+	newWithContextReturns struct {
+		result1 http.RoundTripper
+		result2 error
+	}
+	newWithContextReturnsOnCall map[int]struct {
+		result1 http.RoundTripper
 		result2 error
 	}
 	ParseReferenceStub        func(string, ...name.Option) (name.Reference, error)
@@ -584,6 +603,79 @@ func (fake *FakeImpl) NewRekorClientReturnsOnCall(i int, result1 *client.Rekor, 
 	}
 	fake.newRekorClientReturnsOnCall[i] = struct {
 		result1 *client.Rekor
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) NewWithContext(arg1 context.Context, arg2 name.Registry, arg3 authn.Authenticator, arg4 http.RoundTripper, arg5 []string) (http.RoundTripper, error) {
+	var arg5Copy []string
+	if arg5 != nil {
+		arg5Copy = make([]string, len(arg5))
+		copy(arg5Copy, arg5)
+	}
+	fake.newWithContextMutex.Lock()
+	ret, specificReturn := fake.newWithContextReturnsOnCall[len(fake.newWithContextArgsForCall)]
+	fake.newWithContextArgsForCall = append(fake.newWithContextArgsForCall, struct {
+		arg1 context.Context
+		arg2 name.Registry
+		arg3 authn.Authenticator
+		arg4 http.RoundTripper
+		arg5 []string
+	}{arg1, arg2, arg3, arg4, arg5Copy})
+	stub := fake.NewWithContextStub
+	fakeReturns := fake.newWithContextReturns
+	fake.recordInvocation("NewWithContext", []interface{}{arg1, arg2, arg3, arg4, arg5Copy})
+	fake.newWithContextMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeImpl) NewWithContextCallCount() int {
+	fake.newWithContextMutex.RLock()
+	defer fake.newWithContextMutex.RUnlock()
+	return len(fake.newWithContextArgsForCall)
+}
+
+func (fake *FakeImpl) NewWithContextCalls(stub func(context.Context, name.Registry, authn.Authenticator, http.RoundTripper, []string) (http.RoundTripper, error)) {
+	fake.newWithContextMutex.Lock()
+	defer fake.newWithContextMutex.Unlock()
+	fake.NewWithContextStub = stub
+}
+
+func (fake *FakeImpl) NewWithContextArgsForCall(i int) (context.Context, name.Registry, authn.Authenticator, http.RoundTripper, []string) {
+	fake.newWithContextMutex.RLock()
+	defer fake.newWithContextMutex.RUnlock()
+	argsForCall := fake.newWithContextArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+}
+
+func (fake *FakeImpl) NewWithContextReturns(result1 http.RoundTripper, result2 error) {
+	fake.newWithContextMutex.Lock()
+	defer fake.newWithContextMutex.Unlock()
+	fake.NewWithContextStub = nil
+	fake.newWithContextReturns = struct {
+		result1 http.RoundTripper
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeImpl) NewWithContextReturnsOnCall(i int, result1 http.RoundTripper, result2 error) {
+	fake.newWithContextMutex.Lock()
+	defer fake.newWithContextMutex.Unlock()
+	fake.NewWithContextStub = nil
+	if fake.newWithContextReturnsOnCall == nil {
+		fake.newWithContextReturnsOnCall = make(map[int]struct {
+			result1 http.RoundTripper
+			result2 error
+		})
+	}
+	fake.newWithContextReturnsOnCall[i] = struct {
+		result1 http.RoundTripper
 		result2 error
 	}{result1, result2}
 }
@@ -1332,6 +1424,8 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	defer fake.findTLogEntriesByPayloadMutex.RUnlock()
 	fake.newRekorClientMutex.RLock()
 	defer fake.newRekorClientMutex.RUnlock()
+	fake.newWithContextMutex.RLock()
+	defer fake.newWithContextMutex.RUnlock()
 	fake.parseReferenceMutex.RLock()
 	defer fake.parseReferenceMutex.RUnlock()
 	fake.payloadBytesMutex.RLock()

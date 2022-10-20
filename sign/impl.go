@@ -19,10 +19,13 @@ package sign
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
+	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 	"github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sigstore/cosign/cmd/cosign/cli/rekor"
 	"github.com/sigstore/cosign/cmd/cosign/cli/sign"
@@ -65,6 +68,7 @@ type impl interface {
 	SignaturesList(oci.Signatures) ([]oci.Signature, error)
 	PayloadBytes(blobRef string) ([]byte, error)
 	NewRekorClient(string) (*client.Rekor, error)
+	NewWithContext(context.Context, name.Registry, authn.Authenticator, http.RoundTripper, []string) (http.RoundTripper, error)
 }
 
 func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko options.KeyOpts, outputSignature, //nolint: gocritic
@@ -179,4 +183,14 @@ func (*defaultImpl) PayloadBytes(blobRef string) (blobBytes []byte, err error) {
 
 func (*defaultImpl) NewRekorClient(rekorURL string) (*client.Rekor, error) {
 	return rekor.NewClient(rekorURL)
+}
+
+func (*defaultImpl) NewWithContext(
+	ctx context.Context,
+	reg name.Registry,
+	auth authn.Authenticator,
+	t http.RoundTripper,
+	scopes []string,
+) (http.RoundTripper, error) {
+	return transport.NewWithContext(ctx, reg, auth, t, scopes)
 }
