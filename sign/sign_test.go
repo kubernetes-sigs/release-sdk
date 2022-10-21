@@ -85,6 +85,7 @@ func TestSignImage(t *testing.T) {
 				m.Store("gcr.io/fake/honk:99.99.99", true)
 				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
+				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NoError(t, err)
@@ -111,6 +112,7 @@ func TestSignImage(t *testing.T) {
 				m.Store("gcr.io/fake/honk:99.99.99", true)
 				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
+				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NoError(t, err)
@@ -349,6 +351,7 @@ func TestVerifyImage(t *testing.T) {
 				m.Store("gcr.io/fake/honk:99.99.99", true)
 				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
+				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, err)
@@ -367,6 +370,7 @@ func TestVerifyImage(t *testing.T) {
 				m.Store("gcr.io/fake/honk:99.99.99", true)
 				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
+				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj)

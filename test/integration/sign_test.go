@@ -153,54 +153,117 @@ func TestIsImageSigned(t *testing.T) {
 func TestImagesSigned(t *testing.T) {
 	signer := sign.New(sign.Default())
 	const repo = "k8s.gcr.io/security-profiles-operator/security-profiles-operator"
-	for _, tc := range []struct {
-		refs      map[string]bool
-		shouldErr bool
-	}{
-		{ // signed single image
-			map[string]bool{"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true},
-			false,
-		},
-		{ // nonexistent
-			map[string]bool{"kornotios/supermegafakeimage": false},
-			true,
-		},
-		{ // one valid and one nonexistent
-			map[string]bool{
-				"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true,
-				"kornotios/supermegafakeimage":                                            false,
+
+	// Running it twice should lead to the same results
+	for i := 0; i < 2; i++ {
+		for _, tc := range []struct {
+			refs      map[string]bool
+			shouldErr bool
+		}{
+			{ // signed single image
+				map[string]bool{"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true},
+				false,
 			},
-			true,
-		},
-		{ // list of valid images
-			map[string]bool{
-				repo + ":v0.2.0": false,
-				repo + ":v0.3.0": false,
-				repo + ":v0.4.0": false,
-				repo + ":v0.4.2": false,
-				repo + ":v0.4.3": true,
-				repo + ":v0.5.0": true,
-				repo + "@sha256:4e61cb64ab34d1b80ebdb900c636a2aff60d85c9a48b0f1d34202d9388856bd7": true,
-				repo + "@sha256:9da6d7f148b19154fd6df4cc052e6cd52787962369f34c7b0411f77b843f3d4c": true,
+			{ // nonexistent
+				map[string]bool{"kornotios/supermegafakeimage": false},
+				true,
 			},
-			false,
-		},
-	} {
-		refs := []string{}
-		for ref := range tc.refs {
-			refs = append(refs, ref)
+			{ // one valid and one nonexistent
+				map[string]bool{
+					"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true,
+					"kornotios/supermegafakeimage":                                            false,
+				},
+				true,
+			},
+			{ // list of valid images
+				map[string]bool{
+					repo + ":v0.2.0": false,
+					repo + ":v0.3.0": false,
+					repo + ":v0.4.0": false,
+					repo + ":v0.4.2": false,
+					repo + ":v0.4.3": true,
+					repo + ":v0.5.0": true,
+					repo + "@sha256:4e61cb64ab34d1b80ebdb900c636a2aff60d85c9a48b0f1d34202d9388856bd7": true,
+					repo + "@sha256:9da6d7f148b19154fd6df4cc052e6cd52787962369f34c7b0411f77b843f3d4c": true,
+				},
+				false,
+			},
+		} {
+			refs := []string{}
+			for ref := range tc.refs {
+				refs = append(refs, ref)
+			}
+
+			res, err := signer.ImagesSigned(context.Background(), refs...)
+			if tc.shouldErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+
+				for ref, expected := range tc.refs {
+					signed, ok := res.Load(ref)
+					require.True(t, ok)
+					require.Equal(t, expected, signed)
+				}
+			}
 		}
+	}
+}
 
-		res, err := signer.ImagesSigned(context.Background(), refs...)
-		if tc.shouldErr {
-			require.Error(t, err)
-		} else {
-			require.NoError(t, err)
+func TestVerifyImages(t *testing.T) {
+	signer := sign.New(sign.Default())
+	const repo = "k8s.gcr.io/security-profiles-operator/security-profiles-operator"
 
-			for ref, expected := range tc.refs {
-				signed, ok := res.Load(ref)
-				require.True(t, ok)
-				require.Equal(t, expected, signed)
+	// Running it twice should lead to the same results
+	for i := 0; i < 2; i++ {
+		for _, tc := range []struct {
+			refs      map[string]bool
+			shouldErr bool
+		}{
+			{ // signed single image
+				map[string]bool{"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true},
+				false,
+			},
+			{ // nonexistent
+				map[string]bool{"kornotios/supermegafakeimage": false},
+				true,
+			},
+			{ // one valid and one nonexistent
+				map[string]bool{
+					"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true,
+					"kornotios/supermegafakeimage":                                            false,
+				},
+				true,
+			},
+			{ // list of valid images
+				map[string]bool{
+					repo + ":v0.2.0": false,
+					repo + ":v0.3.0": false,
+					repo + ":v0.4.0": false,
+					repo + ":v0.4.2": false,
+					repo + ":v0.4.3": true,
+					repo + ":v0.5.0": true,
+					repo + "@sha256:4e61cb64ab34d1b80ebdb900c636a2aff60d85c9a48b0f1d34202d9388856bd7": true,
+					repo + "@sha256:9da6d7f148b19154fd6df4cc052e6cd52787962369f34c7b0411f77b843f3d4c": true,
+				},
+				false,
+			},
+		} {
+			refs := []string{}
+			for ref := range tc.refs {
+				refs = append(refs, ref)
+			}
+
+			res, err := signer.VerifyImages(refs...)
+			if tc.shouldErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+
+				for ref, expected := range tc.refs {
+					_, ok := res.Load(ref)
+					require.Equal(t, expected, ok)
+				}
 			}
 		}
 	}
