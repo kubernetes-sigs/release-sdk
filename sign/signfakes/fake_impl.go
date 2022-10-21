@@ -84,12 +84,12 @@ type FakeImpl struct {
 		result1 []string
 		result2 error
 	}
-	ImagesSignedStub        func(context.Context, *sign.Signer, string) (*sync.Map, error)
+	ImagesSignedStub        func(context.Context, *sign.Signer, ...string) (*sync.Map, error)
 	imagesSignedMutex       sync.RWMutex
 	imagesSignedArgsForCall []struct {
 		arg1 context.Context
 		arg2 *sign.Signer
-		arg3 string
+		arg3 []string
 	}
 	imagesSignedReturns struct {
 		result1 *sync.Map
@@ -516,20 +516,20 @@ func (fake *FakeImpl) FindTLogEntriesByPayloadReturnsOnCall(i int, result1 []str
 	}{result1, result2}
 }
 
-func (fake *FakeImpl) ImagesSigned(arg1 context.Context, arg2 *sign.Signer, arg3 string) (*sync.Map, error) {
+func (fake *FakeImpl) ImagesSigned(arg1 context.Context, arg2 *sign.Signer, arg3 ...string) (*sync.Map, error) {
 	fake.imagesSignedMutex.Lock()
 	ret, specificReturn := fake.imagesSignedReturnsOnCall[len(fake.imagesSignedArgsForCall)]
 	fake.imagesSignedArgsForCall = append(fake.imagesSignedArgsForCall, struct {
 		arg1 context.Context
 		arg2 *sign.Signer
-		arg3 string
+		arg3 []string
 	}{arg1, arg2, arg3})
 	stub := fake.ImagesSignedStub
 	fakeReturns := fake.imagesSignedReturns
 	fake.recordInvocation("ImagesSigned", []interface{}{arg1, arg2, arg3})
 	fake.imagesSignedMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -543,13 +543,13 @@ func (fake *FakeImpl) ImagesSignedCallCount() int {
 	return len(fake.imagesSignedArgsForCall)
 }
 
-func (fake *FakeImpl) ImagesSignedCalls(stub func(context.Context, *sign.Signer, string) (*sync.Map, error)) {
+func (fake *FakeImpl) ImagesSignedCalls(stub func(context.Context, *sign.Signer, ...string) (*sync.Map, error)) {
 	fake.imagesSignedMutex.Lock()
 	defer fake.imagesSignedMutex.Unlock()
 	fake.ImagesSignedStub = stub
 }
 
-func (fake *FakeImpl) ImagesSignedArgsForCall(i int) (context.Context, *sign.Signer, string) {
+func (fake *FakeImpl) ImagesSignedArgsForCall(i int) (context.Context, *sign.Signer, []string) {
 	fake.imagesSignedMutex.RLock()
 	defer fake.imagesSignedMutex.RUnlock()
 	argsForCall := fake.imagesSignedArgsForCall[i]

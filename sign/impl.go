@@ -65,7 +65,7 @@ type impl interface {
 	PayloadBytes(blobRef string) ([]byte, error)
 	NewRekorClient(string) (*client.Rekor, error)
 	NewWithContext(context.Context, name.Registry, authn.Authenticator, http.RoundTripper, []string) (http.RoundTripper, error)
-	ImagesSigned(context.Context, *Signer, string) (*sync.Map, error)
+	ImagesSigned(context.Context, *Signer, ...string) (*sync.Map, error)
 }
 
 func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko options.KeyOpts, outputSignature, //nolint: gocritic
@@ -174,6 +174,6 @@ func (*defaultImpl) NewWithContext(
 	return transport.NewWithContext(ctx, reg, auth, t, scopes)
 }
 
-func (d *defaultImpl) ImagesSigned(ctx context.Context, s *Signer, ref string) (*sync.Map, error) {
-	return s.ImagesSigned(ctx, ref)
+func (d *defaultImpl) ImagesSigned(ctx context.Context, s *Signer, refs ...string) (*sync.Map, error) {
+	return s.ImagesSigned(ctx, refs...)
 }

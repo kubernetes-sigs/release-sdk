@@ -32,6 +32,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
+	"github.com/jellydator/ttlcache/v3"
 	"github.com/nozzle/throttler"
 	cliOpts "github.com/sigstore/cosign/cmd/cosign/cli/options"
 	"github.com/sirupsen/logrus"
@@ -41,8 +42,12 @@ import (
 
 // Signer is the main structure to be used by API consumers.
 type Signer struct {
-	impl    impl
-	options *Options
+	impl       impl
+	options    *Options
+	signedRefs *ttlcache.Cache[string, bool]                       // key: imageRef, value: isSigned
+	parsedRefs *ttlcache.Cache[string, name.Reference]             // key: imageRef, value: parsedRef
+	transports *ttlcache.Cache[name.Repository, http.RoundTripper] // key: repo of parsedRef, value: transport
+	signedObjs *ttlcache.Cache[string, *SignedObject]              // key: imageRef, value: signed object
 }
 
 // New returns a new Signer instance.
@@ -60,10 +65,33 @@ func New(options *Options) *Signer {
 		options.Logger.SetLevel(logrus.DebugLevel)
 	}
 
-	return &Signer{
+	signer := &Signer{
 		impl:    &defaultImpl{},
 		options: options,
+		signedRefs: ttlcache.New(
+			ttlcache.WithTTL[string, bool](options.CacheTimeout),
+			ttlcache.WithCapacity[string, bool](options.MaxCacheItems),
+		),
+		parsedRefs: ttlcache.New(
+			ttlcache.WithTTL[string, name.Reference](options.CacheTimeout),
+			ttlcache.WithCapacity[string, name.Reference](options.MaxCacheItems),
+		),
+		transports: ttlcache.New(
+			ttlcache.WithTTL[name.Repository, http.RoundTripper](options.CacheTimeout),
+			ttlcache.WithCapacity[name.Repository, http.RoundTripper](options.MaxCacheItems),
+		),
+		signedObjs: ttlcache.New(
+			ttlcache.WithTTL[string, *SignedObject](options.CacheTimeout),
+			ttlcache.WithCapacity[string, *SignedObject](options.MaxCacheItems),
+		),
 	}
+
+	go signer.signedRefs.Start()
+	go signer.parsedRefs.Start()
+	go signer.transports.Start()
+	go signer.signedObjs.Start()
+
+	return signer
 }
 
 // SetImpl can be used to set the internal implementation, which is mainly used
@@ -253,57 +281,150 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 }
 
 // VerifyImage can be used to validate any provided container image reference by
-// using keyless signing.
+// using keyless signing. It ignores unsigned images.
 func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 	s.log().Infof("Verifying reference: %s", reference)
+
+	item := s.signedObjs.Get(reference)
+	if item != nil {
+		return item.Value(), nil
+	}
+
+	res, err := s.VerifyImages(reference)
+	if err != nil {
+		return nil, fmt.Errorf("verify image: %w", err)
+	}
+
+	o, ok := res.Load(reference)
+	if !ok {
+		// Probably not signed
+		return nil, nil
+	}
+
+	obj, ok := o.(*SignedObject)
+	if !ok {
+		return nil, fmt.Errorf("interface conversion error, result is not a *SignedObject: %v", o)
+	}
+
+	s.signedObjs.Set(reference, obj, ttlcache.DefaultTTL)
+
+	return obj, nil
+}
+
+// VerifyImages can be used to validate any provided container image reference
+// list by using keyless signing. It ignores unsigned images. Returns a sync map
+// where the key is the ref (string) and the value is the *SignedObject
+func (s *Signer) VerifyImages(refs ...string) (*sync.Map, error) {
+	s.log().Debug("Checking cache")
+	res := &sync.Map{}
+	unknownRefs := []string{}
+	for _, ref := range refs {
+		item := s.signedObjs.Get(ref)
+		if item != nil {
+			res.Store(ref, item.Value())
+			continue
+		}
+
+		unknownRefs = append(unknownRefs, ref)
+	}
+
+	if len(unknownRefs) == 0 {
+		s.log().Debug("All references already available in cache")
+		return res, nil
+	}
+
+	s.log().Infof("Verifying %d references", len(unknownRefs))
+
+	resetFn, err := s.enableExperimental()
+	if err != nil {
+		return nil, fmt.Errorf("enable experimental cosign: %w", err)
+	}
+	defer resetFn()
 
 	// checking whether the image being verified has a signature
 	// if there is no signature, we should skip
 	// ref: https://kubernetes.slack.com/archives/CJH2GBF7Y/p1647459428848859?thread_ts=1647428695.280269&cid=CJH2GBF7Y
-	isSigned, err := s.IsImageSigned(reference)
-	if err != nil {
-		return nil, fmt.Errorf("checking if %s is signed: %w", reference, err)
-	}
-
-	if !isSigned {
-		s.log().Infof("Skipping unsigned image: %s", reference)
-		return nil, nil
-	}
-
-	resetFn, err := s.enableExperimental()
-	if err != nil {
-		return nil, err
-	}
-	defer resetFn()
-
 	ctx, cancel := s.options.context()
 	defer cancel()
-
-	images := []string{reference}
-	_, err = s.impl.VerifyImageInternal(ctx, s.options.PublicKeyPath, images)
+	imagesSigned, err := s.impl.ImagesSigned(ctx, s, unknownRefs...)
 	if err != nil {
-		return nil, fmt.Errorf("verify image reference: %s: %w", images, err)
+		return nil, fmt.Errorf("verify if images are signed: %w", err)
+	}
+	unknownRefs = []string{}
+	imagesSigned.Range(func(key, value any) bool {
+		ref, ok := key.(string)
+		if !ok {
+			logrus.Errorf("Interface conversion failed: key is not a string: %v", key)
+			return false
+		}
+		isSigned, ok := value.(bool)
+		if !ok {
+			logrus.Errorf("Interface conversion failed: value is not a bool: %v", value)
+			return false
+		}
+
+		if isSigned {
+			unknownRefs = append(unknownRefs, ref)
+		}
+
+		return true
+	})
+
+	t := throttler.New(int(s.options.MaxWorkers), len(unknownRefs))
+	for _, ref := range unknownRefs {
+		go func(ref string) {
+			ctx, cancel := s.options.context()
+			defer cancel()
+
+			_, err = s.impl.VerifyImageInternal(ctx, s.options.PublicKeyPath, []string{ref})
+			if err != nil {
+				t.Done(fmt.Errorf("verify image reference: %s: %w", ref, err))
+				return
+			}
+
+			var parsedRef name.Reference
+			item := s.parsedRefs.Get(ref)
+			if item != nil {
+				parsedRef = item.Value()
+			} else {
+				parsedRef, err = s.impl.ParseReference(ref)
+				if err != nil {
+					t.Done(fmt.Errorf("parsing reference: %s: %w", ref, err))
+					return
+				}
+			}
+
+			digest, err := s.impl.Digest(parsedRef.String())
+			if err != nil {
+				t.Done(fmt.Errorf("getting the reference digest for %s: %w", ref, err))
+				return
+			}
+
+			obj := &SignedObject{
+				image: &SignedImage{
+					digest:    digest,
+					reference: parsedRef.String(),
+					signature: repoDigestToSig(parsedRef.Context(), digest),
+				},
+			}
+
+			res.Store(ref, obj)
+			s.signedObjs.Set(ref, obj, ttlcache.DefaultTTL)
+			t.Done(nil)
+		}(ref)
+
+		if t.Throttle() > 0 {
+			break
+		}
 	}
 
-	ref, err := s.impl.ParseReference(reference)
-	if err != nil {
-		return &SignedObject{}, fmt.Errorf("parsing reference: %s: %w", reference, err)
+	s.log().Debug("Done verifying references")
+
+	if err := t.Err(); err != nil {
+		return res, fmt.Errorf("verifying references: %w", err)
 	}
 
-	dig, err := s.impl.Digest(ref.String())
-	if err != nil {
-		return &SignedObject{}, fmt.Errorf("getting the reference digest for %s: %w", reference, err)
-	}
-
-	obj := &SignedObject{
-		image: &SignedImage{
-			digest:    dig,
-			reference: ref.String(),
-			signature: repoDigestToSig(ref.Context(), dig),
-		},
-	}
-
-	return obj, nil
+	return res, nil
 }
 
 // VerifyFile can be used to validate any provided file path.
@@ -381,6 +502,11 @@ func (s *Signer) enableExperimental() (resetFn func(), err error) {
 // signatures available for it. It makes no signature verification, only
 // checks to see if more than one signature is available.
 func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
+	item := s.signedRefs.Get(imageRef)
+	if item != nil {
+		return item.Value(), nil
+	}
+
 	res, err := s.impl.ImagesSigned(context.Background(), s, imageRef)
 	if err != nil {
 		return false, fmt.Errorf("check if image is signed: %w", err)
@@ -394,6 +520,8 @@ func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 		return false, fmt.Errorf("interface conversion error, result is not a bool: %v", signed)
 	}
 
+	s.signedRefs.Set(imageRef, signedBool, ttlcache.DefaultTTL)
+
 	return signedBool, nil
 }
 
@@ -401,15 +529,40 @@ func (s *Signer) IsImageSigned(imageRef string) (bool, error) {
 // returns a sync map where the key is the ref and the value is a boolean which
 // indicates if the image is signed or not. The method runs highly parallel.
 func (s *Signer) ImagesSigned(ctx context.Context, refs ...string) (*sync.Map, error) {
+	s.log().Debug("Checking cache")
+	res := &sync.Map{}
+	unknownRefs := []string{}
+	for _, ref := range refs {
+		item := s.signedRefs.Get(ref)
+		if item != nil {
+			res.Store(ref, item.Value())
+			continue
+		}
+
+		unknownRefs = append(unknownRefs, ref)
+	}
+
+	if len(unknownRefs) == 0 {
+		s.log().Debug("All references already available in cache")
+		return res, nil
+	}
+
 	s.log().Debug("Parsing references")
 	repos := []name.Repository{}
-	for _, ref := range refs {
+	for _, ref := range unknownRefs {
+		item := s.parsedRefs.Get(ref)
+		if item != nil {
+			repos = append(repos, item.Value().Context())
+			continue
+		}
+
 		parsedRef, err := s.impl.ParseReference(ref)
 		if err != nil {
 			return nil, fmt.Errorf("parsing image reference: %w", err)
 		}
 
 		repos = append(repos, parsedRef.Context())
+		s.parsedRefs.Set(ref, parsedRef, ttlcache.DefaultTTL)
 	}
 
 	s.log().Debug("Building transports")
@@ -417,13 +570,14 @@ func (s *Signer) ImagesSigned(ctx context.Context, refs ...string) (*sync.Map, e
 	if err != nil {
 		return nil, fmt.Errorf("build transports: %w", err)
 	}
-	s.log().Debugf("Built %d transports for %d refs", count, len(refs))
+	s.log().Debugf("Built %d transports for %d refs", count, len(unknownRefs))
 
-	s.log().Debugf("Checking if refs are signed")
-	t := throttler.New(int(s.options.MaxWorkers), len(refs))
-	res := &sync.Map{}
+	s.log().Debug("Checking if refs are signed")
+	t := throttler.New(int(s.options.MaxWorkers), len(unknownRefs))
 	for i, repo := range repos {
 		go func(repo name.Repository, i int) {
+			ref := unknownRefs[i]
+
 			trans, ok := transports.Load(repo)
 			if !ok {
 				t.Done(fmt.Errorf("no transport found for repo: %s", repo.String()))
@@ -435,7 +589,7 @@ func (s *Signer) ImagesSigned(ctx context.Context, refs ...string) (*sync.Map, e
 				return
 			}
 
-			digest, err := s.impl.Digest(refs[i], crane.WithTransport(tr))
+			digest, err := s.impl.Digest(ref, crane.WithTransport(tr))
 			if err != nil {
 				t.Done(fmt.Errorf("get digest for image reference: %w", err))
 				return
@@ -444,7 +598,8 @@ func (s *Signer) ImagesSigned(ctx context.Context, refs ...string) (*sync.Map, e
 			if _, err := s.impl.Digest(repoDigestToSig(repo, digest), crane.WithTransport(tr)); err != nil {
 				if transportErr, ok := err.(*transport.Error); ok && len(transportErr.Errors) > 0 {
 					if transportErr.Errors[0].Code == transport.ManifestUnknownErrorCode {
-						res.Store(refs[i], false)
+						res.Store(ref, false)
+						s.signedRefs.Set(ref, false, ttlcache.DefaultTTL)
 						t.Done(nil)
 						return
 					}
@@ -454,7 +609,8 @@ func (s *Signer) ImagesSigned(ctx context.Context, refs ...string) (*sync.Map, e
 				return
 			}
 
-			res.Store(refs[i], true)
+			res.Store(ref, true)
+			s.signedRefs.Set(ref, true, ttlcache.DefaultTTL)
 			t.Done(nil)
 		}(repo, i)
 
@@ -463,7 +619,7 @@ func (s *Signer) ImagesSigned(ctx context.Context, refs ...string) (*sync.Map, e
 		}
 	}
 
-	s.log().Debugf("Done checking if refs are signed")
+	s.log().Debug("Done checking if refs are signed")
 
 	if err := t.Err(); err != nil {
 		return res, fmt.Errorf("check if images are signed: %w", err)
@@ -484,11 +640,21 @@ func (s *Signer) transportsForRefs(ctx context.Context, repos ...name.Repository
 				return
 			}
 
+			item := s.transports.Get(repo)
+			if item != nil {
+				transports.Store(repo, item.Value())
+				count++
+				t.Done(nil)
+				return
+			}
+
 			tr, err := s.transportForRepo(ctx, repo)
 			if err != nil {
 				t.Done(fmt.Errorf("create transport for repo %s: %w", repo.String(), err))
 				return
 			}
+
+			s.transports.Set(repo, tr, ttlcache.DefaultTTL)
 			transports.Store(repo, tr)
 			count++
 			t.Done(nil)

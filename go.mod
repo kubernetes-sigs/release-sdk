@@ -8,6 +8,7 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/google/go-containerregistry v0.12.0
 	github.com/google/go-github/v47 v47.1.0
+	github.com/jellydator/ttlcache/v3 v3.0.0
 	github.com/magefile/mage v1.14.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/nozzle/throttler v0.0.0-20180817012639-2ea982251481
