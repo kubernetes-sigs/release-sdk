@@ -15,7 +15,7 @@ require (
 	github.com/sigstore/cosign v1.13.1
 	github.com/sigstore/rekor v1.0.0
 	github.com/sirupsen/logrus v1.9.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	golang.org/x/oauth2 v0.1.0
 	k8s.io/apimachinery v0.25.3
 	sigs.k8s.io/release-utils v0.7.3
@@ -215,7 +215,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.13.0 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.1.1 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tchap/go-patricia/v2 v2.3.1 // indirect
