@@ -116,10 +116,16 @@ func (s *Signer) UploadBlob(path string) error {
 // SignImage can be used to sign any provided container image reference by
 // using keyless signing.
 func (s *Signer) SignImage(reference string) (object *SignedObject, err error) {
+	return s.SignImageWithOptions(s.options, reference)
+}
+
+// SignImageWithOptions can be used to sign any provided container image
+// reference by using the provided custom options.
+func (s *Signer) SignImageWithOptions(options *Options, reference string) (object *SignedObject, err error) {
 	s.log().Infof("Signing reference: %s", reference)
 
 	// Ensure options to sign are correct
-	if err := s.options.verifySignOptions(); err != nil {
+	if err := options.verifySignOptions(); err != nil {
 		return nil, fmt.Errorf("checking signing options: %w", err)
 	}
 
@@ -129,14 +135,14 @@ func (s *Signer) SignImage(reference string) (object *SignedObject, err error) {
 	}
 	defer resetFn()
 
-	ctx, cancel := s.options.context()
+	ctx, cancel := options.context()
 	defer cancel()
 
 	// If we don't have a key path, we must ensure we can get an OIDC
 	// token or there is no way to sign. Depending on the options set,
 	// we may get the ID token from the cosign providers
 	identityToken := ""
-	if s.options.PrivateKeyPath == "" {
+	if options.PrivateKeyPath == "" {
 		tok, err := s.identityToken(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("getting identity token for keyless signing: %w", err)
@@ -150,9 +156,9 @@ func (s *Signer) SignImage(reference string) (object *SignedObject, err error) {
 	}
 
 	ko := cliOpts.KeyOpts{
-		KeyRef:     s.options.PrivateKeyPath,
+		KeyRef:     options.PrivateKeyPath,
 		IDToken:    identityToken,
-		PassFunc:   s.options.PassFunc,
+		PassFunc:   options.PassFunc,
 		FulcioURL:  cliOpts.DefaultFulcioURL,
 		RekorURL:   cliOpts.DefaultRekorURL,
 		OIDCIssuer: cliOpts.DefaultOIDCIssuerURL,
@@ -161,15 +167,15 @@ func (s *Signer) SignImage(reference string) (object *SignedObject, err error) {
 	}
 
 	regOpts := cliOpts.RegistryOptions{
-		AllowInsecure: s.options.AllowInsecure,
+		AllowInsecure: options.AllowInsecure,
 	}
 
 	images := []string{reference}
 
 	if err := s.impl.SignImageInternal(
-		s.options.ToCosignRootOptions(), ko, regOpts, s.options.Annotations,
-		images, "", s.options.AttachSignature, s.options.OutputSignaturePath,
-		s.options.OutputCertificatePath, "", true, false, "", false,
+		options.ToCosignRootOptions(), ko, regOpts, options.Annotations,
+		images, "", options.AttachSignature, options.OutputSignaturePath,
+		options.OutputCertificatePath, "", true, false, "", false,
 	); err != nil {
 		return nil, fmt.Errorf("sign reference: %s: %w", reference, err)
 	}
@@ -180,7 +186,7 @@ func (s *Signer) SignImage(reference string) (object *SignedObject, err error) {
 	waitErr := wait.ExponentialBackoff(wait.Backoff{
 		Duration: 500 * time.Millisecond,
 		Factor:   1.5,
-		Steps:    int(s.options.MaxRetries),
+		Steps:    int(options.MaxRetries),
 	}, func() (bool, error) {
 		object, err = s.VerifyImage(images[0])
 		if err != nil {
