@@ -6,7 +6,7 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/carolynvs/magex v0.9.0
 	github.com/go-git/go-git/v5 v5.4.2
-	github.com/google/go-containerregistry v0.12.0
+	github.com/google/go-containerregistry v0.12.1
 	github.com/google/go-github/v47 v47.1.0
 	github.com/jellydator/ttlcache/v3 v3.0.0
 	github.com/magefile/mage v1.14.0
