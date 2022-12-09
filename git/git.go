@@ -334,7 +334,7 @@ func (r *Repo) SetMaxRetries(numRetries int) {
 }
 
 func LSRemoteExec(repoURL string, args ...string) (string, error) {
-	cmdArgs := append([]string{"ls-remote", repoURL}, args...)
+	cmdArgs := append([]string{"ls-remote", "--", repoURL}, args...)
 	cmdStatus, err := filterCommand("", cmdArgs...).
 		RunSilentSuccessOutput()
 	if err != nil {
@@ -1253,7 +1253,10 @@ func (r *Repo) PushToRemote(remote, remoteBranch string) error {
 // repository
 func (r *Repo) LsRemote(args ...string) (output string, err error) {
 	for i := r.maxRetries + 1; i > 0; i-- {
-		output, err = r.runGitCmd("ls-remote", args...)
+		params := []string{}
+		params = append(params, "--")
+		params = append(params, args...)
+		output, err = r.runGitCmd("ls-remote", params...)
 		if err == nil {
 			return output, nil
 		}
