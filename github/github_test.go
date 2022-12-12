@@ -587,3 +587,30 @@ func TestAddLabels(t *testing.T) {
 		}
 	}
 }
+
+func TestListIssues(t *testing.T) {
+	// Given
+	sut, client := newSUT()
+
+	issue0 := "My title 1"
+	issue1 := "Create XYZ"
+	issue2 := "foo-bar"
+
+	issues := []*gogithub.Issue{
+		{Title: &issue0},
+		{Title: &issue1},
+		{Title: &issue2},
+	}
+
+	client.ListIssuesReturns(issues, &gogithub.Response{NextPage: 0}, nil)
+
+	// When
+	result, err := sut.ListIssues("kubernetes", "kubernotia", github.IssueStateOpen)
+
+	// Then
+	require.Nil(t, err)
+	require.Len(t, result, 3)
+	require.Equal(t, result[0].GetTitle(), issue0)
+	require.Equal(t, result[1].GetTitle(), issue1)
+	require.Equal(t, result[2].GetTitle(), issue2)
+}
