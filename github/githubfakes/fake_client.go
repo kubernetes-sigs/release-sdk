@@ -276,6 +276,24 @@ type FakeClient struct {
 		result2 *githuba.Response
 		result3 error
 	}
+	ListIssuesStub        func(context.Context, string, string, *githuba.IssueListByRepoOptions) ([]*githuba.Issue, *githuba.Response, error)
+	listIssuesMutex       sync.RWMutex
+	listIssuesArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 *githuba.IssueListByRepoOptions
+	}
+	listIssuesReturns struct {
+		result1 []*githuba.Issue
+		result2 *githuba.Response
+		result3 error
+	}
+	listIssuesReturnsOnCall map[int]struct {
+		result1 []*githuba.Issue
+		result2 *githuba.Response
+		result3 error
+	}
 	ListMilestonesStub        func(context.Context, string, string, *githuba.MilestoneListOptions) ([]*githuba.Milestone, *githuba.Response, error)
 	listMilestonesMutex       sync.RWMutex
 	listMilestonesArgsForCall []struct {
@@ -1401,6 +1419,76 @@ func (fake *FakeClient) ListCommitsReturnsOnCall(i int, result1 []*githuba.Repos
 	}{result1, result2, result3}
 }
 
+func (fake *FakeClient) ListIssues(arg1 context.Context, arg2 string, arg3 string, arg4 *githuba.IssueListByRepoOptions) ([]*githuba.Issue, *githuba.Response, error) {
+	fake.listIssuesMutex.Lock()
+	ret, specificReturn := fake.listIssuesReturnsOnCall[len(fake.listIssuesArgsForCall)]
+	fake.listIssuesArgsForCall = append(fake.listIssuesArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 *githuba.IssueListByRepoOptions
+	}{arg1, arg2, arg3, arg4})
+	stub := fake.ListIssuesStub
+	fakeReturns := fake.listIssuesReturns
+	fake.recordInvocation("ListIssues", []interface{}{arg1, arg2, arg3, arg4})
+	fake.listIssuesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeClient) ListIssuesCallCount() int {
+	fake.listIssuesMutex.RLock()
+	defer fake.listIssuesMutex.RUnlock()
+	return len(fake.listIssuesArgsForCall)
+}
+
+func (fake *FakeClient) ListIssuesCalls(stub func(context.Context, string, string, *githuba.IssueListByRepoOptions) ([]*githuba.Issue, *githuba.Response, error)) {
+	fake.listIssuesMutex.Lock()
+	defer fake.listIssuesMutex.Unlock()
+	fake.ListIssuesStub = stub
+}
+
+func (fake *FakeClient) ListIssuesArgsForCall(i int) (context.Context, string, string, *githuba.IssueListByRepoOptions) {
+	fake.listIssuesMutex.RLock()
+	defer fake.listIssuesMutex.RUnlock()
+	argsForCall := fake.listIssuesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeClient) ListIssuesReturns(result1 []*githuba.Issue, result2 *githuba.Response, result3 error) {
+	fake.listIssuesMutex.Lock()
+	defer fake.listIssuesMutex.Unlock()
+	fake.ListIssuesStub = nil
+	fake.listIssuesReturns = struct {
+		result1 []*githuba.Issue
+		result2 *githuba.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeClient) ListIssuesReturnsOnCall(i int, result1 []*githuba.Issue, result2 *githuba.Response, result3 error) {
+	fake.listIssuesMutex.Lock()
+	defer fake.listIssuesMutex.Unlock()
+	fake.ListIssuesStub = nil
+	if fake.listIssuesReturnsOnCall == nil {
+		fake.listIssuesReturnsOnCall = make(map[int]struct {
+			result1 []*githuba.Issue
+			result2 *githuba.Response
+			result3 error
+		})
+	}
+	fake.listIssuesReturnsOnCall[i] = struct {
+		result1 []*githuba.Issue
+		result2 *githuba.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
 func (fake *FakeClient) ListMilestones(arg1 context.Context, arg2 string, arg3 string, arg4 *githuba.MilestoneListOptions) ([]*githuba.Milestone, *githuba.Response, error) {
 	fake.listMilestonesMutex.Lock()
 	ret, specificReturn := fake.listMilestonesReturnsOnCall[len(fake.listMilestonesArgsForCall)]
@@ -1989,6 +2077,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.listBranchesMutex.RUnlock()
 	fake.listCommitsMutex.RLock()
 	defer fake.listCommitsMutex.RUnlock()
+	fake.listIssuesMutex.RLock()
+	defer fake.listIssuesMutex.RUnlock()
 	fake.listMilestonesMutex.RLock()
 	defer fake.listMilestonesMutex.RUnlock()
 	fake.listPullRequestsWithCommitMutex.RLock()
