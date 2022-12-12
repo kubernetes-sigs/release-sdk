@@ -456,7 +456,8 @@ func TestFetchRemote(t *testing.T) {
 	require.Nil(t, err)
 	require.Nil(t, err)
 	commitSha, err := wtree.Commit("Initial Commit", &gogit.CommitOptions{
-		Author: testAuthor,
+		Author:            testAuthor,
+		AllowEmptyCommits: true,
 	})
 	require.Nil(t, err)
 
@@ -515,7 +516,8 @@ func TestRebase(t *testing.T) {
 	wtree, err := gogitRepo.Worktree()
 	require.Nil(t, err)
 	_, err = wtree.Commit("Initial Commit", &gogit.CommitOptions{
-		Author: testAuthor,
+		Author:            testAuthor,
+		AllowEmptyCommits: true,
 	})
 	require.Nil(t, err)
 
