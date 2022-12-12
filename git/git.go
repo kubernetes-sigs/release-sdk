@@ -65,9 +65,13 @@ const (
 	// DefaultBranch is the default branch name
 	DefaultBranch = "master"
 
+	// DefaultGitUser is the default user name used for commits.
+	DefaultGitUser = "Kubernetes Release Robot"
+
+	// DefaultGitEmail is the default email used for commits.
+	DefaultGitEmail = "k8s-release-robot@users.noreply.github.com"
+
 	defaultGithubAuthRoot = "git@github.com:"
-	defaultGitUser        = "Kubernetes Release Robot"
-	defaultGitEmail       = "k8s-release-robot@users.noreply.github.com"
 	gitExecutable         = "git"
 	releaseBranchPrefix   = "release-"
 )
@@ -192,13 +196,13 @@ func GetRepoURL(org, repo string, useSSH bool) (repoURL string) {
 // user and email.
 func ConfigureGlobalDefaultUserAndEmail() error {
 	if err := filterCommand(
-		"", "config", "--global", "user.name", defaultGitUser,
+		"", "config", "--global", "user.name", DefaultGitUser,
 	).RunSuccess(); err != nil {
 		return fmt.Errorf("configure user name: %w", err)
 	}
 
 	if err := filterCommand(
-		"", "config", "--global", "user.email", defaultGitEmail,
+		"", "config", "--global", "user.email", DefaultGitEmail,
 	).RunSuccess(); err != nil {
 		return fmt.Errorf("configure user email: %w", err)
 	}
@@ -1098,8 +1102,8 @@ func (r *Repo) Commit(msg string) error {
 		msg,
 		&git.CommitOptions{
 			Author: &object.Signature{
-				Name:  defaultGitUser,
-				Email: defaultGitEmail,
+				Name:  DefaultGitUser,
+				Email: DefaultGitEmail,
 				When:  time.Now(),
 			},
 		},
@@ -1134,8 +1138,8 @@ func (r *Repo) Tag(name, message string) error {
 		head.Hash(),
 		&git.CreateTagOptions{
 			Tagger: &object.Signature{
-				Name:  defaultGitUser,
-				Email: defaultGitEmail,
+				Name:  DefaultGitUser,
+				Email: DefaultGitEmail,
 				When:  time.Now(),
 			},
 			Message: message,
