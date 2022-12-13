@@ -1310,7 +1310,7 @@ func (r *Repo) IsDirty() (bool, error) {
 // RemoteTags return the tags that currently exist in the
 func (r *Repo) RemoteTags() (tags []string, err error) {
 	logrus.Debug("Listing remote tags with ls-remote")
-	output, err := r.LsRemote("--tags", DefaultRemote)
+	output, err := r.LsRemote(DefaultRemote)
 	if err != nil {
 		return tags, fmt.Errorf("while listing tags using ls-remote: %w", err)
 	}
