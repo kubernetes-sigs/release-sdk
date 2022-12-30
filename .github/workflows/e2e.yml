@@ -32,7 +32,7 @@ jobs:
       - name: Run local registry
         run: podman run -d -p 5000:5000 registry:2
       - name: Build test image
-        uses: redhat-actions/buildah-build@d097e2e3d2a45b68a7c09040e3de33427bab66af
+        uses: redhat-actions/buildah-build@3e3409a0324de94ae9e740122c436c7967f474e2
         id: test-image
         with:
           base-image: scratch
