@@ -39,7 +39,7 @@ jobs:
           image: test
           oci: true
       - name: Push test image to local registry
-        uses: redhat-actions/push-to-registry@df878026e36864aa6bf9a5b7afe63637cb88ef8c
+        uses: redhat-actions/push-to-registry@9e8327fcde18a44143eda2e7dfe68eca01aeeeea
         with:
           image: ${{ steps.test-image.outputs.image }}
           registry: localhost:5000
