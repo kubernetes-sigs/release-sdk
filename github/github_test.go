@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"testing"
 
-	gogithub "github.com/google/go-github/v47/github"
+	gogithub "github.com/google/go-github/v48/github"
 	"github.com/stretchr/testify/require"
 
 	"sigs.k8s.io/release-sdk/git"
