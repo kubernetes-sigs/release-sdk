@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	gogithub "github.com/google/go-github/v48/github"
 	"github.com/stretchr/testify/require"
@@ -613,4 +614,40 @@ func TestListIssues(t *testing.T) {
 	require.Equal(t, result[0].GetTitle(), issue0)
 	require.Equal(t, result[1].GetTitle(), issue1)
 	require.Equal(t, result[2].GetTitle(), issue2)
+}
+
+func TestListComments(t *testing.T) {
+	// Given
+	sut, client := newSUT()
+
+	comment0 := "comment 0"
+	comment1 := "comment 1"
+	comment2 := "comment 2"
+
+	comments := []*gogithub.IssueComment{
+		{Body: &comment0},
+		{Body: &comment1},
+		{Body: &comment2},
+	}
+
+	client.ListCommentsReturns(comments, &gogithub.Response{NextPage: 0}, nil)
+
+	since := time.Now()
+
+	// When
+	result, err := sut.ListComments(
+		"fake-owner",
+		"fake-repo",
+		1,
+		github.SortCreated,
+		github.SortDirectionAscending,
+		&since,
+	)
+
+	// Then
+	require.Nil(t, err)
+	require.Len(t, result, 3)
+	require.Equal(t, result[0].GetBody(), comment0)
+	require.Equal(t, result[1].GetBody(), comment1)
+	require.Equal(t, result[2].GetBody(), comment2)
 }

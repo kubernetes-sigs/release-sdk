@@ -258,6 +258,25 @@ type FakeClient struct {
 		result2 *githuba.Response
 		result3 error
 	}
+	ListCommentsStub        func(context.Context, string, string, int, *githuba.IssueListCommentsOptions) ([]*githuba.IssueComment, *githuba.Response, error)
+	listCommentsMutex       sync.RWMutex
+	listCommentsArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int
+		arg5 *githuba.IssueListCommentsOptions
+	}
+	listCommentsReturns struct {
+		result1 []*githuba.IssueComment
+		result2 *githuba.Response
+		result3 error
+	}
+	listCommentsReturnsOnCall map[int]struct {
+		result1 []*githuba.IssueComment
+		result2 *githuba.Response
+		result3 error
+	}
 	ListCommitsStub        func(context.Context, string, string, *githuba.CommitsListOptions) ([]*githuba.RepositoryCommit, *githuba.Response, error)
 	listCommitsMutex       sync.RWMutex
 	listCommitsArgsForCall []struct {
@@ -1349,6 +1368,77 @@ func (fake *FakeClient) ListBranchesReturnsOnCall(i int, result1 []*githuba.Bran
 	}{result1, result2, result3}
 }
 
+func (fake *FakeClient) ListComments(arg1 context.Context, arg2 string, arg3 string, arg4 int, arg5 *githuba.IssueListCommentsOptions) ([]*githuba.IssueComment, *githuba.Response, error) {
+	fake.listCommentsMutex.Lock()
+	ret, specificReturn := fake.listCommentsReturnsOnCall[len(fake.listCommentsArgsForCall)]
+	fake.listCommentsArgsForCall = append(fake.listCommentsArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int
+		arg5 *githuba.IssueListCommentsOptions
+	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.ListCommentsStub
+	fakeReturns := fake.listCommentsReturns
+	fake.recordInvocation("ListComments", []interface{}{arg1, arg2, arg3, arg4, arg5})
+	fake.listCommentsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeClient) ListCommentsCallCount() int {
+	fake.listCommentsMutex.RLock()
+	defer fake.listCommentsMutex.RUnlock()
+	return len(fake.listCommentsArgsForCall)
+}
+
+func (fake *FakeClient) ListCommentsCalls(stub func(context.Context, string, string, int, *githuba.IssueListCommentsOptions) ([]*githuba.IssueComment, *githuba.Response, error)) {
+	fake.listCommentsMutex.Lock()
+	defer fake.listCommentsMutex.Unlock()
+	fake.ListCommentsStub = stub
+}
+
+func (fake *FakeClient) ListCommentsArgsForCall(i int) (context.Context, string, string, int, *githuba.IssueListCommentsOptions) {
+	fake.listCommentsMutex.RLock()
+	defer fake.listCommentsMutex.RUnlock()
+	argsForCall := fake.listCommentsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+}
+
+func (fake *FakeClient) ListCommentsReturns(result1 []*githuba.IssueComment, result2 *githuba.Response, result3 error) {
+	fake.listCommentsMutex.Lock()
+	defer fake.listCommentsMutex.Unlock()
+	fake.ListCommentsStub = nil
+	fake.listCommentsReturns = struct {
+		result1 []*githuba.IssueComment
+		result2 *githuba.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeClient) ListCommentsReturnsOnCall(i int, result1 []*githuba.IssueComment, result2 *githuba.Response, result3 error) {
+	fake.listCommentsMutex.Lock()
+	defer fake.listCommentsMutex.Unlock()
+	fake.ListCommentsStub = nil
+	if fake.listCommentsReturnsOnCall == nil {
+		fake.listCommentsReturnsOnCall = make(map[int]struct {
+			result1 []*githuba.IssueComment
+			result2 *githuba.Response
+			result3 error
+		})
+	}
+	fake.listCommentsReturnsOnCall[i] = struct {
+		result1 []*githuba.IssueComment
+		result2 *githuba.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
 func (fake *FakeClient) ListCommits(arg1 context.Context, arg2 string, arg3 string, arg4 *githuba.CommitsListOptions) ([]*githuba.RepositoryCommit, *githuba.Response, error) {
 	fake.listCommitsMutex.Lock()
 	ret, specificReturn := fake.listCommitsReturnsOnCall[len(fake.listCommitsArgsForCall)]
@@ -2075,6 +2165,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.getRepositoryMutex.RUnlock()
 	fake.listBranchesMutex.RLock()
 	defer fake.listBranchesMutex.RUnlock()
+	fake.listCommentsMutex.RLock()
+	defer fake.listCommentsMutex.RUnlock()
 	fake.listCommitsMutex.RLock()
 	defer fake.listCommitsMutex.RUnlock()
 	fake.listIssuesMutex.RLock()

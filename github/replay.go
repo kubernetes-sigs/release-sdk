@@ -336,3 +336,18 @@ func (c *githubNotesReplayClient) ListIssues(
 	}
 	return issues, record.response(), nil
 }
+
+func (c *githubNotesReplayClient) ListComments(
+	ctx context.Context, owner, repo string, number int, opts *github.IssueListCommentsOptions,
+) ([]*github.IssueComment, *github.Response, error) {
+	data, err := c.readRecordedData(gitHubAPIListComments)
+	if err != nil {
+		return nil, nil, err
+	}
+	comments := make([]*github.IssueComment, 0)
+	record := apiRecord{Result: comments}
+	if err := json.Unmarshal(data, &record); err != nil {
+		return nil, nil, err
+	}
+	return comments, record.response(), nil
+}
