@@ -133,7 +133,7 @@ func TestIsImageSigned(t *testing.T) {
 		},
 		{
 			// k8s/pause ~feb 13 2022. not signed
-			"k8s.gcr.io/pause@sha256:a78c2d6208eff9b672de43f880093100050983047b7b0afe0217d3656e1b0d5f", false, false,
+			"registry.k8s.io/pause@sha256:a78c2d6208eff9b672de43f880093100050983047b7b0afe0217d3656e1b0d5f", false, false,
 		},
 		{
 			// nonexistent image, must fail
@@ -152,7 +152,7 @@ func TestIsImageSigned(t *testing.T) {
 
 func TestImagesSigned(t *testing.T) {
 	signer := sign.New(sign.Default())
-	const repo = "k8s.gcr.io/security-profiles-operator/security-profiles-operator"
+	const repo = "registry.k8s.io/security-profiles-operator/security-profiles-operator"
 
 	// Running it twice should lead to the same results
 	for i := 0; i < 2; i++ {
@@ -212,7 +212,7 @@ func TestImagesSigned(t *testing.T) {
 
 func TestVerifyImages(t *testing.T) {
 	signer := sign.New(sign.Default())
-	const repo = "k8s.gcr.io/security-profiles-operator/security-profiles-operator"
+	const repo = "registry.k8s.io/security-profiles-operator/security-profiles-operator"
 
 	// Running it twice should lead to the same results
 	for i := 0; i < 2; i++ {
