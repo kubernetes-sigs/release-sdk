@@ -15,7 +15,7 @@ require (
 	github.com/sigstore/cosign v1.13.1
 	github.com/sigstore/rekor v1.0.1
 	github.com/sirupsen/logrus v1.9.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	golang.org/x/oauth2 v0.5.0
 	k8s.io/apimachinery v0.26.1
 	sigs.k8s.io/release-utils v0.7.3
