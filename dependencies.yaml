@@ -4,4 +4,4 @@ dependencies:
     version: 1.20
     refPaths:
       - path: .github/workflows/e2e.yml
-        match: GO_VERSION
+        match: go-version
