@@ -7,7 +7,7 @@ require (
 	github.com/carolynvs/magex v0.9.0
 	github.com/go-git/go-git/v5 v5.6.0
 	github.com/google/go-containerregistry v0.13.0
-	github.com/google/go-github/v48 v48.2.0
+	github.com/google/go-github/v50 v50.1.0
 	github.com/jellydator/ttlcache/v3 v3.0.1
 	github.com/magefile/mage v1.14.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
