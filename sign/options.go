@@ -21,8 +21,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/sigstore/cosign/cmd/cosign/cli/options"
-	"github.com/sigstore/cosign/pkg/cosign"
+	"github.com/sigstore/cosign/v2/cmd/cosign/cli/options"
+	"github.com/sigstore/cosign/v2/pkg/cosign"
 	"github.com/sirupsen/logrus"
 )
 
@@ -46,9 +46,15 @@ type Options struct {
 
 	OutputSignaturePath   string
 	OutputCertificatePath string
-	Annotations           map[string]interface{}
+	Annotations           []string
 	PrivateKeyPath        string
 	PublicKeyPath         string
+	IgnoreSCT             bool
+	IgnoreTlog            bool
+	CertIdentity          string
+	CertIdentityRegexp    string
+	CertOidcIssuer        string
+	CertOidcIssuerRegexp  string
 
 	// Identity token for keyless signing
 	IdentityToken string

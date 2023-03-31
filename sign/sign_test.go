@@ -27,6 +27,8 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
+	"github.com/sigstore/cosign/v2/pkg/cosign"
+	"github.com/sigstore/rekor/pkg/generated/models"
 	"github.com/stretchr/testify/http"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/release-sdk/sign"
@@ -98,33 +100,6 @@ func TestSignImage(t *testing.T) {
 				require.Equal(t, obj.Image().Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
 			},
 		},
-		{ // Success with failed unset experimental
-			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
-			},
-			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
-				mock.SetenvReturnsOnCall(2, errTest)
-				mock.TokenFromProvidersReturns(token, nil)
-				m := &sync.Map{}
-				m.Store("gcr.io/fake/honk:99.99.99", true)
-				mock.ImagesSignedReturns(m, nil)
-				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
-				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
-			},
-			assert: func(obj *sign.SignedObject, err error) {
-				require.NoError(t, err)
-				require.NotNil(t, obj)
-				require.NotEmpty(t, obj.Image().Reference())
-				require.NotEmpty(t, obj.Image().Digest())
-				require.NotEmpty(t, obj.Image().Signature())
-				require.Equal(t, obj.Image().Reference(), "gcr.io/fake/honk:99.99.99")
-				require.Equal(t, obj.Image().Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Equal(t, obj.Image().Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
-			},
-		},
 		{ // Failure on Verify
 			fakeReference: &FakeReferenceStub{
 				image:      "gcr.io/fake/honk:99.99.99",
@@ -153,21 +128,6 @@ func TestSignImage(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SignImageInternalReturns(errTest)
-				mock.TokenFromProvidersReturns(token, nil)
-			},
-			assert: func(obj *sign.SignedObject, err error) {
-				require.Error(t, err)
-				require.Nil(t, obj)
-			},
-		},
-		{ // Failure on set experimental
-			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
-			},
-			prepare: func(mock *signfakes.FakeImpl) {
-				mock.SetenvReturns(errTest)
 				mock.TokenFromProvidersReturns(token, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -357,32 +317,6 @@ func TestVerifyImage(t *testing.T) {
 				require.Nil(t, err)
 			},
 		},
-		{ // Success with failed unset experimental
-			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
-			},
-			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
-				mock.SetenvReturnsOnCall(1, errTest)
-				m := &sync.Map{}
-				m.Store("gcr.io/fake/honk:99.99.99", true)
-				mock.ImagesSignedReturns(m, nil)
-				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
-				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
-			},
-			assert: func(obj *sign.SignedObject, err error) {
-				require.NotNil(t, obj)
-				require.NotEmpty(t, obj.Image().Reference())
-				require.NotEmpty(t, obj.Image().Digest())
-				require.NotEmpty(t, obj.Image().Signature())
-				require.Equal(t, obj.Image().Reference(), "gcr.io/fake/honk:99.99.99")
-				require.Equal(t, obj.Image().Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Equal(t, obj.Image().Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
-				require.Nil(t, err)
-			},
-		},
 		{ // Failure on Verify
 			fakeReference: &FakeReferenceStub{
 				image:      "gcr.io/fake/honk:99.99.99",
@@ -395,23 +329,6 @@ func TestVerifyImage(t *testing.T) {
 				m := &sync.Map{}
 				m.Store("gcr.io/fake/honk:99.99.99", true)
 				mock.ImagesSignedReturns(m, nil)
-			},
-			assert: func(obj *sign.SignedObject, err error) {
-				require.NotNil(t, err)
-				require.Nil(t, obj)
-			},
-		},
-		{ // Failure on set experimental
-			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
-			},
-			prepare: func(mock *signfakes.FakeImpl) {
-				m := &sync.Map{}
-				m.Store("gcr.io/fake/honk:99.99.99", true)
-				mock.ImagesSignedReturns(m, nil)
-				mock.SetenvReturns(errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, err)
@@ -462,8 +379,13 @@ func TestVerifyFile(t *testing.T) {
 
 	payload := []byte("honk")
 	payloadSha256 := "4de18cc93efe15c1d1cc2407cfc9f054b4d9217975538ac005dba541acee1954"
-	uuids := []string{
-		"uuid",
+	uuid := "uuid"
+	var logindex int64 = 1
+	uuids := []models.LogEntryAnon{
+		{
+			LogID:    &uuid,
+			LogIndex: &logindex,
+		},
 	}
 	require.Nil(t, os.WriteFile(tempFile, payload, 0o644))
 
@@ -478,7 +400,7 @@ func TestVerifyFile(t *testing.T) {
 			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.PayloadBytesReturns(payload, nil)
-				mock.FindTLogEntriesByPayloadReturns(uuids, nil)
+				mock.FindTlogEntryReturns(uuids, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj.File)
@@ -492,7 +414,7 @@ func TestVerifyFile(t *testing.T) {
 			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.PayloadBytesReturns(nil, nil)
-				mock.FindTLogEntriesByPayloadReturns(nil, nil)
+				mock.FindTlogEntryReturns(nil, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
@@ -504,7 +426,7 @@ func TestVerifyFile(t *testing.T) {
 			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.PayloadBytesReturns(payload, nil)
-				mock.FindTLogEntriesByPayloadReturns(uuids, nil)
+				mock.FindTlogEntryReturns(uuids, nil)
 				mock.VerifyFileInternalReturns(errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -518,7 +440,7 @@ func TestVerifyFile(t *testing.T) {
 			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.PayloadBytesReturns(payload, nil)
-				mock.FindTLogEntriesByPayloadReturns(nil, errTest)
+				mock.FindTlogEntryReturns(nil, errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
@@ -530,15 +452,47 @@ func TestVerifyFile(t *testing.T) {
 		mock := &signfakes.FakeImpl{}
 		tc.prepare(mock)
 
+		tmpDir := t.TempDir()
+		_, pubFile := generateKeyFile(t, tmpDir, nil)
 		opts := tc.options
 		opts.Verbose = true
+		opts.PublicKeyPath = pubFile
 
 		sut := sign.New(opts)
 		sut.SetImpl(mock)
 
-		obj, err := sut.VerifyFile(tc.path)
+		obj, err := sut.VerifyFile(tc.path, false)
 		tc.assert(obj, err)
 	}
+}
+
+func generateKeyFile(t *testing.T, tmpDir string, pf cosign.PassFunc) (privFile, pubFile string) {
+	t.Helper()
+
+	tmpPrivFile, err := os.CreateTemp(tmpDir, "cosign_test_*.key")
+	if err != nil {
+		t.Fatalf("failed to create temp key file: %v", err)
+	}
+	defer tmpPrivFile.Close()
+	tmpPubFile, err := os.CreateTemp(tmpDir, "cosign_test_*.pub")
+	if err != nil {
+		t.Fatalf("failed to create temp pub file: %v", err)
+	}
+	defer tmpPubFile.Close()
+
+	// Generate a valid keypair.
+	keys, err := cosign.GenerateKeyPair(pf)
+	if err != nil {
+		t.Fatalf("failed to generate keypair: %v", err)
+	}
+
+	if _, err := tmpPrivFile.Write(keys.PrivateBytes); err != nil {
+		t.Fatalf("failed to write key file: %v", err)
+	}
+	if _, err := tmpPubFile.Write(keys.PublicBytes); err != nil {
+		t.Fatalf("failed to write pub file: %v", err)
+	}
+	return tmpPrivFile.Name(), tmpPubFile.Name()
 }
 
 func TestIsImageSigned(t *testing.T) {

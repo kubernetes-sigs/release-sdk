@@ -25,8 +25,9 @@ import (
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
-	"github.com/sigstore/cosign/cmd/cosign/cli/options"
+	"github.com/sigstore/cosign/v2/cmd/cosign/cli/options"
 	"github.com/sigstore/rekor/pkg/generated/client"
+	"github.com/sigstore/rekor/pkg/generated/models"
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/release-sdk/sign"
 )
@@ -69,19 +70,21 @@ type FakeImpl struct {
 	fileExistsReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	FindTLogEntriesByPayloadStub        func(context.Context, *client.Rekor, []byte) ([]string, error)
-	findTLogEntriesByPayloadMutex       sync.RWMutex
-	findTLogEntriesByPayloadArgsForCall []struct {
+	FindTlogEntryStub        func(context.Context, *client.Rekor, string, []byte, []byte) ([]models.LogEntryAnon, error)
+	findTlogEntryMutex       sync.RWMutex
+	findTlogEntryArgsForCall []struct {
 		arg1 context.Context
 		arg2 *client.Rekor
-		arg3 []byte
+		arg3 string
+		arg4 []byte
+		arg5 []byte
 	}
-	findTLogEntriesByPayloadReturns struct {
-		result1 []string
+	findTlogEntryReturns struct {
+		result1 []models.LogEntryAnon
 		result2 error
 	}
-	findTLogEntriesByPayloadReturnsOnCall map[int]struct {
-		result1 []string
+	findTlogEntryReturnsOnCall map[int]struct {
+		result1 []models.LogEntryAnon
 		result2 error
 	}
 	ImagesSignedStub        func(context.Context, *sign.Signer, ...string) (*sync.Map, error)
@@ -168,16 +171,16 @@ type FakeImpl struct {
 	setenvReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SignFileInternalStub        func(options.RootOptions, options.KeyOpts, options.RegistryOptions, string, bool, string, string) error
+	SignFileInternalStub        func(options.RootOptions, options.KeyOpts, string, bool, string, string, bool) error
 	signFileInternalMutex       sync.RWMutex
 	signFileInternalArgsForCall []struct {
 		arg1 options.RootOptions
 		arg2 options.KeyOpts
-		arg3 options.RegistryOptions
-		arg4 string
-		arg5 bool
+		arg3 string
+		arg4 bool
+		arg5 string
 		arg6 string
-		arg7 string
+		arg7 bool
 	}
 	signFileInternalReturns struct {
 		result1 error
@@ -185,23 +188,13 @@ type FakeImpl struct {
 	signFileInternalReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SignImageInternalStub        func(options.RootOptions, options.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string, bool) error
+	SignImageInternalStub        func(options.RootOptions, options.KeyOpts, options.SignOptions, []string) error
 	signImageInternalMutex       sync.RWMutex
 	signImageInternalArgsForCall []struct {
-		arg1  options.RootOptions
-		arg2  options.KeyOpts
-		arg3  options.RegistryOptions
-		arg4  map[string]interface{}
-		arg5  []string
-		arg6  string
-		arg7  bool
-		arg8  string
-		arg9  string
-		arg10 string
-		arg11 bool
-		arg12 bool
-		arg13 string
-		arg14 bool
+		arg1 options.RootOptions
+		arg2 options.KeyOpts
+		arg3 options.SignOptions
+		arg4 []string
 	}
 	signImageInternalReturns struct {
 		result1 error
@@ -223,12 +216,12 @@ type FakeImpl struct {
 		result1 string
 		result2 error
 	}
-	VerifyFileInternalStub        func(context.Context, options.KeyOpts, string, string, string) error
+	VerifyFileInternalStub        func(context.Context, options.KeyOpts, options.CertVerifyOptions, string, string) error
 	verifyFileInternalMutex       sync.RWMutex
 	verifyFileInternalArgsForCall []struct {
 		arg1 context.Context
 		arg2 options.KeyOpts
-		arg3 string
+		arg3 options.CertVerifyOptions
 		arg4 string
 		arg5 string
 	}
@@ -238,12 +231,14 @@ type FakeImpl struct {
 	verifyFileInternalReturnsOnCall map[int]struct {
 		result1 error
 	}
-	VerifyImageInternalStub        func(context.Context, string, []string) (*sign.SignedObject, error)
+	VerifyImageInternalStub        func(context.Context, options.CertVerifyOptions, string, []string, bool) (*sign.SignedObject, error)
 	verifyImageInternalMutex       sync.RWMutex
 	verifyImageInternalArgsForCall []struct {
 		arg1 context.Context
-		arg2 string
-		arg3 []string
+		arg2 options.CertVerifyOptions
+		arg3 string
+		arg4 []string
+		arg5 bool
 	}
 	verifyImageInternalReturns struct {
 		result1 *sign.SignedObject
@@ -445,25 +440,32 @@ func (fake *FakeImpl) FileExistsReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeImpl) FindTLogEntriesByPayload(arg1 context.Context, arg2 *client.Rekor, arg3 []byte) ([]string, error) {
-	var arg3Copy []byte
-	if arg3 != nil {
-		arg3Copy = make([]byte, len(arg3))
-		copy(arg3Copy, arg3)
+func (fake *FakeImpl) FindTlogEntry(arg1 context.Context, arg2 *client.Rekor, arg3 string, arg4 []byte, arg5 []byte) ([]models.LogEntryAnon, error) {
+	var arg4Copy []byte
+	if arg4 != nil {
+		arg4Copy = make([]byte, len(arg4))
+		copy(arg4Copy, arg4)
 	}
-	fake.findTLogEntriesByPayloadMutex.Lock()
-	ret, specificReturn := fake.findTLogEntriesByPayloadReturnsOnCall[len(fake.findTLogEntriesByPayloadArgsForCall)]
-	fake.findTLogEntriesByPayloadArgsForCall = append(fake.findTLogEntriesByPayloadArgsForCall, struct {
+	var arg5Copy []byte
+	if arg5 != nil {
+		arg5Copy = make([]byte, len(arg5))
+		copy(arg5Copy, arg5)
+	}
+	fake.findTlogEntryMutex.Lock()
+	ret, specificReturn := fake.findTlogEntryReturnsOnCall[len(fake.findTlogEntryArgsForCall)]
+	fake.findTlogEntryArgsForCall = append(fake.findTlogEntryArgsForCall, struct {
 		arg1 context.Context
 		arg2 *client.Rekor
-		arg3 []byte
-	}{arg1, arg2, arg3Copy})
-	stub := fake.FindTLogEntriesByPayloadStub
-	fakeReturns := fake.findTLogEntriesByPayloadReturns
-	fake.recordInvocation("FindTLogEntriesByPayload", []interface{}{arg1, arg2, arg3Copy})
-	fake.findTLogEntriesByPayloadMutex.Unlock()
+		arg3 string
+		arg4 []byte
+		arg5 []byte
+	}{arg1, arg2, arg3, arg4Copy, arg5Copy})
+	stub := fake.FindTlogEntryStub
+	fakeReturns := fake.findTlogEntryReturns
+	fake.recordInvocation("FindTlogEntry", []interface{}{arg1, arg2, arg3, arg4Copy, arg5Copy})
+	fake.findTlogEntryMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -471,47 +473,47 @@ func (fake *FakeImpl) FindTLogEntriesByPayload(arg1 context.Context, arg2 *clien
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeImpl) FindTLogEntriesByPayloadCallCount() int {
-	fake.findTLogEntriesByPayloadMutex.RLock()
-	defer fake.findTLogEntriesByPayloadMutex.RUnlock()
-	return len(fake.findTLogEntriesByPayloadArgsForCall)
+func (fake *FakeImpl) FindTlogEntryCallCount() int {
+	fake.findTlogEntryMutex.RLock()
+	defer fake.findTlogEntryMutex.RUnlock()
+	return len(fake.findTlogEntryArgsForCall)
 }
 
-func (fake *FakeImpl) FindTLogEntriesByPayloadCalls(stub func(context.Context, *client.Rekor, []byte) ([]string, error)) {
-	fake.findTLogEntriesByPayloadMutex.Lock()
-	defer fake.findTLogEntriesByPayloadMutex.Unlock()
-	fake.FindTLogEntriesByPayloadStub = stub
+func (fake *FakeImpl) FindTlogEntryCalls(stub func(context.Context, *client.Rekor, string, []byte, []byte) ([]models.LogEntryAnon, error)) {
+	fake.findTlogEntryMutex.Lock()
+	defer fake.findTlogEntryMutex.Unlock()
+	fake.FindTlogEntryStub = stub
 }
 
-func (fake *FakeImpl) FindTLogEntriesByPayloadArgsForCall(i int) (context.Context, *client.Rekor, []byte) {
-	fake.findTLogEntriesByPayloadMutex.RLock()
-	defer fake.findTLogEntriesByPayloadMutex.RUnlock()
-	argsForCall := fake.findTLogEntriesByPayloadArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+func (fake *FakeImpl) FindTlogEntryArgsForCall(i int) (context.Context, *client.Rekor, string, []byte, []byte) {
+	fake.findTlogEntryMutex.RLock()
+	defer fake.findTlogEntryMutex.RUnlock()
+	argsForCall := fake.findTlogEntryArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeImpl) FindTLogEntriesByPayloadReturns(result1 []string, result2 error) {
-	fake.findTLogEntriesByPayloadMutex.Lock()
-	defer fake.findTLogEntriesByPayloadMutex.Unlock()
-	fake.FindTLogEntriesByPayloadStub = nil
-	fake.findTLogEntriesByPayloadReturns = struct {
-		result1 []string
+func (fake *FakeImpl) FindTlogEntryReturns(result1 []models.LogEntryAnon, result2 error) {
+	fake.findTlogEntryMutex.Lock()
+	defer fake.findTlogEntryMutex.Unlock()
+	fake.FindTlogEntryStub = nil
+	fake.findTlogEntryReturns = struct {
+		result1 []models.LogEntryAnon
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeImpl) FindTLogEntriesByPayloadReturnsOnCall(i int, result1 []string, result2 error) {
-	fake.findTLogEntriesByPayloadMutex.Lock()
-	defer fake.findTLogEntriesByPayloadMutex.Unlock()
-	fake.FindTLogEntriesByPayloadStub = nil
-	if fake.findTLogEntriesByPayloadReturnsOnCall == nil {
-		fake.findTLogEntriesByPayloadReturnsOnCall = make(map[int]struct {
-			result1 []string
+func (fake *FakeImpl) FindTlogEntryReturnsOnCall(i int, result1 []models.LogEntryAnon, result2 error) {
+	fake.findTlogEntryMutex.Lock()
+	defer fake.findTlogEntryMutex.Unlock()
+	fake.FindTlogEntryStub = nil
+	if fake.findTlogEntryReturnsOnCall == nil {
+		fake.findTlogEntryReturnsOnCall = make(map[int]struct {
+			result1 []models.LogEntryAnon
 			result2 error
 		})
 	}
-	fake.findTLogEntriesByPayloadReturnsOnCall[i] = struct {
-		result1 []string
+	fake.findTlogEntryReturnsOnCall[i] = struct {
+		result1 []models.LogEntryAnon
 		result2 error
 	}{result1, result2}
 }
@@ -910,17 +912,17 @@ func (fake *FakeImpl) SetenvReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeImpl) SignFileInternal(arg1 options.RootOptions, arg2 options.KeyOpts, arg3 options.RegistryOptions, arg4 string, arg5 bool, arg6 string, arg7 string) error {
+func (fake *FakeImpl) SignFileInternal(arg1 options.RootOptions, arg2 options.KeyOpts, arg3 string, arg4 bool, arg5 string, arg6 string, arg7 bool) error {
 	fake.signFileInternalMutex.Lock()
 	ret, specificReturn := fake.signFileInternalReturnsOnCall[len(fake.signFileInternalArgsForCall)]
 	fake.signFileInternalArgsForCall = append(fake.signFileInternalArgsForCall, struct {
 		arg1 options.RootOptions
 		arg2 options.KeyOpts
-		arg3 options.RegistryOptions
-		arg4 string
-		arg5 bool
+		arg3 string
+		arg4 bool
+		arg5 string
 		arg6 string
-		arg7 string
+		arg7 bool
 	}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
 	stub := fake.SignFileInternalStub
 	fakeReturns := fake.signFileInternalReturns
@@ -941,13 +943,13 @@ func (fake *FakeImpl) SignFileInternalCallCount() int {
 	return len(fake.signFileInternalArgsForCall)
 }
 
-func (fake *FakeImpl) SignFileInternalCalls(stub func(options.RootOptions, options.KeyOpts, options.RegistryOptions, string, bool, string, string) error) {
+func (fake *FakeImpl) SignFileInternalCalls(stub func(options.RootOptions, options.KeyOpts, string, bool, string, string, bool) error) {
 	fake.signFileInternalMutex.Lock()
 	defer fake.signFileInternalMutex.Unlock()
 	fake.SignFileInternalStub = stub
 }
 
-func (fake *FakeImpl) SignFileInternalArgsForCall(i int) (options.RootOptions, options.KeyOpts, options.RegistryOptions, string, bool, string, string) {
+func (fake *FakeImpl) SignFileInternalArgsForCall(i int) (options.RootOptions, options.KeyOpts, string, bool, string, string, bool) {
 	fake.signFileInternalMutex.RLock()
 	defer fake.signFileInternalMutex.RUnlock()
 	argsForCall := fake.signFileInternalArgsForCall[i]
@@ -977,36 +979,26 @@ func (fake *FakeImpl) SignFileInternalReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeImpl) SignImageInternal(arg1 options.RootOptions, arg2 options.KeyOpts, arg3 options.RegistryOptions, arg4 map[string]interface{}, arg5 []string, arg6 string, arg7 bool, arg8 string, arg9 string, arg10 string, arg11 bool, arg12 bool, arg13 string, arg14 bool) error {
-	var arg5Copy []string
-	if arg5 != nil {
-		arg5Copy = make([]string, len(arg5))
-		copy(arg5Copy, arg5)
+func (fake *FakeImpl) SignImageInternal(arg1 options.RootOptions, arg2 options.KeyOpts, arg3 options.SignOptions, arg4 []string) error {
+	var arg4Copy []string
+	if arg4 != nil {
+		arg4Copy = make([]string, len(arg4))
+		copy(arg4Copy, arg4)
 	}
 	fake.signImageInternalMutex.Lock()
 	ret, specificReturn := fake.signImageInternalReturnsOnCall[len(fake.signImageInternalArgsForCall)]
 	fake.signImageInternalArgsForCall = append(fake.signImageInternalArgsForCall, struct {
-		arg1  options.RootOptions
-		arg2  options.KeyOpts
-		arg3  options.RegistryOptions
-		arg4  map[string]interface{}
-		arg5  []string
-		arg6  string
-		arg7  bool
-		arg8  string
-		arg9  string
-		arg10 string
-		arg11 bool
-		arg12 bool
-		arg13 string
-		arg14 bool
-	}{arg1, arg2, arg3, arg4, arg5Copy, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14})
+		arg1 options.RootOptions
+		arg2 options.KeyOpts
+		arg3 options.SignOptions
+		arg4 []string
+	}{arg1, arg2, arg3, arg4Copy})
 	stub := fake.SignImageInternalStub
 	fakeReturns := fake.signImageInternalReturns
-	fake.recordInvocation("SignImageInternal", []interface{}{arg1, arg2, arg3, arg4, arg5Copy, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14})
+	fake.recordInvocation("SignImageInternal", []interface{}{arg1, arg2, arg3, arg4Copy})
 	fake.signImageInternalMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14)
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1
@@ -1020,17 +1012,17 @@ func (fake *FakeImpl) SignImageInternalCallCount() int {
 	return len(fake.signImageInternalArgsForCall)
 }
 
-func (fake *FakeImpl) SignImageInternalCalls(stub func(options.RootOptions, options.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string, bool) error) {
+func (fake *FakeImpl) SignImageInternalCalls(stub func(options.RootOptions, options.KeyOpts, options.SignOptions, []string) error) {
 	fake.signImageInternalMutex.Lock()
 	defer fake.signImageInternalMutex.Unlock()
 	fake.SignImageInternalStub = stub
 }
 
-func (fake *FakeImpl) SignImageInternalArgsForCall(i int) (options.RootOptions, options.KeyOpts, options.RegistryOptions, map[string]interface{}, []string, string, bool, string, string, string, bool, bool, string, bool) {
+func (fake *FakeImpl) SignImageInternalArgsForCall(i int) (options.RootOptions, options.KeyOpts, options.SignOptions, []string) {
 	fake.signImageInternalMutex.RLock()
 	defer fake.signImageInternalMutex.RUnlock()
 	argsForCall := fake.signImageInternalArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7, argsForCall.arg8, argsForCall.arg9, argsForCall.arg10, argsForCall.arg11, argsForCall.arg12, argsForCall.arg13, argsForCall.arg14
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
 func (fake *FakeImpl) SignImageInternalReturns(result1 error) {
@@ -1121,13 +1113,13 @@ func (fake *FakeImpl) TokenFromProvidersReturnsOnCall(i int, result1 string, res
 	}{result1, result2}
 }
 
-func (fake *FakeImpl) VerifyFileInternal(arg1 context.Context, arg2 options.KeyOpts, arg3 string, arg4 string, arg5 string) error {
+func (fake *FakeImpl) VerifyFileInternal(arg1 context.Context, arg2 options.KeyOpts, arg3 options.CertVerifyOptions, arg4 string, arg5 string) error {
 	fake.verifyFileInternalMutex.Lock()
 	ret, specificReturn := fake.verifyFileInternalReturnsOnCall[len(fake.verifyFileInternalArgsForCall)]
 	fake.verifyFileInternalArgsForCall = append(fake.verifyFileInternalArgsForCall, struct {
 		arg1 context.Context
 		arg2 options.KeyOpts
-		arg3 string
+		arg3 options.CertVerifyOptions
 		arg4 string
 		arg5 string
 	}{arg1, arg2, arg3, arg4, arg5})
@@ -1150,13 +1142,13 @@ func (fake *FakeImpl) VerifyFileInternalCallCount() int {
 	return len(fake.verifyFileInternalArgsForCall)
 }
 
-func (fake *FakeImpl) VerifyFileInternalCalls(stub func(context.Context, options.KeyOpts, string, string, string) error) {
+func (fake *FakeImpl) VerifyFileInternalCalls(stub func(context.Context, options.KeyOpts, options.CertVerifyOptions, string, string) error) {
 	fake.verifyFileInternalMutex.Lock()
 	defer fake.verifyFileInternalMutex.Unlock()
 	fake.VerifyFileInternalStub = stub
 }
 
-func (fake *FakeImpl) VerifyFileInternalArgsForCall(i int) (context.Context, options.KeyOpts, string, string, string) {
+func (fake *FakeImpl) VerifyFileInternalArgsForCall(i int) (context.Context, options.KeyOpts, options.CertVerifyOptions, string, string) {
 	fake.verifyFileInternalMutex.RLock()
 	defer fake.verifyFileInternalMutex.RUnlock()
 	argsForCall := fake.verifyFileInternalArgsForCall[i]
@@ -1186,25 +1178,27 @@ func (fake *FakeImpl) VerifyFileInternalReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeImpl) VerifyImageInternal(arg1 context.Context, arg2 string, arg3 []string) (*sign.SignedObject, error) {
-	var arg3Copy []string
-	if arg3 != nil {
-		arg3Copy = make([]string, len(arg3))
-		copy(arg3Copy, arg3)
+func (fake *FakeImpl) VerifyImageInternal(arg1 context.Context, arg2 options.CertVerifyOptions, arg3 string, arg4 []string, arg5 bool) (*sign.SignedObject, error) {
+	var arg4Copy []string
+	if arg4 != nil {
+		arg4Copy = make([]string, len(arg4))
+		copy(arg4Copy, arg4)
 	}
 	fake.verifyImageInternalMutex.Lock()
 	ret, specificReturn := fake.verifyImageInternalReturnsOnCall[len(fake.verifyImageInternalArgsForCall)]
 	fake.verifyImageInternalArgsForCall = append(fake.verifyImageInternalArgsForCall, struct {
 		arg1 context.Context
-		arg2 string
-		arg3 []string
-	}{arg1, arg2, arg3Copy})
+		arg2 options.CertVerifyOptions
+		arg3 string
+		arg4 []string
+		arg5 bool
+	}{arg1, arg2, arg3, arg4Copy, arg5})
 	stub := fake.VerifyImageInternalStub
 	fakeReturns := fake.verifyImageInternalReturns
-	fake.recordInvocation("VerifyImageInternal", []interface{}{arg1, arg2, arg3Copy})
+	fake.recordInvocation("VerifyImageInternal", []interface{}{arg1, arg2, arg3, arg4Copy, arg5})
 	fake.verifyImageInternalMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -1218,17 +1212,17 @@ func (fake *FakeImpl) VerifyImageInternalCallCount() int {
 	return len(fake.verifyImageInternalArgsForCall)
 }
 
-func (fake *FakeImpl) VerifyImageInternalCalls(stub func(context.Context, string, []string) (*sign.SignedObject, error)) {
+func (fake *FakeImpl) VerifyImageInternalCalls(stub func(context.Context, options.CertVerifyOptions, string, []string, bool) (*sign.SignedObject, error)) {
 	fake.verifyImageInternalMutex.Lock()
 	defer fake.verifyImageInternalMutex.Unlock()
 	fake.VerifyImageInternalStub = stub
 }
 
-func (fake *FakeImpl) VerifyImageInternalArgsForCall(i int) (context.Context, string, []string) {
+func (fake *FakeImpl) VerifyImageInternalArgsForCall(i int) (context.Context, options.CertVerifyOptions, string, []string, bool) {
 	fake.verifyImageInternalMutex.RLock()
 	defer fake.verifyImageInternalMutex.RUnlock()
 	argsForCall := fake.verifyImageInternalArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
 func (fake *FakeImpl) VerifyImageInternalReturns(result1 *sign.SignedObject, result2 error) {
@@ -1266,8 +1260,8 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	defer fake.envDefaultMutex.RUnlock()
 	fake.fileExistsMutex.RLock()
 	defer fake.fileExistsMutex.RUnlock()
-	fake.findTLogEntriesByPayloadMutex.RLock()
-	defer fake.findTLogEntriesByPayloadMutex.RUnlock()
+	fake.findTlogEntryMutex.RLock()
+	defer fake.findTlogEntryMutex.RUnlock()
 	fake.imagesSignedMutex.RLock()
 	defer fake.imagesSignedMutex.RUnlock()
 	fake.newRekorClientMutex.RLock()

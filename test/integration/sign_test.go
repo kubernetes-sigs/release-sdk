@@ -27,7 +27,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sigstore/cosign/pkg/cosign"
+	"github.com/sigstore/cosign/v2/pkg/cosign"
 	"github.com/stretchr/testify/require"
 
 	"sigs.k8s.io/release-sdk/sign"
@@ -73,6 +73,8 @@ func TestSuccessSignImage(t *testing.T) {
 	opts := sign.Default()
 	opts.PrivateKeyPath = privateKeyPath
 	opts.PublicKeyPath = publicKeyPath
+	opts.IgnoreSCT = true
+	opts.IgnoreTlog = true
 
 	signer := sign.New(opts)
 
@@ -115,7 +117,7 @@ func TestSuccessSignFile(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, signedObject.File)
 
-	verifiedObject, err := signer.VerifyFile(testFilePath)
+	verifiedObject, err := signer.VerifyFile(testFilePath, true)
 	require.Nil(t, err)
 	require.NotNil(t, verifiedObject.File)
 }
@@ -211,21 +213,26 @@ func TestImagesSigned(t *testing.T) {
 }
 
 func TestVerifyImages(t *testing.T) {
-	signer := sign.New(sign.Default())
 	const repo = "registry.k8s.io/security-profiles-operator/security-profiles-operator"
 
 	// Running it twice should lead to the same results
 	for i := 0; i < 2; i++ {
 		for _, tc := range []struct {
-			refs      map[string]bool
-			shouldErr bool
+			refs           map[string]bool
+			certIdentity   string
+			certOidcIssuer string
+			shouldErr      bool
 		}{
 			{ // signed single image
 				map[string]bool{"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true},
+				"https://github.com/sigstore/cosign/.github/workflows/github-oidc.yaml@refs/heads/main",
+				"https://token.actions.githubusercontent.com",
 				false,
 			},
 			{ // nonexistent
 				map[string]bool{"kornotios/supermegafakeimage": false},
+				"",
+				"",
 				true,
 			},
 			{ // one valid and one nonexistent
@@ -233,6 +240,8 @@ func TestVerifyImages(t *testing.T) {
 					"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true,
 					"kornotios/supermegafakeimage":                                            false,
 				},
+				"https://github.com/sigstore/cosign/.github/workflows/github-oidc.yaml@refs/heads/main",
+				"https://token.actions.githubusercontent.com",
 				true,
 			},
 			{ // list of valid images
@@ -246,6 +255,8 @@ func TestVerifyImages(t *testing.T) {
 					repo + "@sha256:4e61cb64ab34d1b80ebdb900c636a2aff60d85c9a48b0f1d34202d9388856bd7": true,
 					repo + "@sha256:9da6d7f148b19154fd6df4cc052e6cd52787962369f34c7b0411f77b843f3d4c": true,
 				},
+				"krel-trust@k8s-releng-prod.iam.gserviceaccount.com",
+				"https://accounts.google.com",
 				false,
 			},
 		} {
@@ -253,6 +264,13 @@ func TestVerifyImages(t *testing.T) {
 			for ref := range tc.refs {
 				refs = append(refs, ref)
 			}
+
+			opts := sign.Default()
+			opts.CertIdentity = tc.certIdentity
+			opts.CertOidcIssuer = tc.certOidcIssuer
+			opts.IgnoreSCT = true
+
+			signer := sign.New(opts)
 
 			res, err := signer.VerifyImages(refs...)
 			if tc.shouldErr {
