@@ -23,8 +23,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/carolynvs/magex/pkg"
 	"github.com/magefile/mage/sh"
+	"github.com/uwu-tools/magex/pkg"
 
 	"sigs.k8s.io/release-utils/mage"
 )

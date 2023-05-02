@@ -4,7 +4,6 @@ go 1.19
 
 require (
 	github.com/blang/semver/v4 v4.0.0
-	github.com/carolynvs/magex v0.9.0
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/google/go-containerregistry v0.14.0
 	github.com/google/go-github/v50 v50.2.0
@@ -16,9 +15,10 @@ require (
 	github.com/sigstore/rekor v1.0.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2
+	github.com/uwu-tools/magex v0.10.0
 	golang.org/x/oauth2 v0.7.0
 	k8s.io/apimachinery v0.27.1
-	sigs.k8s.io/release-utils v0.7.3
+	sigs.k8s.io/release-utils v0.7.4-0.20230502075013-5274b69697f0
 )
 
 require (
@@ -36,7 +36,7 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
-	github.com/Masterminds/semver/v3 v3.1.1 // indirect
+	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
@@ -214,7 +214,7 @@ require (
 	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
-	github.com/spf13/cobra v1.6.1 // indirect
+	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.13.0 // indirect
