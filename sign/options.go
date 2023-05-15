@@ -78,6 +78,10 @@ type Options struct {
 	// MaxCacheItems is the maximumg amount of items the internal caches can hold.
 	// Defaults to 10000.
 	MaxCacheItems uint64
+
+	// If a multi-arch image is specified, additionally sign each discrete image.
+	// Defaults to false.
+	Recursive bool
 }
 
 // Default returns a default Options instance.

@@ -128,6 +128,7 @@ func (s *Signer) SignImageWithOptions(options *Options, reference string) (objec
 	if err := options.verifySignOptions(); err != nil {
 		return nil, fmt.Errorf("checking signing options: %w", err)
 	}
+	s.log().Debugf("Using options: %+v", options)
 
 	resetFn, err := s.enableExperimental()
 	if err != nil {
@@ -175,7 +176,7 @@ func (s *Signer) SignImageWithOptions(options *Options, reference string) (objec
 	if err := s.impl.SignImageInternal(
 		options.ToCosignRootOptions(), ko, regOpts, options.Annotations,
 		images, "", options.AttachSignature, options.OutputSignaturePath,
-		options.OutputCertificatePath, "", true, false, "", false,
+		options.OutputCertificatePath, "", true, options.Recursive, "", false,
 	); err != nil {
 		return nil, fmt.Errorf("sign reference: %s: %w", reference, err)
 	}
