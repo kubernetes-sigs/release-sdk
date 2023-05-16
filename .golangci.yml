@@ -194,7 +194,6 @@ linters-settings:
       - hexLiteral
       - httpNoBody
       - ifElseChain
-      - ioutilDeprecated
       - methodExprCall
       - newDeref
       - octalLiteral
@@ -210,7 +209,6 @@ linters-settings:
       - switchTrue
       - timeCmpSimplify
       - timeExprSimplify
-      - todoCommentWithoutDetail
       - tooManyResultsChecker
       - typeAssertChain
       - typeDefFirst
