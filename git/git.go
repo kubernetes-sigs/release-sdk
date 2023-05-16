@@ -381,9 +381,9 @@ func CloneOrOpenGitHubRepo(repoPath, owner, repo string, useSSH bool) (*Repo, er
 //
 // The function returns the repository if cloning or updating of the repository
 // was successful, otherwise an error.
-func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) {
+func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) { //nolint: revive
 	logrus.Debugf("Using repository url %q", repoURL)
-	targetDir := ""
+	var targetDir string
 	if repoPath != "" {
 		logrus.Debugf("Using existing repository path %q", repoPath)
 		_, err := os.Stat(repoPath)
