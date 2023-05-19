@@ -951,7 +951,7 @@ func TestSetURLSuccess(t *testing.T) {
 	testRepo := newTestRepo(t)
 	defer testRepo.cleanup(t)
 
-	const remote = "https://exmaple.com"
+	const remote = "https://example.com"
 	require.Nil(t, testRepo.sut.SetURL(git.DefaultRemote, remote))
 	remotes, err := testRepo.sut.Remotes()
 	require.Nil(t, err)
