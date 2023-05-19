@@ -1240,7 +1240,7 @@ func (r *Repo) AddRemote(name, owner, repo string) error {
 		RunSilentSuccess()
 }
 
-// PushToRemote push the current branch to a spcified remote, but only if the
+// PushToRemote push the current branch to a specified remote, but only if the
 // repository is not in dry run mode
 func (r *Repo) PushToRemote(remote, remoteBranch string) error {
 	args := []string{"push", "--set-upstream"}

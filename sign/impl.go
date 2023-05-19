@@ -111,7 +111,7 @@ func (*defaultImpl) EnvDefault(key, def string) string {
 // oidc token from them.
 func (d *defaultImpl) TokenFromProviders(ctx context.Context, logger *logrus.Logger) (string, error) {
 	if !d.IdentityProvidersEnabled(ctx) {
-		logger.Warn("No OIDC provider enabled. Token cannot be obtained autmatically.")
+		logger.Warn("No OIDC provider enabled. Token cannot be obtained automatically.")
 		return "", nil
 	}
 
