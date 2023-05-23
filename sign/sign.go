@@ -154,12 +154,13 @@ func (s *Signer) SignImageWithOptions(options *Options, reference string) (objec
 	}
 
 	ko := cliOpts.KeyOpts{
-		KeyRef:     options.PrivateKeyPath,
-		IDToken:    identityToken,
-		PassFunc:   options.PassFunc,
-		FulcioURL:  cliOpts.DefaultFulcioURL,
-		RekorURL:   cliOpts.DefaultRekorURL,
-		OIDCIssuer: cliOpts.DefaultOIDCIssuerURL,
+		KeyRef:           options.PrivateKeyPath,
+		IDToken:          identityToken,
+		PassFunc:         options.PassFunc,
+		FulcioURL:        cliOpts.DefaultFulcioURL,
+		RekorURL:         cliOpts.DefaultRekorURL,
+		OIDCIssuer:       cliOpts.DefaultOIDCIssuerURL,
+		SkipConfirmation: true,
 
 		InsecureSkipFulcioVerify: false,
 	}
@@ -169,7 +170,7 @@ func (s *Signer) SignImageWithOptions(options *Options, reference string) (objec
 		OutputCertificate: options.OutputCertificatePath,
 		Upload:            true,
 		Recursive:         options.Recursive,
-		TlogUpload:        false,
+		TlogUpload:        true,
 		AnnotationOptions: cliOpts.AnnotationOptions{
 			Annotations: options.Annotations,
 		},
@@ -258,7 +259,7 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 
 	if err := s.impl.SignFileInternal(
 		s.options.ToCosignRootOptions(), ko, path, true,
-		s.options.OutputSignaturePath, s.options.OutputCertificatePath, false,
+		s.options.OutputSignaturePath, s.options.OutputCertificatePath, true,
 	); err != nil {
 		return nil, fmt.Errorf("sign file: %s: %w", path, err)
 	}
