@@ -101,6 +101,8 @@ func Default() *Options {
 		MaxWorkers:           100,
 		CacheTimeout:         2 * time.Hour,
 		MaxCacheItems:        10000,
+		CertIdentityRegexp:   "(prow-build@k8s-infra-prow-build.iam.gserviceaccount.com)|((krel-trust|krel-staging)@k8s-releng-prod.iam.gserviceaccount.com)",
+		CertOidcIssuer:       "https://accounts.google.com",
 	}
 }
 
