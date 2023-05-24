@@ -268,6 +268,7 @@ func TestVerifyImages(t *testing.T) {
 			opts := sign.Default()
 			opts.CertIdentity = tc.certIdentity
 			opts.CertOidcIssuer = tc.certOidcIssuer
+			opts.CertIdentityRegexp = ""
 			opts.IgnoreSCT = true
 
 			signer := sign.New(opts)
