@@ -40,7 +40,7 @@ credentials_mgr_class=osc.credentials.PlaintextConfigFileCredentialsManager
 func CreateOSCConfigFile(apiURL, username, password string) error {
 	authFile := fmt.Sprintf(authFileFormat, apiURL, apiURL, username, password)
 
-	if err := os.WriteFile(oscConfigFilePath, []byte(authFile), 0600); err != nil {
+	if err := os.WriteFile(oscConfigFilePath, []byte(authFile), 0o600); err != nil {
 		return fmt.Errorf("writing osc config file: %w", err)
 	}
 
