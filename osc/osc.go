@@ -48,7 +48,7 @@ func OSC(args ...string) error {
 	return command.New(OSCExecutable, args...).RunSilentSuccess()
 }
 
-func OSCWithWorkDir(workDir string, args ...string) error {
+func WithWorkDir(workDir string, args ...string) error {
 	return command.NewWithWorkDir(workDir, OSCExecutable, args...).RunSilentSuccess()
 }
 
