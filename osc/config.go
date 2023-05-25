@@ -19,6 +19,7 @@ package osc
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 const (
@@ -31,13 +32,17 @@ user=%s
 pass=%s
 credentials_mgr_class=osc.credentials.PlaintextConfigFileCredentialsManager
 `
-
-	oscConfigFilePath = "/root/.oscrc"
 )
 
 // CreateOSCConfigFile creates the osc config file (~/.oscrc) that contains
 // API URL and credentials needed to authenticate with the API
 func CreateOSCConfigFile(apiURL, username, password string) error {
+	userHome, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("obtaining user's home directory: %w", err)
+	}
+
+	oscConfigFilePath := filepath.Join(userHome, ".oscrc")
 	authFile := fmt.Sprintf(authFileFormat, apiURL, apiURL, username, password)
 
 	if err := os.WriteFile(oscConfigFilePath, []byte(authFile), 0o600); err != nil {
