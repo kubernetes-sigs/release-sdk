@@ -48,8 +48,8 @@ func OSC(args ...string) error {
 	return command.New(OSCExecutable, args...).RunSilentSuccess()
 }
 
-// OSCOutput can be used to run a 'osc' command while capturing its output
-func OSCOutput(args ...string) (string, error) {
+// Output can be used to run a 'osc' command while capturing its output
+func Output(args ...string) (string, error) {
 	stream, err := command.New(OSCExecutable, args...).RunSilentSuccessOutput()
 	if err != nil {
 		return "", fmt.Errorf("executing %s: %w", OSCExecutable, err)
@@ -57,7 +57,7 @@ func OSCOutput(args ...string) (string, error) {
 	return stream.OutputTrimNL(), nil
 }
 
-// GSUtilStatus can be used to run a 'osc' command while capturing its status
-func OSCStatus(args ...string) (*command.Status, error) {
+// Status can be used to run a 'osc' command while capturing its status
+func Status(args ...string) (*command.Status, error) {
 	return command.New(OSCExecutable, args...).Run()
 }
