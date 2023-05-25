@@ -48,6 +48,10 @@ func OSC(args ...string) error {
 	return command.New(OSCExecutable, args...).RunSilentSuccess()
 }
 
+func OSCWithWorkDir(workDir string, args ...string) error {
+	return command.NewWithWorkDir(workDir, OSCExecutable, args...).RunSilentSuccess()
+}
+
 // Output can be used to run a 'osc' command while capturing its output
 func Output(args ...string) (string, error) {
 	stream, err := command.New(OSCExecutable, args...).RunSilentSuccessOutput()
