@@ -44,17 +44,13 @@ func PreCheck() error {
 }
 
 // OSC can be used to run a 'osc' command
-func OSC(args ...string) error {
-	return command.New(OSCExecutable, args...).RunSilentSuccess()
-}
-
-func WithWorkDir(workDir string, args ...string) error {
+func OSC(workDir string, args ...string) error {
 	return command.NewWithWorkDir(workDir, OSCExecutable, args...).RunSilentSuccess()
 }
 
 // Output can be used to run a 'osc' command while capturing its output
-func Output(args ...string) (string, error) {
-	stream, err := command.New(OSCExecutable, args...).RunSilentSuccessOutput()
+func Output(workDir string, args ...string) (string, error) {
+	stream, err := command.NewWithWorkDir(workDir, OSCExecutable, args...).RunSilentSuccessOutput()
 	if err != nil {
 		return "", fmt.Errorf("executing %s: %w", OSCExecutable, err)
 	}
@@ -62,6 +58,6 @@ func Output(args ...string) (string, error) {
 }
 
 // Status can be used to run a 'osc' command while capturing its status
-func Status(args ...string) (*command.Status, error) {
-	return command.New(OSCExecutable, args...).Run()
+func Status(workDir string, args ...string) (*command.Status, error) {
+	return command.NewWithWorkDir(workDir, OSCExecutable, args...).Run()
 }
