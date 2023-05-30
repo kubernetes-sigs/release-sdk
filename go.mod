@@ -12,7 +12,7 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
 	github.com/nozzle/throttler v0.0.0-20180817012639-2ea982251481
 	github.com/sigstore/cosign/v2 v2.0.3-0.20230517070756-fc61f43262cb
-	github.com/sigstore/rekor v1.2.0
+	github.com/sigstore/rekor v1.2.1
 	github.com/sigstore/sigstore v1.6.4
 	github.com/sirupsen/logrus v1.9.2
 	github.com/stretchr/testify v1.8.3
