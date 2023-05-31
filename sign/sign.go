@@ -171,6 +171,7 @@ func (s *Signer) SignImageWithOptions(options *Options, reference string) (objec
 		Upload:            true,
 		Recursive:         options.Recursive,
 		TlogUpload:        true,
+		SkipConfirmation:  true,
 		AnnotationOptions: cliOpts.AnnotationOptions{
 			Annotations: options.Annotations,
 		},
