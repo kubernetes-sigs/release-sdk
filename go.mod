@@ -15,7 +15,7 @@ require (
 	github.com/sigstore/rekor v1.2.1
 	github.com/sigstore/sigstore v1.6.5
 	github.com/sirupsen/logrus v1.9.2
-	github.com/stretchr/testify v1.8.3
+	github.com/stretchr/testify v1.8.4
 	github.com/uwu-tools/magex v0.10.0
 	golang.org/x/oauth2 v0.8.0
 	k8s.io/apimachinery v0.27.2
