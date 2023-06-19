@@ -178,6 +178,7 @@ func (s *Signer) SignImageWithOptions(options *Options, reference string) (objec
 		Registry: cliOpts.RegistryOptions{
 			AllowInsecure: options.AllowInsecure,
 		},
+		SignContainerIdentity: options.SignContainerIdentity,
 	}
 
 	images := []string{reference}

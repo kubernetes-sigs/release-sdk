@@ -88,6 +88,12 @@ type Options struct {
 	// If a multi-arch image is specified, additionally sign each discrete image.
 	// Defaults to false.
 	Recursive bool
+
+	// SignContainerIdentity can be used to manually set the
+	// .critical.docker-reference field for the signed identity, which is
+	// useful when image proxies are being used where the pull reference should
+	// match the signature
+	SignContainerIdentity string
 }
 
 // Default returns a default Options instance.
