@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/blang/semver/v4 v4.0.0
-	github.com/go-git/go-git/v5 v5.7.0
+	github.com/go-git/go-git/v5 v5.8.0
 	github.com/google/go-containerregistry v0.15.2
 	github.com/google/go-github/v53 v53.2.0
 	github.com/jellydator/ttlcache/v3 v3.0.1
