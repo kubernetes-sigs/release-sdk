@@ -1,6 +1,6 @@
 module sigs.k8s.io/release-sdk
 
-go 1.20
+go 1.21
 
 require (
 	github.com/blang/semver/v4 v4.0.0
@@ -12,7 +12,7 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
 	github.com/nozzle/throttler v0.0.0-20180817012639-2ea982251481
 	github.com/sigstore/cosign/v2 v2.2.0
-	github.com/sigstore/rekor v1.2.2
+	github.com/sigstore/rekor v1.3.0
 	github.com/sigstore/sigstore v1.7.2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
@@ -131,7 +131,7 @@ require (
 	github.com/go-piv/piv-go v1.11.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.15.1 // indirect
+	github.com/go-playground/validator/v10 v10.15.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -160,8 +160,8 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
-	github.com/klauspost/compress v1.16.5 // indirect
-	github.com/klauspost/pgzip v1.2.5 // indirect
+	github.com/klauspost/compress v1.16.6 // indirect
+	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.1 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
