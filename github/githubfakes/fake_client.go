@@ -23,7 +23,7 @@ import (
 	"os"
 	"sync"
 
-	githuba "github.com/google/go-github/v53/github"
+	githuba "github.com/google/go-github/v55/github"
 	"sigs.k8s.io/release-sdk/github"
 )
 
@@ -331,14 +331,14 @@ type FakeClient struct {
 		result2 *githuba.Response
 		result3 error
 	}
-	ListPullRequestsWithCommitStub        func(context.Context, string, string, string, *githuba.PullRequestListOptions) ([]*githuba.PullRequest, *githuba.Response, error)
+	ListPullRequestsWithCommitStub        func(context.Context, string, string, string, *githuba.ListOptions) ([]*githuba.PullRequest, *githuba.Response, error)
 	listPullRequestsWithCommitMutex       sync.RWMutex
 	listPullRequestsWithCommitArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
 		arg3 string
 		arg4 string
-		arg5 *githuba.PullRequestListOptions
+		arg5 *githuba.ListOptions
 	}
 	listPullRequestsWithCommitReturns struct {
 		result1 []*githuba.PullRequest
@@ -1649,7 +1649,7 @@ func (fake *FakeClient) ListMilestonesReturnsOnCall(i int, result1 []*githuba.Mi
 	}{result1, result2, result3}
 }
 
-func (fake *FakeClient) ListPullRequestsWithCommit(arg1 context.Context, arg2 string, arg3 string, arg4 string, arg5 *githuba.PullRequestListOptions) ([]*githuba.PullRequest, *githuba.Response, error) {
+func (fake *FakeClient) ListPullRequestsWithCommit(arg1 context.Context, arg2 string, arg3 string, arg4 string, arg5 *githuba.ListOptions) ([]*githuba.PullRequest, *githuba.Response, error) {
 	fake.listPullRequestsWithCommitMutex.Lock()
 	ret, specificReturn := fake.listPullRequestsWithCommitReturnsOnCall[len(fake.listPullRequestsWithCommitArgsForCall)]
 	fake.listPullRequestsWithCommitArgsForCall = append(fake.listPullRequestsWithCommitArgsForCall, struct {
@@ -1657,7 +1657,7 @@ func (fake *FakeClient) ListPullRequestsWithCommit(arg1 context.Context, arg2 st
 		arg2 string
 		arg3 string
 		arg4 string
-		arg5 *githuba.PullRequestListOptions
+		arg5 *githuba.ListOptions
 	}{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.ListPullRequestsWithCommitStub
 	fakeReturns := fake.listPullRequestsWithCommitReturns
@@ -1678,13 +1678,13 @@ func (fake *FakeClient) ListPullRequestsWithCommitCallCount() int {
 	return len(fake.listPullRequestsWithCommitArgsForCall)
 }
 
-func (fake *FakeClient) ListPullRequestsWithCommitCalls(stub func(context.Context, string, string, string, *githuba.PullRequestListOptions) ([]*githuba.PullRequest, *githuba.Response, error)) {
+func (fake *FakeClient) ListPullRequestsWithCommitCalls(stub func(context.Context, string, string, string, *githuba.ListOptions) ([]*githuba.PullRequest, *githuba.Response, error)) {
 	fake.listPullRequestsWithCommitMutex.Lock()
 	defer fake.listPullRequestsWithCommitMutex.Unlock()
 	fake.ListPullRequestsWithCommitStub = stub
 }
 
-func (fake *FakeClient) ListPullRequestsWithCommitArgsForCall(i int) (context.Context, string, string, string, *githuba.PullRequestListOptions) {
+func (fake *FakeClient) ListPullRequestsWithCommitArgsForCall(i int) (context.Context, string, string, string, *githuba.ListOptions) {
 	fake.listPullRequestsWithCommitMutex.RLock()
 	defer fake.listPullRequestsWithCommitMutex.RUnlock()
 	argsForCall := fake.listPullRequestsWithCommitArgsForCall[i]
