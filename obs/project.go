@@ -98,7 +98,7 @@ type RepositoryPath struct {
 	Repository string `json:"repository" xml:"repository,attr"`
 }
 
-func (c *Client) CreateUpdateProject(project *Project, ctx context.Context) error {
+func (c *Client) CreateUpdateProject(ctx context.Context, project *Project) error {
 	xmlData, err := xml.MarshalIndent(project, "", " ")
 	if err != nil {
 		return fmt.Errorf("creating obs project: marshalling project meta: %w", err)
@@ -151,7 +151,7 @@ func (c *Client) CreateUpdateProject(project *Project, ctx context.Context) erro
 	return nil
 }
 
-func (c *Client) DeleteProject(project *Project, ctx context.Context) error {
+func (c *Client) DeleteProject(ctx context.Context, project *Project) error {
 	urlPath, err := url.JoinPath(c.APIURL, "source", project.Name)
 	if err != nil {
 		return fmt.Errorf("deleting obs project: joining url: %w", err)
