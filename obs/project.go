@@ -17,7 +17,12 @@ limitations under the License.
 package obs
 
 import (
+	"bytes"
+	"context"
 	"encoding/xml"
+	"fmt"
+	"net/http"
+	"net/url"
 )
 
 type Project struct {
@@ -36,6 +41,7 @@ type Project struct {
 }
 
 type Client struct {
+	Client   http.Client
 	Username string
 	Password string
 	APIURL   string
@@ -76,8 +82,8 @@ const (
 
 type Repository struct {
 	Repository     string           `json:"name" xml:"name,attr"`
-	Architectures  []string         `json:"arch" xml:"arch"`
-	ReleaseTargets []ReleaseTarget  `json:"releasetarget,omitempty" xml:"releasetarget,omitempty"`
+	Architectures  []string         `json:"architectures" xml:"arch"`
+	ReleaseTargets []ReleaseTarget  `json:"releaseTargets,omitempty" xml:"releasetarget,omitempty"`
 	Paths          []RepositoryPath `json:"path,omitempty" xml:"path,omitempty"`
 }
 
@@ -90,4 +96,105 @@ type ReleaseTarget struct {
 type RepositoryPath struct {
 	Project    string `json:"project" xml:"project,attr"`
 	Repository string `json:"repository" xml:"repository,attr"`
+}
+
+func (c *Client) CreateUpdateProject(ctx context.Context, project *Project) error {
+	xmlData, err := xml.MarshalIndent(project, "", " ")
+	if err != nil {
+		return fmt.Errorf("creating obs project: marshalling project meta: %w", err)
+	}
+
+	urlPath, err := url.JoinPath(c.APIURL, "source", project.Name, "_meta")
+	if err != nil {
+		return fmt.Errorf("creating obs project: joining url: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, urlPath, bytes.NewBuffer(xmlData))
+	if err != nil {
+		return &APIError{
+			HTTPStatusCode: 0,
+			OBSStatusCode:  "",
+			Message:        fmt.Sprintf("creating obs project: creating request: %v", err),
+		}
+	}
+
+	req.SetBasicAuth(c.Username, c.Password)
+	req.Header.Set("Accept", "application/xml; charset=utf-8")
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		return &APIError{
+			HTTPStatusCode: 0,
+			OBSStatusCode:  "",
+			Message:        fmt.Sprintf("creating obs project: sending request: %v", err),
+		}
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		var status Status
+		if err := xml.NewDecoder(resp.Body).Decode(&status); err != nil {
+			return &APIError{
+				HTTPStatusCode: resp.StatusCode,
+				OBSStatusCode:  "",
+				Message:        fmt.Sprintf("creating obs project: decoding error response: %v", err),
+			}
+		}
+
+		return &APIError{
+			HTTPStatusCode: resp.StatusCode,
+			OBSStatusCode:  status.Code,
+			Message:        status.Summary,
+		}
+	}
+
+	return nil
+}
+
+func (c *Client) DeleteProject(ctx context.Context, project *Project) error {
+	urlPath, err := url.JoinPath(c.APIURL, "source", project.Name)
+	if err != nil {
+		return fmt.Errorf("deleting obs project: joining url: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, urlPath, http.NoBody)
+	if err != nil {
+		return &APIError{
+			HTTPStatusCode: 0,
+			OBSStatusCode:  "",
+			Message:        fmt.Sprintf("deleting obs project: creating request: %v", err),
+		}
+	}
+
+	req.SetBasicAuth(c.Username, c.Password)
+	req.Header.Set("Accept", "application/xml; charset=utf-8")
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		return &APIError{
+			HTTPStatusCode: 0,
+			OBSStatusCode:  "",
+			Message:        fmt.Sprintf("deleting obs project: sending request: %v", err),
+		}
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		var status Status
+		if err := xml.NewDecoder(resp.Body).Decode(&status); err != nil {
+			return &APIError{
+				HTTPStatusCode: resp.StatusCode,
+				OBSStatusCode:  "",
+				Message:        fmt.Sprintf("deleting obs project: decoding error response %v", err),
+			}
+		}
+
+		return &APIError{
+			HTTPStatusCode: resp.StatusCode,
+			OBSStatusCode:  status.Code,
+			Message:        status.Summary,
+		}
+	}
+
+	return nil
 }
