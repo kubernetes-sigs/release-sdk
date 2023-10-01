@@ -98,6 +98,7 @@ type RepositoryPath struct {
 	Repository string `json:"repository" xml:"repository,attr"`
 }
 
+// CreateUpdateProject creates a new OBS project or updates an existing OBS project
 func (c *Client) CreateUpdateProject(ctx context.Context, project *Project) error {
 	xmlData, err := xml.MarshalIndent(project, "", " ")
 	if err != nil {
@@ -151,6 +152,61 @@ func (c *Client) CreateUpdateProject(ctx context.Context, project *Project) erro
 	return nil
 }
 
+// GetProjectMetaFile returns project's meta for a given OBS project
+func (c *Client) GetProjectMetaFile(ctx context.Context, projectName string) (*Project, error) {
+	urlPath, err := url.JoinPath(c.APIURL, "source", projectName, "_meta")
+	if err != nil {
+		return nil, fmt.Errorf("getting obs project: joining url: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlPath, http.NoBody)
+	if err != nil {
+		return nil, &APIError{
+			HTTPStatusCode: 0,
+			OBSStatusCode:  "",
+			Message:        fmt.Sprintf("getting obs project: creating request: %v", err),
+		}
+	}
+
+	req.SetBasicAuth(c.Username, c.Password)
+	req.Header.Set("Accept", "application/xml; charset=utf-8")
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		return nil, &APIError{
+			HTTPStatusCode: 0,
+			OBSStatusCode:  "",
+			Message:        fmt.Sprintf("getting obs project: sending request: %v", err),
+		}
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		var status Status
+		if err := xml.NewDecoder(resp.Body).Decode(&status); err != nil {
+			return nil, &APIError{
+				HTTPStatusCode: resp.StatusCode,
+				OBSStatusCode:  "",
+				Message:        fmt.Sprintf("getting obs project: decoding error response: %v", err),
+			}
+		}
+
+		return nil, &APIError{
+			HTTPStatusCode: resp.StatusCode,
+			OBSStatusCode:  status.Code,
+			Message:        status.Summary,
+		}
+	}
+
+	var project Project
+	if err = xml.NewDecoder(resp.Body).Decode(&project); err != nil {
+		return nil, fmt.Errorf("getting obs project: decoding response: %v", err)
+	}
+
+	return &project, nil
+}
+
+// DeleteProject deletes an existing OBS project
 func (c *Client) DeleteProject(ctx context.Context, project *Project) error {
 	urlPath, err := url.JoinPath(c.APIURL, "source", project.Name)
 	if err != nil {
