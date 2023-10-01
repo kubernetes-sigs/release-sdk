@@ -21,7 +21,6 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 )
@@ -99,7 +98,7 @@ type RepositoryPath struct {
 	Repository string `json:"repository" xml:"repository,attr"`
 }
 
-// CreateUpdateProject is used to create the project and update the existing obs project
+// CreateUpdateProject creates a new OBS project or updates an existing OBS project
 func (c *Client) CreateUpdateProject(ctx context.Context, project *Project) error {
 	xmlData, err := xml.MarshalIndent(project, "", " ")
 	if err != nil {
@@ -153,9 +152,9 @@ func (c *Client) CreateUpdateProject(ctx context.Context, project *Project) erro
 	return nil
 }
 
-// GetProjectMetaFile is used to get the contents of the obs project meta file
-func (c *Client) GetProjectMetaFile(ctx context.Context, project *Project) ([]byte, error) {
-	urlPath, err := url.JoinPath(c.APIURL, "source", project.Name, "_meta")
+// GetProjectMetaFile returns project's meta for a given OBS project
+func (c *Client) GetProjectMetaFile(ctx context.Context, projectName string) (*Project, error) {
+	urlPath, err := url.JoinPath(c.APIURL, "source", projectName, "_meta")
 	if err != nil {
 		return nil, fmt.Errorf("getting obs project: joining url: %w", err)
 	}
@@ -199,15 +198,15 @@ func (c *Client) GetProjectMetaFile(ctx context.Context, project *Project) ([]by
 		}
 	}
 
-	metaFile, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("getting obs project meta file: reading response body: %v", err)
+	var project Project
+	if err = xml.NewDecoder(resp.Body).Decode(&project); err != nil {
+		return nil, fmt.Errorf("getting obs project meta file: decoding response: %v", err)
 	}
 
-	return metaFile, nil
+	return &project, nil
 }
 
-// DeleteProject is used to delete the existing obs project
+// DeleteProject deletes an existing OBS project
 func (c *Client) DeleteProject(ctx context.Context, project *Project) error {
 	urlPath, err := url.JoinPath(c.APIURL, "source", project.Name)
 	if err != nil {
