@@ -200,7 +200,7 @@ func (c *Client) GetProjectMetaFile(ctx context.Context, projectName string) (*P
 
 	var project Project
 	if err = xml.NewDecoder(resp.Body).Decode(&project); err != nil {
-		return nil, fmt.Errorf("getting obs project meta file: decoding response: %v", err)
+		return nil, fmt.Errorf("getting obs project: decoding response: %v", err)
 	}
 
 	return &project, nil
