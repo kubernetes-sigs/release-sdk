@@ -40,11 +40,67 @@ type Project struct {
 	UseForBuild  *UseForBuild `json:"useForBuild,omitempty" xml:"useforbuild,omitempty"`
 }
 
-type Client struct {
-	Client   http.Client
+// OBS is a wrapper around OBS related functionality
+type OBS struct {
+	client  Client
+	options *Options
+}
+
+type obsClient struct {
+	*http.Client
+}
+
+// Client is an interface modeling supported OBS operations
+type Client interface {
+	InvokeOBSEndpoint(ctx context.Context, username, password, method, apiURL string, xml *bytes.Buffer) (*http.Response, error)
+}
+
+// InvokeOBSEndpoint invokes an OBS endpoint by making a HTTP request
+func (o *obsClient) InvokeOBSEndpoint(ctx context.Context, username, password, method, apiURL string, xmlData *bytes.Buffer) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, method, apiURL, xmlData)
+	if err != nil {
+		return nil, &APIError{
+			HTTPStatusCode: 0,
+			OBSStatusCode:  "",
+			Message:        fmt.Sprintf("creating request: %v", err),
+		}
+	}
+
+	req.SetBasicAuth(username, password)
+	req.Header.Set("Accept", "application/xml; charset=utf-8")
+
+	resp, err := o.Client.Do(req)
+	if err != nil {
+		return nil, &APIError{
+			HTTPStatusCode: 0,
+			OBSStatusCode:  "",
+			Message:        fmt.Sprintf("sending request: %v", err),
+		}
+	}
+
+	return resp, nil
+}
+
+// Options is a set of options to configure the behavior of the OBS package
+type Options struct {
 	Username string
 	Password string
 	APIURL   string
+}
+
+// DefaultOptions return an options struct with commonly used settings
+func DefaultOptions() *Options {
+	return &Options{
+		APIURL: "https://api.opensuse.org/",
+	}
+}
+
+// New creates a new default OBS client
+func New(opts *Options) *OBS {
+	return &OBS{
+		client:  &obsClient{Client: http.DefaultClient},
+		options: opts,
+	}
 }
 
 type Disabled struct{}
@@ -99,36 +155,20 @@ type RepositoryPath struct {
 }
 
 // CreateUpdateProject creates a new OBS project or updates an existing OBS project
-func (c *Client) CreateUpdateProject(ctx context.Context, project *Project) error {
+func (o *OBS) CreateUpdateProject(ctx context.Context, project *Project) error {
 	xmlData, err := xml.MarshalIndent(project, "", " ")
 	if err != nil {
 		return fmt.Errorf("creating obs project: marshalling project meta: %w", err)
 	}
 
-	urlPath, err := url.JoinPath(c.APIURL, "source", project.Name, "_meta")
+	urlPath, err := url.JoinPath(o.options.APIURL, "source", project.Name, "_meta")
 	if err != nil {
 		return fmt.Errorf("creating obs project: joining url: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, urlPath, bytes.NewBuffer(xmlData))
+	resp, err := o.client.InvokeOBSEndpoint(ctx, o.options.Username, o.options.Password, http.MethodPut, urlPath, bytes.NewBuffer(xmlData))
 	if err != nil {
-		return &APIError{
-			HTTPStatusCode: 0,
-			OBSStatusCode:  "",
-			Message:        fmt.Sprintf("creating obs project: creating request: %v", err),
-		}
-	}
-
-	req.SetBasicAuth(c.Username, c.Password)
-	req.Header.Set("Accept", "application/xml; charset=utf-8")
-
-	resp, err := c.Client.Do(req)
-	if err != nil {
-		return &APIError{
-			HTTPStatusCode: 0,
-			OBSStatusCode:  "",
-			Message:        fmt.Sprintf("creating obs project: sending request: %v", err),
-		}
+		return fmt.Errorf("creating obs project: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -153,31 +193,15 @@ func (c *Client) CreateUpdateProject(ctx context.Context, project *Project) erro
 }
 
 // GetProjectMetaFile returns project's meta for a given OBS project
-func (c *Client) GetProjectMetaFile(ctx context.Context, projectName string) (*Project, error) {
-	urlPath, err := url.JoinPath(c.APIURL, "source", projectName, "_meta")
+func (o *OBS) GetProjectMetaFile(ctx context.Context, projectName string) (*Project, error) {
+	urlPath, err := url.JoinPath(o.options.APIURL, "source", projectName, "_meta")
 	if err != nil {
 		return nil, fmt.Errorf("getting obs project: joining url: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlPath, http.NoBody)
+	resp, err := o.client.InvokeOBSEndpoint(ctx, o.options.Username, o.options.Password, http.MethodGet, urlPath, nil)
 	if err != nil {
-		return nil, &APIError{
-			HTTPStatusCode: 0,
-			OBSStatusCode:  "",
-			Message:        fmt.Sprintf("getting obs project: creating request: %v", err),
-		}
-	}
-
-	req.SetBasicAuth(c.Username, c.Password)
-	req.Header.Set("Accept", "application/xml; charset=utf-8")
-
-	resp, err := c.Client.Do(req)
-	if err != nil {
-		return nil, &APIError{
-			HTTPStatusCode: 0,
-			OBSStatusCode:  "",
-			Message:        fmt.Sprintf("getting obs project: sending request: %v", err),
-		}
+		return nil, fmt.Errorf("getting obs project: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -207,31 +231,15 @@ func (c *Client) GetProjectMetaFile(ctx context.Context, projectName string) (*P
 }
 
 // DeleteProject deletes an existing OBS project
-func (c *Client) DeleteProject(ctx context.Context, project *Project) error {
-	urlPath, err := url.JoinPath(c.APIURL, "source", project.Name)
+func (o *OBS) DeleteProject(ctx context.Context, project *Project) error {
+	urlPath, err := url.JoinPath(o.options.APIURL, "source", project.Name)
 	if err != nil {
 		return fmt.Errorf("deleting obs project: joining url: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, urlPath, http.NoBody)
+	resp, err := o.client.InvokeOBSEndpoint(ctx, o.options.Username, o.options.Password, http.MethodDelete, urlPath, nil)
 	if err != nil {
-		return &APIError{
-			HTTPStatusCode: 0,
-			OBSStatusCode:  "",
-			Message:        fmt.Sprintf("deleting obs project: creating request: %v", err),
-		}
-	}
-
-	req.SetBasicAuth(c.Username, c.Password)
-	req.Header.Set("Accept", "application/xml; charset=utf-8")
-
-	resp, err := c.Client.Do(req)
-	if err != nil {
-		return &APIError{
-			HTTPStatusCode: 0,
-			OBSStatusCode:  "",
-			Message:        fmt.Sprintf("deleting obs project: sending request: %v", err),
-		}
+		return fmt.Errorf("deleting obs project: %w", err)
 	}
 	defer resp.Body.Close()
 
