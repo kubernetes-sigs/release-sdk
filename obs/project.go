@@ -57,6 +57,9 @@ type Client interface {
 
 // InvokeOBSEndpoint invokes an OBS endpoint by making a HTTP request
 func (o *obsClient) InvokeOBSEndpoint(ctx context.Context, username, password, method, apiURL string, xmlData *bytes.Buffer) (*http.Response, error) {
+	if xmlData == nil {
+		xmlData = &bytes.Buffer{}
+	}
 	req, err := http.NewRequestWithContext(ctx, method, apiURL, xmlData)
 	if err != nil {
 		return nil, &APIError{
