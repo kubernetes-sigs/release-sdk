@@ -19,7 +19,7 @@ require (
 	github.com/uwu-tools/magex v0.10.0
 	golang.org/x/oauth2 v0.13.0
 	k8s.io/apimachinery v0.27.4
-	sigs.k8s.io/release-utils v0.7.5
+	sigs.k8s.io/release-utils v0.7.6
 )
 
 require (
