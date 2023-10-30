@@ -23,7 +23,7 @@ import (
 	"os"
 	"sync"
 
-	githuba "github.com/google/go-github/v55/github"
+	githuba "github.com/google/go-github/v56/github"
 	"sigs.k8s.io/release-sdk/github"
 )
 
