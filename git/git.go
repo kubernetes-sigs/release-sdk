@@ -382,30 +382,15 @@ func CloneOrOpenGitHubRepo(repoPath, owner, repo string, useSSH bool) (*Repo, er
 // The function returns the repository if cloning or updating of the repository
 // was successful, otherwise an error.
 func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) { //nolint: revive
-	logrus.Debugf("Using repository url %q", repoURL)
-	var targetDir string
-	if repoPath != "" {
-		logrus.Debugf("Using existing repository path %q", repoPath)
-		_, err := os.Stat(repoPath)
+	// Ensure we have a directory path
+	targetDir, preexisting, err := ensureRepoPath(repoPath)
+	if err != nil {
+		return nil, fmt.Errorf("ensuring repository path: %w", err)
+	}
 
-		switch {
-		case err == nil:
-			// The file or directory exists, just try to update the repo
-			return updateRepo(repoPath)
-		case os.IsNotExist(err):
-			// The directory does not exists, we still have to clone it
-			targetDir = repoPath
-		default:
-			// Something else bad happened
-			return nil, fmt.Errorf("unable to update repo: %w", err)
-		}
-	} else {
-		// No repoPath given, use a random temp dir instead
-		t, err := os.MkdirTemp("", "k8s-")
-		if err != nil {
-			return nil, fmt.Errorf("unable to create temp dir: %w", err)
-		}
-		targetDir = t
+	// If the repo already exists, just update it
+	if preexisting {
+		return updateRepo(targetDir)
 	}
 
 	progressBuffer := &bytes.Buffer{}
@@ -418,20 +403,65 @@ func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) { //n
 		progressWriters = append(progressWriters, os.Stderr)
 	}
 
-	if _, err := git.PlainClone(targetDir, false, &git.CloneOptions{
+	if err := cloneRepository(repoURL, targetDir, &git.CloneOptions{
 		URL:      repoURL,
 		Progress: io.MultiWriter(progressWriters...),
 	}); err != nil {
-		// Print the stack only if not already done
 		if logLevel < logrus.DebugLevel {
 			logrus.Errorf(
 				"Clone repository failed. Tracked progress:\n%s",
 				progressBuffer.String(),
 			)
 		}
-		return nil, fmt.Errorf("unable to clone repo: %w", err)
+		return nil, err
 	}
+
 	return updateRepo(targetDir)
+}
+
+// cloneRepository is a utility function that exposes the bare git clone
+// operation internally.
+func cloneRepository(repoURL, repoPath string, opts *git.CloneOptions) error {
+	if opts == nil {
+		opts = &git.CloneOptions{}
+	}
+	opts.URL = repoURL
+	if _, err := git.PlainClone(repoPath, false, opts); err != nil {
+		return fmt.Errorf("unable to clone repo: %w", err)
+	}
+	return nil
+}
+
+// ensureRepoPath makes sure the repository path points to a valid directory. If
+// the path is an empty string, it will create a temporary directory. If it already
+// exists it will return exisitingDir set to true, a bool to let other functions
+// know its ok not to clone it again.
+func ensureRepoPath(repoPath string) (targetDir string, exisitingDir bool, err error) {
+	if repoPath != "" {
+		logrus.Debugf("Using existing repository path %q", repoPath)
+		_, err := os.Stat(repoPath)
+
+		switch {
+		case err == nil:
+			// The file or directory exists, just try to update the repo
+			return repoPath, true, nil
+		case os.IsNotExist(err):
+			// The directory does not exists, we still have to clone it
+			targetDir = repoPath
+		default:
+			// Something else bad happened
+			return "", false, fmt.Errorf("reading existing directory: %w", err)
+		}
+	} else {
+		// No repoPath given, use a random temp dir instead
+		t, err := os.MkdirTemp("", "k8s-")
+		if err != nil {
+			return "", false, fmt.Errorf("unable to create temp dir: %w", err)
+		}
+		targetDir = t
+		logrus.Debugf("Cloning to temporary directory %q", t)
+	}
+	return targetDir, false, nil
 }
 
 // updateRepo tries to open the provided repoPath and fetches the latest
