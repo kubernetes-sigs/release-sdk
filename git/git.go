@@ -382,6 +382,13 @@ func CloneOrOpenGitHubRepo(repoPath, owner, repo string, useSSH bool) (*Repo, er
 // The function returns the repository if cloning or updating of the repository
 // was successful, otherwise an error.
 func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) { //nolint: revive
+	return cloneOrOpenRepo(repoPath, repoURL, nil)
+}
+
+// cloneOrOpenRepo checks that the repoPath exists or creates it before running the
+// clone operation and connects the clone progress writer to our logging system
+// if needed. This function is the core of the *CloneOrOpenRepo functions.
+func cloneOrOpenRepo(repoPath, repoURL string, opts *git.CloneOptions) (*Repo, error) {
 	// Ensure we have a directory path
 	targetDir, preexisting, err := ensureRepoPath(repoPath)
 	if err != nil {
@@ -393,8 +400,17 @@ func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) { //n
 		return updateRepo(targetDir)
 	}
 
+	if opts == nil {
+		opts = &git.CloneOptions{}
+	}
+
 	progressBuffer := &bytes.Buffer{}
 	progressWriters := []io.Writer{progressBuffer}
+
+	// Preserve any progresswriters already defined
+	if opts.Progress != nil {
+		progressWriters = append(progressWriters, opts.Progress)
+	}
 
 	// Only output the clone progress on debug or trace level,
 	// otherwise it's too boring.
@@ -403,10 +419,9 @@ func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) { //n
 		progressWriters = append(progressWriters, os.Stderr)
 	}
 
-	if err := cloneRepository(repoURL, targetDir, &git.CloneOptions{
-		URL:      repoURL,
-		Progress: io.MultiWriter(progressWriters...),
-	}); err != nil {
+	opts.Progress = io.MultiWriter(progressWriters...)
+
+	if err := cloneRepository(repoURL, targetDir, opts); err != nil {
 		if logLevel < logrus.DebugLevel {
 			logrus.Errorf(
 				"Clone repository failed. Tracked progress:\n%s",
@@ -422,6 +437,7 @@ func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) { //n
 // cloneRepository is a utility function that exposes the bare git clone
 // operation internally.
 func cloneRepository(repoURL, repoPath string, opts *git.CloneOptions) error {
+	// We always clone to the repo defined in the arguments
 	if opts == nil {
 		opts = &git.CloneOptions{}
 	}
