@@ -374,6 +374,31 @@ func CloneOrOpenGitHubRepo(repoPath, owner, repo string, useSSH bool) (*Repo, er
 	return CloneOrOpenRepo(repoPath, repoURL, useSSH)
 }
 
+// ShallowCleanCloneGitHubRepo creates a guaranteed fresh checkout of a GitHub
+// repository. The returned *Repo has a Cleanup() method that should be used to
+// delete the repository on-disk after it is no longer needed.
+func ShallowCleanCloneGitHubRepo(owner, repo string, useSSH bool) (*Repo, error) {
+	repoURL := GetRepoURL(owner, repo, useSSH)
+	// Pass a blank string to ensure a temp directory gets created
+	return ShallowCloneOrOpenRepo("", repoURL, useSSH)
+}
+
+// ShallowCloneOrOpenGitHubRepo this is the *GitHub* counterpart of
+// ShallowCloneOrOpenRepo. It works exactly the same but it takes a
+// GitHub org and repo instead of a URL
+func ShallowCloneOrOpenGitHubRepo(owner, repoPath string, useSSH bool) (*Repo, error) {
+	repoURL := GetRepoURL(owner, repoPath, useSSH)
+	return ShallowCloneOrOpenRepo(repoPath, repoURL, useSSH)
+}
+
+// ShallowCloneOrOpenRepo clones performs a shallow clone of a repository (a
+// clone of depth 1). It is almost identical to CloneOrOpenRepo. If a
+// repository already exists in repoPath, then no clone is done and the function
+// returns the existing repository.
+func ShallowCloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) { //nolint: revive
+	return cloneOrOpenRepo(repoPath, repoURL, &git.CloneOptions{Depth: 1})
+}
+
 // CloneOrOpenRepo creates a temp directory containing the provided
 // GitHub repository via the url.
 //
