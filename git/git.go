@@ -210,6 +210,24 @@ func ConfigureGlobalDefaultUserAndEmail() error {
 	return nil
 }
 
+// ConfigureGlobalCustomUserAndEmail globally configures a custom git
+// user and email.
+func ConfigureGlobalCustomUserAndEmail(gitUser, gitEmail string) error {
+	if err := filterCommand(
+		"", "config", "--global", "user.name", gitUser,
+	).RunSuccess(); err != nil {
+		return fmt.Errorf("configure user name: %w", err)
+	}
+
+	if err := filterCommand(
+		"", "config", "--global", "user.email", gitEmail,
+	).RunSuccess(); err != nil {
+		return fmt.Errorf("configure user email: %w", err)
+	}
+
+	return nil
+}
+
 // filterCommand returns a command which automatically filters sensitive information.
 func filterCommand(workdir string, args ...string) *command.Command {
 	// Filter GitHub API keys
