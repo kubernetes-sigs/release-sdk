@@ -26,6 +26,7 @@ import (
 	gogithub "github.com/google/go-github/v56/github"
 	"github.com/stretchr/testify/require"
 
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/release-sdk/git"
 	"sigs.k8s.io/release-sdk/github"
 	"sigs.k8s.io/release-sdk/github/githubfakes"
@@ -650,4 +651,53 @@ func TestListComments(t *testing.T) {
 	require.Equal(t, result[0].GetBody(), comment0)
 	require.Equal(t, result[1].GetBody(), comment1)
 	require.Equal(t, result[2].GetBody(), comment2)
+}
+
+func TestUpdateReleasePageWithOptions(t *testing.T) {
+	// Given
+	sut, client := newSUT()
+	fakeID := int64(100000)
+	tagName := "v0.0.1"
+	commitish := "fakefake"
+	name := "v0.0.1"
+	body := "Fake Release Body"
+	opts := &github.UpdateReleasePageOptions{
+		Name:       &name,
+		Body:       &body,
+		Draft:      ptr.To(false),
+		Prerelease: ptr.To(false),
+		Latest:     ptr.To(true),
+	}
+	release := &gogithub.RepositoryRelease{
+		ID:              &fakeID,
+		Name:            &name,
+		Body:            &body,
+		TagName:         &tagName,
+		TargetCommitish: &commitish,
+
+		Draft:      ptr.To(false),
+		Prerelease: ptr.To(false),
+		MakeLatest: ptr.To("true"),
+	}
+
+	for _, tcErr := range []error{errors.New("Test error"), nil} {
+		// When
+		client.UpdateReleasePageReturns(release, tcErr)
+		releaseData, err := sut.UpdateReleasePageWithOptions("kubernetes-fake-org", "kubernetes-fake-repo", 0, tagName, commitish, opts)
+
+		// Then
+		if tcErr == nil {
+			require.Nil(t, err)
+			require.NotNil(t, releaseData)
+			require.Equal(t, fakeID, releaseData.GetID())
+			require.Equal(t, commitish, releaseData.GetTargetCommitish())
+			require.Equal(t, name, releaseData.GetName())
+			require.Equal(t, body, releaseData.GetBody())
+			require.Equal(t, false, release.GetDraft())
+			require.Equal(t, false, release.GetPrerelease())
+			require.Equal(t, "true", release.GetMakeLatest())
+		} else {
+			require.NotNil(t, err)
+		}
+	}
 }
