@@ -334,7 +334,7 @@ func (fake *FakeStore) CopyToRemoteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStore) GetMarkerPath(arg1 string, arg2 string) (string, error) {
+func (fake *FakeStore) GetMarkerPath(arg1 string, arg2 string, arg3 bool) (string, error) {
 	fake.getMarkerPathMutex.Lock()
 	ret, specificReturn := fake.getMarkerPathReturnsOnCall[len(fake.getMarkerPathArgsForCall)]
 	fake.getMarkerPathArgsForCall = append(fake.getMarkerPathArgsForCall, struct {

@@ -43,7 +43,7 @@ type Store interface {
 
 	// TODO: Overly specific. We should only care these methods during a release.
 	GetReleasePath(bucket, gcsRoot, version string, fast bool) (string, error)
-	GetMarkerPath(bucket, gcsRoot string) (string, error)
+	GetMarkerPath(bucket, gcsRoot string, fast bool) (string, error)
 }
 
 type OptFn func(Store)
