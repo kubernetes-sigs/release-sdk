@@ -1321,8 +1321,8 @@ func (r *Repo) HasRemote(name, expectedURL string) bool {
 }
 
 // AddRemote adds a new remote to the current working tree
-func (r *Repo) AddRemote(name, owner, repo string) error {
-	repoURL := GetRepoURL(owner, repo, true)
+func (r *Repo) AddRemote(name, owner, repo string, useSSH bool) error {
+	repoURL := GetRepoURL(owner, repo, useSSH)
 	args := []string{"remote", "add", name, repoURL}
 	return command.
 		NewWithWorkDir(r.Dir(), gitExecutable, args...).
