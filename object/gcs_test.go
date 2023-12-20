@@ -110,24 +110,40 @@ func TestGetMarkerPath(t *testing.T) {
 		bucket, gcsRoot string
 		expected        string
 		shouldError     bool
+		fast            bool
 	}{
 		{ // default CI build
 			bucket:      "k8s-release-dev",
 			gcsRoot:     "ci",
 			expected:    "gs://k8s-release-dev/ci",
 			shouldError: false,
+			fast:        false,
+		},
+		{ // default fast CI build
+			bucket:      "k8s-release-dev",
+			gcsRoot:     "ci",
+			expected:    "gs://k8s-release-dev/ci/fast",
+			shouldError: false,
+			fast:        true,
+		},
+		{ // current problematic behaviour
+			bucket:      "k8s-release-dev",
+			gcsRoot:     "ci",
+			expected:    "gs://k8s-release-dev/ci",
+			shouldError: true,
+			fast:        true,
 		},
 	} {
 		actual, err := testGCS.GetMarkerPath(
 			tc.bucket,
 			tc.gcsRoot,
+			tc.fast,
 		)
 
-		require.Equal(t, tc.expected, actual)
-
 		if tc.shouldError {
-			require.NotNil(t, err)
+			require.NotEqual(t, tc.expected, actual)
 		} else {
+			require.Equal(t, tc.expected, actual)
 			require.Nil(t, err)
 		}
 	}

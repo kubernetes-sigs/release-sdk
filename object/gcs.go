@@ -212,14 +212,14 @@ func (g *GCS) GetReleasePath(
 //
 //	gs://<bucket>/<gcsRoot>
 func (g *GCS) GetMarkerPath(
-	bucket, gcsRoot string,
+	bucket, gcsRoot string, fast bool,
 ) (string, error) {
 	gcsPath, err := g.getPath(
 		bucket,
 		gcsRoot,
 		"",
 		"marker",
-		false,
+		fast,
 	)
 	if err != nil {
 		return "", fmt.Errorf("normalize GCS path: %w", err)
@@ -258,6 +258,9 @@ func (g *GCS) getPath(
 			gcsPathParts = append(gcsPathParts, version)
 		}
 	case "marker":
+		if fast {
+			gcsPathParts = append(gcsPathParts, "fast")
+		}
 	default:
 		return "", errors.New("a GCS path type must be specified")
 	}
