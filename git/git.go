@@ -310,6 +310,7 @@ type Repository interface {
 	CommitObject(plumbing.Hash) (*object.Commit, error)
 	CreateRemote(*config.RemoteConfig) (*git.Remote, error)
 	DeleteRemote(name string) error
+	Push(o *git.PushOptions) error
 	Head() (*plumbing.Reference, error)
 	Remote(string) (*git.Remote, error)
 	Remotes() ([]*git.Remote, error)
@@ -1340,6 +1341,12 @@ func (r *Repo) PushToRemote(remote, remoteBranch string) error {
 	args = append(args, remote, remoteBranch)
 
 	return filterCommand(r.Dir(), args...).RunSuccess()
+}
+
+// PushToRemote push the current branch to a specified remote, but only if the
+// repository is not in dry run mode
+func (r *Repo) PushToRemoteWithOptions(pushOptions *git.PushOptions) error {
+	return r.inner.Push(pushOptions)
 }
 
 // LsRemote can be used to run `git ls-remote` with the provided args on the
