@@ -31,7 +31,7 @@ const (
 )
 
 // PrepareFork prepares a branch from a repo fork
-func PrepareFork(branchName, upstreamOrg, upstreamRepo, myOrg, myRepo string) (repo *git.Repo, err error) {
+func PrepareFork(branchName, upstreamOrg, upstreamRepo, myOrg, myRepo string, useSSH bool) (repo *git.Repo, err error) {
 	// checkout the upstream repository
 	logrus.Infof("Cloning/updating repository %s/%s", upstreamOrg, upstreamRepo)
 
@@ -51,7 +51,7 @@ func PrepareFork(branchName, upstreamOrg, upstreamRepo, myOrg, myRepo string) (r
 		)
 	} else {
 		// add the user's fork as a remote
-		err = repo.AddRemote(UserForkName, myOrg, myRepo)
+		err = repo.AddRemote(UserForkName, myOrg, myRepo, useSSH)
 		if err != nil {
 			return nil, fmt.Errorf("adding user's fork as remote repository: %w", err)
 		}

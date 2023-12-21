@@ -105,6 +105,17 @@ type FakeRepository struct {
 		result1 *plumbing.Reference
 		result2 error
 	}
+	PushStub        func(*gita.PushOptions) error
+	pushMutex       sync.RWMutex
+	pushArgsForCall []struct {
+		arg1 *gita.PushOptions
+	}
+	pushReturns struct {
+		result1 error
+	}
+	pushReturnsOnCall map[int]struct {
+		result1 error
+	}
 	RemoteStub        func(string) (*gita.Remote, error)
 	remoteMutex       sync.RWMutex
 	remoteArgsForCall []struct {
@@ -526,6 +537,67 @@ func (fake *FakeRepository) HeadReturnsOnCall(i int, result1 *plumbing.Reference
 	}{result1, result2}
 }
 
+func (fake *FakeRepository) Push(arg1 *gita.PushOptions) error {
+	fake.pushMutex.Lock()
+	ret, specificReturn := fake.pushReturnsOnCall[len(fake.pushArgsForCall)]
+	fake.pushArgsForCall = append(fake.pushArgsForCall, struct {
+		arg1 *gita.PushOptions
+	}{arg1})
+	stub := fake.PushStub
+	fakeReturns := fake.pushReturns
+	fake.recordInvocation("Push", []interface{}{arg1})
+	fake.pushMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeRepository) PushCallCount() int {
+	fake.pushMutex.RLock()
+	defer fake.pushMutex.RUnlock()
+	return len(fake.pushArgsForCall)
+}
+
+func (fake *FakeRepository) PushCalls(stub func(*gita.PushOptions) error) {
+	fake.pushMutex.Lock()
+	defer fake.pushMutex.Unlock()
+	fake.PushStub = stub
+}
+
+func (fake *FakeRepository) PushArgsForCall(i int) *gita.PushOptions {
+	fake.pushMutex.RLock()
+	defer fake.pushMutex.RUnlock()
+	argsForCall := fake.pushArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeRepository) PushReturns(result1 error) {
+	fake.pushMutex.Lock()
+	defer fake.pushMutex.Unlock()
+	fake.PushStub = nil
+	fake.pushReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeRepository) PushReturnsOnCall(i int, result1 error) {
+	fake.pushMutex.Lock()
+	defer fake.pushMutex.Unlock()
+	fake.PushStub = nil
+	if fake.pushReturnsOnCall == nil {
+		fake.pushReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.pushReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeRepository) Remote(arg1 string) (*gita.Remote, error) {
 	fake.remoteMutex.Lock()
 	ret, specificReturn := fake.remoteReturnsOnCall[len(fake.remoteArgsForCall)]
@@ -781,6 +853,8 @@ func (fake *FakeRepository) Invocations() map[string][][]interface{} {
 	defer fake.deleteRemoteMutex.RUnlock()
 	fake.headMutex.RLock()
 	defer fake.headMutex.RUnlock()
+	fake.pushMutex.RLock()
+	defer fake.pushMutex.RUnlock()
 	fake.remoteMutex.RLock()
 	defer fake.remoteMutex.RUnlock()
 	fake.remotesMutex.RLock()

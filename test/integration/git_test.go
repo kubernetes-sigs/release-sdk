@@ -763,7 +763,7 @@ func TestHasRemoteSuccess(t *testing.T) {
 	testRepo := newTestRepo(t)
 	defer testRepo.cleanup(t)
 
-	err := testRepo.sut.AddRemote("test", "owner", "repo")
+	err := testRepo.sut.AddRemote("test", "owner", "repo", true)
 	require.Nil(t, err)
 
 	remotes, err := testRepo.sut.Remotes()
@@ -850,7 +850,7 @@ func TestAddRemoteSuccess(t *testing.T) {
 	testRepo := newTestRepo(t)
 	defer testRepo.cleanup(t)
 
-	err := testRepo.sut.AddRemote("remote", "owner", "repo")
+	err := testRepo.sut.AddRemote("remote", "owner", "repo", true)
 	require.Nil(t, err)
 }
 
@@ -858,7 +858,7 @@ func TestAddRemoteFailureAlreadyExisting(t *testing.T) {
 	testRepo := newTestRepo(t)
 	defer testRepo.cleanup(t)
 
-	err := testRepo.sut.AddRemote(git.DefaultRemote, "owner", "repo")
+	err := testRepo.sut.AddRemote(git.DefaultRemote, "owner", "repo", true)
 	require.NotNil(t, err)
 }
 
