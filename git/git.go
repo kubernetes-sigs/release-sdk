@@ -378,11 +378,11 @@ func CloneOrOpenDefaultGitHubRepoSSH(repoPath string) (*Repo, error) {
 
 // CleanCloneGitHubRepo creates a guaranteed fresh checkout of a given repository. The returned *Repo has a Cleanup()
 // method that should be used to delete the repository on-disk afterwards.
-func CleanCloneGitHubRepo(owner, repo string, useSSH bool) (*Repo, error) {
+func CleanCloneGitHubRepo(owner, repo string, useSSH bool, opts *git.CloneOptions) (*Repo, error) {
 	repoURL := GetRepoURL(owner, repo, useSSH)
 	// The use of a blank string for the repo path triggers special behaviour in CloneOrOpenRepo that causes a true
 	// temporary directory with a random name to be created.
-	return CloneOrOpenRepo("", repoURL, useSSH)
+	return CloneOrOpenRepo("", repoURL, useSSH, opts)
 }
 
 // CloneOrOpenGitHubRepo works with a repository in the given directory, or creates one if the directory is empty. The
@@ -390,7 +390,7 @@ func CleanCloneGitHubRepo(owner, repo string, useSSH bool) (*Repo, error) {
 // repository using the defaultGithubAuthRoot.
 func CloneOrOpenGitHubRepo(repoPath, owner, repo string, useSSH bool) (*Repo, error) {
 	repoURL := GetRepoURL(owner, repo, useSSH)
-	return CloneOrOpenRepo(repoPath, repoURL, useSSH)
+	return CloneOrOpenRepo(repoPath, repoURL, useSSH, nil)
 }
 
 // ShallowCleanCloneGitHubRepo creates a guaranteed fresh checkout of a GitHub
@@ -425,8 +425,8 @@ func ShallowCloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error
 //
 // The function returns the repository if cloning or updating of the repository
 // was successful, otherwise an error.
-func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) { //nolint: revive
-	return cloneOrOpenRepo(repoPath, repoURL, nil)
+func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool, opts *git.CloneOptions) (*Repo, error) { //nolint: revive
+	return cloneOrOpenRepo(repoPath, repoURL, opts)
 }
 
 // cloneOrOpenRepo checks that the repoPath exists or creates it before running the
