@@ -470,7 +470,7 @@ func TestFetchRemote(t *testing.T) {
 	defer originRepo.Cleanup() //nolint: errcheck
 
 	// Create a new clone of the original repo
-	testRepo, err := git.CloneOrOpenRepo("", rawRepoDir, false)
+	testRepo, err := git.CloneOrOpenRepo("", rawRepoDir, false, nil)
 	require.Nil(t, err)
 	defer testRepo.Cleanup() //nolint: errcheck
 
@@ -530,7 +530,7 @@ func TestRebase(t *testing.T) {
 	defer originRepo.Cleanup() //nolint: errcheck
 
 	// Create a new clone of the original repo
-	testRepo, err := git.CloneOrOpenRepo("", rawRepoDir, false)
+	testRepo, err := git.CloneOrOpenRepo("", rawRepoDir, false, nil)
 	require.Nil(t, err)
 	defer testRepo.Cleanup() //nolint: errcheck
 

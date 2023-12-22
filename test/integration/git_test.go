@@ -206,7 +206,7 @@ func newTestRepo(t *testing.T) *testRepo {
 	require.Nil(t, os.RemoveAll(cloneTempDir))
 
 	// Provide a system under test inside the test repo
-	sut, err := git.CloneOrOpenRepo("", bareTempDir, false)
+	sut, err := git.CloneOrOpenRepo("", bareTempDir, false, nil)
 	require.Nil(t, err)
 	require.Nil(t, command.NewWithWorkDir(
 		sut.Dir(), "git", "checkout", branchName,
@@ -239,7 +239,7 @@ func TestSuccessCloneOrOpen(t *testing.T) {
 	testRepo := newTestRepo(t)
 	defer testRepo.cleanup(t)
 
-	secondRepo, err := git.CloneOrOpenRepo(testRepo.sut.Dir(), testRepo.dir, false)
+	secondRepo, err := git.CloneOrOpenRepo(testRepo.sut.Dir(), testRepo.dir, false, nil)
 	require.Nil(t, err)
 
 	require.Equal(t, secondRepo.Dir(), testRepo.sut.Dir())
