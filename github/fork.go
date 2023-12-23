@@ -32,12 +32,12 @@ const (
 )
 
 // PrepareFork prepares a branch from a repo fork
-func PrepareFork(branchName, upstreamOrg, upstreamRepo, myOrg, myRepo string, useSSH bool, opts *gogit.CloneOptions) (repo *git.Repo, err error) {
+func PrepareFork(branchName, upstreamOrg, upstreamRepo, myOrg, myRepo string, useSSH, updateRepo bool, opts *gogit.CloneOptions) (repo *git.Repo, err error) {
 	// checkout the upstream repository
 	logrus.Infof("Cloning/updating repository %s/%s", upstreamOrg, upstreamRepo)
 
 	repo, err = git.CleanCloneGitHubRepo(
-		upstreamOrg, upstreamRepo, false, opts,
+		upstreamOrg, upstreamRepo, false, updateRepo, opts,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("cloning %s/%s: %w", upstreamOrg, upstreamRepo, err)
