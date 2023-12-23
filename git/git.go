@@ -378,11 +378,11 @@ func CloneOrOpenDefaultGitHubRepoSSH(repoPath string) (*Repo, error) {
 
 // CleanCloneGitHubRepo creates a guaranteed fresh checkout of a given repository. The returned *Repo has a Cleanup()
 // method that should be used to delete the repository on-disk afterwards.
-func CleanCloneGitHubRepo(owner, repo string, useSSH bool, opts *git.CloneOptions) (*Repo, error) {
+func CleanCloneGitHubRepo(owner, repo string, useSSH, updateRepo bool, opts *git.CloneOptions) (*Repo, error) {
 	repoURL := GetRepoURL(owner, repo, useSSH)
 	// The use of a blank string for the repo path triggers special behaviour in CloneOrOpenRepo that causes a true
 	// temporary directory with a random name to be created.
-	return CloneOrOpenRepo("", repoURL, useSSH, opts)
+	return CloneOrOpenRepo("", repoURL, useSSH, updateRepo, opts)
 }
 
 // CloneOrOpenGitHubRepo works with a repository in the given directory, or creates one if the directory is empty. The
@@ -390,7 +390,7 @@ func CleanCloneGitHubRepo(owner, repo string, useSSH bool, opts *git.CloneOption
 // repository using the defaultGithubAuthRoot.
 func CloneOrOpenGitHubRepo(repoPath, owner, repo string, useSSH bool) (*Repo, error) {
 	repoURL := GetRepoURL(owner, repo, useSSH)
-	return CloneOrOpenRepo(repoPath, repoURL, useSSH, nil)
+	return CloneOrOpenRepo(repoPath, repoURL, useSSH, true, nil)
 }
 
 // ShallowCleanCloneGitHubRepo creates a guaranteed fresh checkout of a GitHub
@@ -415,7 +415,7 @@ func ShallowCloneOrOpenGitHubRepo(owner, repoPath string, useSSH bool) (*Repo, e
 // repository already exists in repoPath, then no clone is done and the function
 // returns the existing repository.
 func ShallowCloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error) { //nolint: revive
-	return cloneOrOpenRepo(repoPath, repoURL, &git.CloneOptions{Depth: 1})
+	return cloneOrOpenRepo(repoPath, repoURL, true, &git.CloneOptions{Depth: 1})
 }
 
 // CloneOrOpenRepo creates a temp directory containing the provided
@@ -425,14 +425,14 @@ func ShallowCloneOrOpenRepo(repoPath, repoURL string, useSSH bool) (*Repo, error
 //
 // The function returns the repository if cloning or updating of the repository
 // was successful, otherwise an error.
-func CloneOrOpenRepo(repoPath, repoURL string, useSSH bool, opts *git.CloneOptions) (*Repo, error) { //nolint: revive
-	return cloneOrOpenRepo(repoPath, repoURL, opts)
+func CloneOrOpenRepo(repoPath, repoURL string, useSSH, updateRepo bool, opts *git.CloneOptions) (*Repo, error) { //nolint: revive
+	return cloneOrOpenRepo(repoPath, repoURL, updateRepo, opts)
 }
 
 // cloneOrOpenRepo checks that the repoPath exists or creates it before running the
 // clone operation and connects the clone progress writer to our logging system
 // if needed. This function is the core of the *CloneOrOpenRepo functions.
-func cloneOrOpenRepo(repoPath, repoURL string, opts *git.CloneOptions) (*Repo, error) {
+func cloneOrOpenRepo(repoPath, repoURL string, updateRepository bool, opts *git.CloneOptions) (*Repo, error) {
 	// Ensure we have a directory path
 	targetDir, preexisting, err := ensureRepoPath(repoPath)
 	if err != nil {
@@ -441,7 +441,7 @@ func cloneOrOpenRepo(repoPath, repoURL string, opts *git.CloneOptions) (*Repo, e
 
 	// If the repo already exists, just update it
 	if preexisting {
-		return updateRepo(targetDir)
+		return updateRepo(targetDir, true)
 	}
 
 	if opts == nil {
@@ -475,7 +475,7 @@ func cloneOrOpenRepo(repoPath, repoURL string, opts *git.CloneOptions) (*Repo, e
 		return nil, err
 	}
 
-	return updateRepo(targetDir)
+	return updateRepo(targetDir, updateRepository)
 }
 
 // cloneRepository is a utility function that exposes the bare git clone
@@ -526,17 +526,19 @@ func ensureRepoPath(repoPath string) (targetDir string, exisitingDir bool, err e
 
 // updateRepo tries to open the provided repoPath and fetches the latest
 // changes from the configured remote location
-func updateRepo(repoPath string) (*Repo, error) {
+func updateRepo(repoPath string, updateRepository bool) (*Repo, error) {
 	r, err := OpenRepo(repoPath)
 	if err != nil {
 		return nil, err
 	}
 
-	// Update the repo
-	if err := filterCommand(
-		r.Dir(), "pull", "--rebase",
-	).RunSilentSuccess(); err != nil {
-		return nil, fmt.Errorf("unable to pull from remote: %w", err)
+	if updateRepository {
+		// Update the repo
+		if err := filterCommand(
+			r.Dir(), "pull", "--rebase",
+		).RunSilentSuccess(); err != nil {
+			return nil, fmt.Errorf("unable to pull from remote: %w", err)
+		}
 	}
 
 	return r, nil
