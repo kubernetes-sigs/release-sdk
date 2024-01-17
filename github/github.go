@@ -27,7 +27,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v56/github"
+	"github.com/google/go-github/v58/github"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 
@@ -151,6 +151,9 @@ type Client interface {
 	ListComments(
 		context.Context, string, string, int, *github.IssueListCommentsOptions,
 	) ([]*github.IssueComment, *github.Response, error)
+	RequestPullRequestReview(
+		context.Context, string, string, int, []string, []string,
+	) (*github.PullRequest, error)
 }
 
 // NewIssueOptions is a struct of optional fields for new issues
@@ -396,6 +399,23 @@ func (g *githubClient) CreatePullRequest(
 	}
 
 	logrus.Infof("Successfully created PR #%d", pr.GetNumber())
+	return pr, nil
+}
+
+func (g *githubClient) RequestPullRequestReview(
+	ctx context.Context, owner, repo string, prNumber int, reviewers, teamReviewers []string,
+) (*github.PullRequest, error) {
+	reviewersRequest := github.ReviewersRequest{
+		Reviewers:     reviewers,
+		TeamReviewers: teamReviewers,
+	}
+
+	pr, _, err := g.PullRequests.RequestReviewers(ctx, owner, repo, prNumber, reviewersRequest)
+	if err != nil {
+		return pr, fmt.Errorf("requesting reviewers for PR %d: %w", prNumber, err)
+	}
+
+	logrus.Infof("Successfully added reviewers for PR #%d", pr.GetNumber())
 	return pr, nil
 }
 
@@ -851,6 +871,18 @@ func (g *GitHub) CreatePullRequest(
 ) (*github.PullRequest, error) {
 	// Use the client to create a new PR
 	pr, err := g.Client().CreatePullRequest(context.Background(), owner, repo, baseBranchName, headBranchName, title, body)
+	if err != nil {
+		return pr, err
+	}
+
+	return pr, nil
+}
+
+func (g *GitHub) RequestPullRequestReview(
+	owner, repo string, prNumber int, reviewers, teamReviewers []string,
+) (*github.PullRequest, error) {
+	// Use the client to create a new PR
+	pr, err := g.Client().RequestPullRequestReview(context.Background(), owner, repo, prNumber, reviewers, teamReviewers)
 	if err != nil {
 		return pr, err
 	}
