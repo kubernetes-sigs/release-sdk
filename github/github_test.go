@@ -23,7 +23,7 @@ import (
 	"testing"
 	"time"
 
-	gogithub "github.com/google/go-github/v56/github"
+	gogithub "github.com/google/go-github/v58/github"
 	"github.com/stretchr/testify/require"
 
 	"k8s.io/utils/ptr"
