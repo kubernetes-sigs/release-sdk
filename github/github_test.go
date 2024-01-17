@@ -292,6 +292,33 @@ func TestCreatePullRequest(t *testing.T) {
 	require.Equal(t, fakeID, pr.GetID())
 }
 
+func TestRequestReviewers(t *testing.T) {
+	// Given
+	sut, client := newSUT()
+	fakeID := int64(1234)
+	fakeNumber := int(5678)
+	fakeUser := "fakeuser"
+	client.RequestPullRequestReviewReturns(&gogithub.PullRequest{
+		ID:     &fakeID,
+		Number: &fakeNumber,
+		RequestedReviewers: []*gogithub.User{
+			{
+				Login: &fakeUser,
+				Name:  &fakeUser,
+			},
+		},
+	}, nil)
+
+	// When requesting reviewers
+	updatedPr, err := sut.RequestPullRequestReview("kubernetes-fake-org", "kubernetes-fake-repo", fakeNumber, []string{fakeUser}, []string{})
+	require.Nil(t, err)
+	require.NotNil(t, updatedPr, nil)
+	require.Equal(t, fakeID, updatedPr.GetID())
+	require.Equal(t, fakeNumber, updatedPr.GetNumber())
+	require.Equal(t, 1, len(updatedPr.RequestedReviewers))
+	require.Equal(t, fakeUser, updatedPr.RequestedReviewers[0].GetName())
+}
+
 func TestGetMilestone(t *testing.T) {
 	sut, client := newSUT()
 	// Given

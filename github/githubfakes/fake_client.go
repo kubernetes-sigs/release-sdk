@@ -23,7 +23,7 @@ import (
 	"os"
 	"sync"
 
-	githuba "github.com/google/go-github/v56/github"
+	githuba "github.com/google/go-github/v58/github"
 	"sigs.k8s.io/release-sdk/github"
 )
 
@@ -402,6 +402,24 @@ type FakeClient struct {
 		result1 []*githuba.RepositoryTag
 		result2 *githuba.Response
 		result3 error
+	}
+	RequestPullRequestReviewStub        func(context.Context, string, string, int, []string, []string) (*githuba.PullRequest, error)
+	requestPullRequestReviewMutex       sync.RWMutex
+	requestPullRequestReviewArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int
+		arg5 []string
+		arg6 []string
+	}
+	requestPullRequestReviewReturns struct {
+		result1 *githuba.PullRequest
+		result2 error
+	}
+	requestPullRequestReviewReturnsOnCall map[int]struct {
+		result1 *githuba.PullRequest
+		result2 error
 	}
 	UpdateIssueStub        func(context.Context, string, string, int, *githuba.IssueRequest) (*githuba.Issue, *githuba.Response, error)
 	updateIssueMutex       sync.RWMutex
@@ -1928,6 +1946,85 @@ func (fake *FakeClient) ListTagsReturnsOnCall(i int, result1 []*githuba.Reposito
 	}{result1, result2, result3}
 }
 
+func (fake *FakeClient) RequestPullRequestReview(arg1 context.Context, arg2 string, arg3 string, arg4 int, arg5 []string, arg6 []string) (*githuba.PullRequest, error) {
+	var arg5Copy []string
+	if arg5 != nil {
+		arg5Copy = make([]string, len(arg5))
+		copy(arg5Copy, arg5)
+	}
+	var arg6Copy []string
+	if arg6 != nil {
+		arg6Copy = make([]string, len(arg6))
+		copy(arg6Copy, arg6)
+	}
+	fake.requestPullRequestReviewMutex.Lock()
+	ret, specificReturn := fake.requestPullRequestReviewReturnsOnCall[len(fake.requestPullRequestReviewArgsForCall)]
+	fake.requestPullRequestReviewArgsForCall = append(fake.requestPullRequestReviewArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+		arg4 int
+		arg5 []string
+		arg6 []string
+	}{arg1, arg2, arg3, arg4, arg5Copy, arg6Copy})
+	stub := fake.RequestPullRequestReviewStub
+	fakeReturns := fake.requestPullRequestReviewReturns
+	fake.recordInvocation("RequestPullRequestReview", []interface{}{arg1, arg2, arg3, arg4, arg5Copy, arg6Copy})
+	fake.requestPullRequestReviewMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClient) RequestPullRequestReviewCallCount() int {
+	fake.requestPullRequestReviewMutex.RLock()
+	defer fake.requestPullRequestReviewMutex.RUnlock()
+	return len(fake.requestPullRequestReviewArgsForCall)
+}
+
+func (fake *FakeClient) RequestPullRequestReviewCalls(stub func(context.Context, string, string, int, []string, []string) (*githuba.PullRequest, error)) {
+	fake.requestPullRequestReviewMutex.Lock()
+	defer fake.requestPullRequestReviewMutex.Unlock()
+	fake.RequestPullRequestReviewStub = stub
+}
+
+func (fake *FakeClient) RequestPullRequestReviewArgsForCall(i int) (context.Context, string, string, int, []string, []string) {
+	fake.requestPullRequestReviewMutex.RLock()
+	defer fake.requestPullRequestReviewMutex.RUnlock()
+	argsForCall := fake.requestPullRequestReviewArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6
+}
+
+func (fake *FakeClient) RequestPullRequestReviewReturns(result1 *githuba.PullRequest, result2 error) {
+	fake.requestPullRequestReviewMutex.Lock()
+	defer fake.requestPullRequestReviewMutex.Unlock()
+	fake.RequestPullRequestReviewStub = nil
+	fake.requestPullRequestReviewReturns = struct {
+		result1 *githuba.PullRequest
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClient) RequestPullRequestReviewReturnsOnCall(i int, result1 *githuba.PullRequest, result2 error) {
+	fake.requestPullRequestReviewMutex.Lock()
+	defer fake.requestPullRequestReviewMutex.Unlock()
+	fake.RequestPullRequestReviewStub = nil
+	if fake.requestPullRequestReviewReturnsOnCall == nil {
+		fake.requestPullRequestReviewReturnsOnCall = make(map[int]struct {
+			result1 *githuba.PullRequest
+			result2 error
+		})
+	}
+	fake.requestPullRequestReviewReturnsOnCall[i] = struct {
+		result1 *githuba.PullRequest
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeClient) UpdateIssue(arg1 context.Context, arg2 string, arg3 string, arg4 int, arg5 *githuba.IssueRequest) (*githuba.Issue, *githuba.Response, error) {
 	fake.updateIssueMutex.Lock()
 	ret, specificReturn := fake.updateIssueReturnsOnCall[len(fake.updateIssueArgsForCall)]
@@ -2181,6 +2278,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.listReleasesMutex.RUnlock()
 	fake.listTagsMutex.RLock()
 	defer fake.listTagsMutex.RUnlock()
+	fake.requestPullRequestReviewMutex.RLock()
+	defer fake.requestPullRequestReviewMutex.RUnlock()
 	fake.updateIssueMutex.RLock()
 	defer fake.updateIssueMutex.RUnlock()
 	fake.updateReleasePageMutex.RLock()

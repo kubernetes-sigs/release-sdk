@@ -217,6 +217,12 @@ func (c *githubNotesRecordClient) CreatePullRequest(
 	return &github.PullRequest{}, nil
 }
 
+func (c *githubNotesRecordClient) RequestPullRequestReview(
+	ctx context.Context, owner, repo string, prNumber int, reviewers, teamReviewers []string, //nolint: revive
+) (*github.PullRequest, error) {
+	return &github.PullRequest{}, nil
+}
+
 func (c *githubNotesRecordClient) CreateIssue(
 	_ context.Context, owner, repo string, req *github.IssueRequest, //nolint: revive
 ) (*github.Issue, error) {

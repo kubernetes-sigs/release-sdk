@@ -60,11 +60,12 @@ type FakeStore struct {
 	copyToRemoteReturnsOnCall map[int]struct {
 		result1 error
 	}
-	GetMarkerPathStub        func(string, string) (string, error)
+	GetMarkerPathStub        func(string, string, bool) (string, error)
 	getMarkerPathMutex       sync.RWMutex
 	getMarkerPathArgsForCall []struct {
 		arg1 string
 		arg2 string
+		arg3 bool
 	}
 	getMarkerPathReturns struct {
 		result1 string
@@ -340,13 +341,14 @@ func (fake *FakeStore) GetMarkerPath(arg1 string, arg2 string, arg3 bool) (strin
 	fake.getMarkerPathArgsForCall = append(fake.getMarkerPathArgsForCall, struct {
 		arg1 string
 		arg2 string
-	}{arg1, arg2})
+		arg3 bool
+	}{arg1, arg2, arg3})
 	stub := fake.GetMarkerPathStub
 	fakeReturns := fake.getMarkerPathReturns
-	fake.recordInvocation("GetMarkerPath", []interface{}{arg1, arg2})
+	fake.recordInvocation("GetMarkerPath", []interface{}{arg1, arg2, arg3})
 	fake.getMarkerPathMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -360,17 +362,17 @@ func (fake *FakeStore) GetMarkerPathCallCount() int {
 	return len(fake.getMarkerPathArgsForCall)
 }
 
-func (fake *FakeStore) GetMarkerPathCalls(stub func(string, string) (string, error)) {
+func (fake *FakeStore) GetMarkerPathCalls(stub func(string, string, bool) (string, error)) {
 	fake.getMarkerPathMutex.Lock()
 	defer fake.getMarkerPathMutex.Unlock()
 	fake.GetMarkerPathStub = stub
 }
 
-func (fake *FakeStore) GetMarkerPathArgsForCall(i int) (string, string) {
+func (fake *FakeStore) GetMarkerPathArgsForCall(i int) (string, string, bool) {
 	fake.getMarkerPathMutex.RLock()
 	defer fake.getMarkerPathMutex.RUnlock()
 	argsForCall := fake.getMarkerPathArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeStore) GetMarkerPathReturns(result1 string, result2 error) {
