@@ -393,13 +393,12 @@ func (g *githubClient) CreatePullRequest(
 		MaintainerCanModify: github.Bool(true),
 	}
 
-	pr, _, err := g.PullRequests.Create(ctx, owner, repo, newPullRequest)
-	if err != nil {
-		return pr, fmt.Errorf("creating pull request: %w", err)
+	for shouldRetry := internal.DefaultGithubErrChecker(); ; {
+		pr, _, err := g.PullRequests.Create(ctx, owner, repo, newPullRequest)
+		if !shouldRetry(err) {
+			return pr, err
+		}
 	}
-
-	logrus.Infof("Successfully created PR #%d", pr.GetNumber())
-	return pr, nil
 }
 
 func (g *githubClient) RequestPullRequestReview(
@@ -875,6 +874,7 @@ func (g *GitHub) CreatePullRequest(
 		return pr, err
 	}
 
+	logrus.Infof("Successfully created PR #%d", pr.GetNumber())
 	return pr, nil
 }
 
