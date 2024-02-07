@@ -76,6 +76,8 @@ const (
 	releaseBranchPrefix   = "release-"
 )
 
+var ErrNoMatchingRemote = errors.New("no matching remote")
+
 // setVerboseTrace enables maximum verbosity output.
 func setVerboseTrace() error {
 	if err := setVerbose(5, 2, 2, 2, 2, 2, 2, 2); err != nil {
@@ -441,7 +443,7 @@ func cloneOrOpenRepo(repoPath, repoURL string, updateRepository bool, opts *git.
 
 	// If the repo already exists, just update it
 	if preexisting {
-		return updateRepo(targetDir, true)
+		return updateRepo(targetDir, true, repoURL)
 	}
 
 	if opts == nil {
@@ -475,7 +477,7 @@ func cloneOrOpenRepo(repoPath, repoURL string, updateRepository bool, opts *git.
 		return nil, err
 	}
 
-	return updateRepo(targetDir, updateRepository)
+	return updateRepo(targetDir, updateRepository, repoURL)
 }
 
 // cloneRepository is a utility function that exposes the bare git clone
@@ -526,16 +528,32 @@ func ensureRepoPath(repoPath string) (targetDir string, exisitingDir bool, err e
 
 // updateRepo tries to open the provided repoPath and fetches the latest
 // changes from the configured remote location
-func updateRepo(repoPath string, updateRepository bool) (*Repo, error) {
+func updateRepo(repoPath string, updateRepository bool, repoURL string) (*Repo, error) {
 	r, err := OpenRepo(repoPath)
 	if err != nil {
 		return nil, err
 	}
 
 	if updateRepository {
+		remotes, err := r.Remotes()
+		if err != nil {
+			return nil, fmt.Errorf("unable to get repository remotes: %v", err)
+		}
+		var remoteName string
+		for _, remote := range remotes {
+			for _, url := range remote.URLs() {
+				if url == repoURL {
+					remoteName = remote.Name()
+					break
+				}
+			}
+		}
+		if remoteName == "" {
+			return nil, fmt.Errorf("unable to find remote with matching URL: %w", ErrNoMatchingRemote)
+		}
 		// Update the repo
 		if err := filterCommand(
-			r.Dir(), "pull", "--rebase",
+			r.Dir(), "pull", remoteName, "--rebase",
 		).RunSilentSuccess(); err != nil {
 			return nil, fmt.Errorf("unable to pull from remote: %w", err)
 		}
