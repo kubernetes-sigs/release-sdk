@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
@@ -29,7 +30,6 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 	"github.com/sigstore/cosign/v2/pkg/cosign"
 	"github.com/sigstore/rekor/pkg/generated/models"
-	"github.com/stretchr/testify/http"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/release-sdk/sign"
 	"sigs.k8s.io/release-sdk/sign/signfakes"
@@ -87,7 +87,7 @@ func TestSignImage(t *testing.T) {
 				m.Store("gcr.io/fake/honk:99.99.99", true)
 				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
-				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
+				mock.NewWithContextReturns(&testRoundTripper{}, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NoError(t, err)
@@ -311,7 +311,7 @@ func TestVerifyImage(t *testing.T) {
 				m.Store("gcr.io/fake/honk:99.99.99", true)
 				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
-				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
+				mock.NewWithContextReturns(&testRoundTripper{}, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, err)
@@ -606,6 +606,12 @@ func (fr *FakeReferenceStub) String() string {
 	return fr.image
 }
 
+type testRoundTripper struct{}
+
+func (t *testRoundTripper) RoundTrip(*http.Request) (*http.Response, error) {
+	return nil, nil
+}
+
 func TestImagesSigned(t *testing.T) {
 	t.Parallel()
 
@@ -622,7 +628,7 @@ func TestImagesSigned(t *testing.T) {
 		{ // Success, signed
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.ParseReferenceReturns(fakeRef, nil)
-				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
+				mock.NewWithContextReturns(&testRoundTripper{}, nil)
 			},
 			assert: func(res *sync.Map, err error) {
 				require.Nil(t, err)
@@ -635,7 +641,7 @@ func TestImagesSigned(t *testing.T) {
 		{ // Success, unsigned
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.ParseReferenceReturns(fakeRef, nil)
-				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
+				mock.NewWithContextReturns(&testRoundTripper{}, nil)
 				mock.DigestReturnsOnCall(1, "", &transport.Error{
 					Errors: []transport.Diagnostic{
 						{Code: transport.ManifestUnknownErrorCode},
@@ -672,7 +678,7 @@ func TestImagesSigned(t *testing.T) {
 		{ // failure on first Digest
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.ParseReferenceReturns(fakeRef, nil)
-				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
+				mock.NewWithContextReturns(&testRoundTripper{}, nil)
 				mock.DigestReturns("", errTest)
 			},
 			assert: func(res *sync.Map, err error) {
@@ -683,7 +689,7 @@ func TestImagesSigned(t *testing.T) {
 		{ // failure on second Digest
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.ParseReferenceReturns(fakeRef, nil)
-				mock.NewWithContextReturns(&http.TestRoundTripper{}, nil)
+				mock.NewWithContextReturns(&testRoundTripper{}, nil)
 				mock.DigestReturnsOnCall(1, "", errTest)
 			},
 			assert: func(res *sync.Map, err error) {
