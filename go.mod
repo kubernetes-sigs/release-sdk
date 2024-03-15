@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/go-git/go-git/v5 v5.11.0
-	github.com/google/go-containerregistry v0.19.0
+	github.com/google/go-containerregistry v0.19.1
 	github.com/google/go-github/v60 v60.0.0
 	github.com/jellydator/ttlcache/v3 v3.2.0
 	github.com/magefile/mage v1.15.0
