@@ -43,6 +43,8 @@ const (
 	TokenEnvKey = "GITHUB_TOKEN"
 	// GitHubURL Prefix for github URLs
 	GitHubURL = "https://github.com/"
+
+	unauthenticated = "unauthenticated"
 )
 
 // GitHub is a wrapper around GitHub related functionality
@@ -201,7 +203,29 @@ func New() *GitHub {
 func NewWithToken(token string) (*GitHub, error) {
 	ctx := context.Background()
 	client := http.DefaultClient
-	state := "unauthenticated"
+	state := unauthenticated
+	if token != "" {
+		state = strings.TrimPrefix(state, "un")
+		client = oauth2.NewClient(ctx, oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: token},
+		))
+	}
+
+	logrus.Debugf("Using %s GitHub client", state)
+	return &GitHub{
+		client:  &githubClient{github.NewClient(client)},
+		options: DefaultOptions(),
+	}, nil
+}
+
+// NewWithTokenWithClient can be used to specify a GitHub token through parameters and
+// set an custom HTTP Client.
+// Empty string will result in unauthenticated client, which makes
+// unauthenticated requests.
+func NewWithTokenWithClient(token string, httpClient *http.Client) (*GitHub, error) {
+	ctx := context.Background()
+	client := httpClient
+	state := unauthenticated
 	if token != "" {
 		state = strings.TrimPrefix(state, "un")
 		client = oauth2.NewClient(ctx, oauth2.StaticTokenSource(
@@ -224,7 +248,7 @@ func NewEnterprise(baseURL, uploadURL string) (*GitHub, error) {
 func NewEnterpriseWithToken(baseURL, uploadURL, token string) (*GitHub, error) {
 	ctx := context.Background()
 	client := http.DefaultClient
-	state := "unauthenticated"
+	state := unauthenticated
 	if token != "" {
 		state = strings.TrimPrefix(state, "un")
 		client = oauth2.NewClient(ctx, oauth2.StaticTokenSource(
