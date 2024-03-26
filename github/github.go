@@ -43,6 +43,8 @@ const (
 	TokenEnvKey = "GITHUB_TOKEN"
 	// GitHubURL Prefix for github URLs
 	GitHubURL = "https://github.com/"
+
+	unauthenticated = "unauthenticated"
 )
 
 // GitHub is a wrapper around GitHub related functionality
@@ -201,7 +203,7 @@ func New() *GitHub {
 func NewWithToken(token string) (*GitHub, error) {
 	ctx := context.Background()
 	client := http.DefaultClient
-	state := "unauthenticated"
+	state := unauthenticated
 	if token != "" {
 		state = strings.TrimPrefix(state, "un")
 		client = oauth2.NewClient(ctx, oauth2.StaticTokenSource(
@@ -223,7 +225,7 @@ func NewWithToken(token string) (*GitHub, error) {
 func NewWithTokenWithClient(token string, httpClient *http.Client) (*GitHub, error) {
 	ctx := context.Background()
 	client := httpClient
-	state := "unauthenticated"
+	state := unauthenticated
 	if token != "" {
 		state = strings.TrimPrefix(state, "un")
 		client = oauth2.NewClient(ctx, oauth2.StaticTokenSource(
@@ -246,7 +248,7 @@ func NewEnterprise(baseURL, uploadURL string) (*GitHub, error) {
 func NewEnterpriseWithToken(baseURL, uploadURL, token string) (*GitHub, error) {
 	ctx := context.Background()
 	client := http.DefaultClient
-	state := "unauthenticated"
+	state := unauthenticated
 	if token != "" {
 		state = strings.TrimPrefix(state, "un")
 		client = oauth2.NewClient(ctx, oauth2.StaticTokenSource(
