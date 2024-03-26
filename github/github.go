@@ -216,6 +216,28 @@ func NewWithToken(token string) (*GitHub, error) {
 	}, nil
 }
 
+// NewWithTokenWithClient can be used to specify a GitHub token through parameters and
+// set an custom HTTP Client.
+// Empty string will result in unauthenticated client, which makes
+// unauthenticated requests.
+func NewWithTokenWithClient(token string, httpClient *http.Client) (*GitHub, error) {
+	ctx := context.Background()
+	client := httpClient
+	state := "unauthenticated"
+	if token != "" {
+		state = strings.TrimPrefix(state, "un")
+		client = oauth2.NewClient(ctx, oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: token},
+		))
+	}
+
+	logrus.Debugf("Using %s GitHub client", state)
+	return &GitHub{
+		client:  &githubClient{github.NewClient(client)},
+		options: DefaultOptions(),
+	}, nil
+}
+
 func NewEnterprise(baseURL, uploadURL string) (*GitHub, error) {
 	token := env.Default(TokenEnvKey, "")
 	return NewEnterpriseWithToken(baseURL, uploadURL, token)
