@@ -326,9 +326,7 @@ func TestVerifyImage(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SetenvReturns(nil)
-				m := &sync.Map{}
-				m.Store("gcr.io/fake/honk:99.99.99", true)
-				mock.ImagesSignedReturns(m, nil)
+				mock.ImagesSignedReturns(nil, errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, err)
@@ -345,6 +343,7 @@ func TestVerifyImage(t *testing.T) {
 				m := &sync.Map{}
 				m.Store("gcr.io/fake/honk:99.99.99", false)
 				mock.ImagesSignedReturns(m, nil)
+				mock.VerifyImageInternalReturns(nil, errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, err)
