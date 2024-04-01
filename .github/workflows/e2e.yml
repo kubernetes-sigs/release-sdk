@@ -6,30 +6,27 @@ on:
       - main
   workflow_dispatch:
 
-
 jobs:
   e2e:
     runs-on: ubuntu-latest
+
     permissions:
       id-token: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+
       - name: Setup golang
         uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: '1.21'
+          go-version: '1.22'
           check-latest: true
-      - name: Restore cache
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: go-${{ hashFiles('**/go.sum') }}
-          restore-keys: go-
+          cache: true
+
       - name: Run local registry
         run: podman run -d -p 5000:5000 registry:2
+
       - name: Build test image
         uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
         id: test-image
@@ -37,11 +34,13 @@ jobs:
           base-image: scratch
           image: test
           oci: true
+
       - name: Push test image to local registry
         uses: redhat-actions/push-to-registry@9986a6552bc4571882a4a67e016b17361412b4df # v2.7.1
         with:
           image: ${{ steps.test-image.outputs.image }}
           registry: localhost:5000
           tls-verify: false
+
       - name: Run e2e tests
         run: go run mage.go E2ETest

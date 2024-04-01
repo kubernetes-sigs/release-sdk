@@ -170,7 +170,7 @@ func (s *Signer) SignImageWithOptions(options *Options, reference string) (objec
 		OutputCertificate: options.OutputCertificatePath,
 		Upload:            true,
 		Recursive:         options.Recursive,
-		TlogUpload:        true,
+		TlogUpload:        options.IgnoreTlog,
 		SkipConfirmation:  true,
 		AnnotationOptions: cliOpts.AnnotationOptions{
 			Annotations: options.Annotations,
@@ -360,7 +360,7 @@ func (s *Signer) VerifyImages(refs ...string) (*sync.Map, error) {
 	if err != nil {
 		return nil, fmt.Errorf("verify if images are signed: %w", err)
 	}
-	unknownRefs = []string{}
+	unknownRefsTemp := []string{}
 	imagesSigned.Range(func(key, value any) bool {
 		ref, ok := key.(string)
 		if !ok {
@@ -374,14 +374,25 @@ func (s *Signer) VerifyImages(refs ...string) (*sync.Map, error) {
 		}
 
 		if isSigned {
-			unknownRefs = append(unknownRefs, ref)
+			unknownRefsTemp = append(unknownRefsTemp, ref)
 		}
 
 		return true
 	})
 
+	// join unknow refs and remove duplicates
+	unknownRefs = append(unknownRefs, unknownRefsTemp...)
+	keys := make(map[string]bool)
+	updatedUnknownRefs := []string{}
+	for _, item := range unknownRefs {
+		if _, value := keys[item]; !value {
+			keys[item] = true
+			updatedUnknownRefs = append(updatedUnknownRefs, item)
+		}
+	}
+
 	t := throttler.New(int(s.options.MaxWorkers), len(unknownRefs))
-	for _, ref := range unknownRefs {
+	for _, ref := range updatedUnknownRefs {
 		go func(ref string) {
 			ctx, cancel := s.options.context()
 			defer cancel()
@@ -429,6 +440,7 @@ func (s *Signer) VerifyImages(refs ...string) (*sync.Map, error) {
 
 			res.Store(ref, obj)
 			s.signedObjs.Set(ref, obj, ttlcache.DefaultTTL)
+			s.signedRefs.Set(ref, true, ttlcache.DefaultTTL)
 			t.Done(nil)
 		}(ref)
 

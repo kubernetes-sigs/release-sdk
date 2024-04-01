@@ -95,6 +95,7 @@ func (*defaultImpl) VerifyImageInternal(ctx context.Context, certOpts options.Ce
 	v := verify.VerifyCommand{
 		IgnoreTlog: ignoreTLog,
 		KeyRef:     publickeyPath,
+		RekorURL:   options.DefaultRekorURL,
 		CertVerifyOptions: options.CertVerifyOptions{
 			CertIdentity:         certOpts.CertIdentity,
 			CertIdentityRegexp:   certOpts.CertIdentityRegexp,
