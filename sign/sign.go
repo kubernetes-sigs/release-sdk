@@ -391,7 +391,7 @@ func (s *Signer) VerifyImages(refs ...string) (*sync.Map, error) {
 		}
 	}
 
-	t := throttler.New(int(s.options.MaxWorkers), len(unknownRefs))
+	t := throttler.New(int(s.options.MaxWorkers), len(updatedUnknownRefs))
 	for _, ref := range updatedUnknownRefs {
 		go func(ref string) {
 			ctx, cancel := s.options.context()
