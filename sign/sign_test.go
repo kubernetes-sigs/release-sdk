@@ -84,7 +84,7 @@ func TestSignImage(t *testing.T) {
 				mock.SignImageInternalReturns(nil)
 				mock.TokenFromProvidersReturns(token, nil)
 				m := &sync.Map{}
-				m.Store("gcr.io/fake/honk:99.99.99", true)
+				m.Store("gcr.io/fake/honk:99.99.99", &sign.SignedObject{})
 				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 				mock.NewWithContextReturns(&testRoundTripper{}, nil)
@@ -109,7 +109,7 @@ func TestSignImage(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				m := &sync.Map{}
 				m.Store("gcr.io/fake/honk:99.99.99", true)
-				mock.ImagesSignedReturns(m, nil)
+				mock.ImagesSignedReturns(nil, errTest)
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SignImageInternalReturns(nil)
 				mock.TokenFromProvidersReturns(token, nil)
@@ -343,11 +343,10 @@ func TestVerifyImage(t *testing.T) {
 				m := &sync.Map{}
 				m.Store("gcr.io/fake/honk:99.99.99", false)
 				mock.ImagesSignedReturns(m, nil)
-				mock.VerifyImageInternalReturns(nil, errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, err)
-				require.Nil(t, obj)
+				require.NotNil(t, obj)
 			},
 		},
 	} {
