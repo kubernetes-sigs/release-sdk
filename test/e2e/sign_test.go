@@ -42,7 +42,12 @@ const (
 
 func TestSignImageSuccess(t *testing.T) {
 	// Test the prerequisites
-	signer := sign.New(nil)
+	opts := sign.Default()
+	opts.IgnoreTlog = true
+	opts.CertIdentityRegexp = "https://github.com/kubernetes-sigs/release-sdk/.github/workflows/e2e.yml@.*"
+	opts.CertOidcIssuer = "https://token.actions.githubusercontent.com"
+
+	signer := sign.New(opts)
 	signed, err := signer.IsImageSigned(imageRef)
 	require.Nil(t, err)
 	require.False(t, signed)
