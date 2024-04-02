@@ -187,6 +187,9 @@ func (s *Signer) SignImageWithOptions(options *Options, reference string) (objec
 		return nil, fmt.Errorf("sign reference: %s: %w", reference, err)
 	}
 
+	// remove the reference from the cache in case we called IsImageSigned before signing.
+	s.signedRefs.Delete(reference)
+
 	// After signing, registry consistency may not be there right
 	// away. Retry the image verification if it fails
 	// ref: https://github.com/kubernetes-sigs/promo-tools/issues/536
