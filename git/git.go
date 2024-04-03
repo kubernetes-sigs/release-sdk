@@ -1512,7 +1512,7 @@ func (r *Repo) FetchRemote(remoteName string) (bool, error) {
 	// git fetch outputs on stderr
 	output := strings.TrimSpace(res.Error())
 	logrus.Debugf("Fetch result: %s", output)
-	return len(output) > 0, nil
+	return output != "", nil
 }
 
 // Rebase calls rebase on the current repo to the specified branch

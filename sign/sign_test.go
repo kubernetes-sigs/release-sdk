@@ -45,7 +45,7 @@ func TestUploadBlob(t *testing.T) {
 		assert  func(error)
 	}{
 		{ // Success
-			prepare: func(mock *signfakes.FakeImpl) {
+			prepare: func(_ *signfakes.FakeImpl) {
 			},
 			assert: func(err error) {
 				require.Nil(t, err)
@@ -313,7 +313,7 @@ func TestVerifyImage(t *testing.T) {
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 				mock.NewWithContextReturns(&testRoundTripper{}, nil)
 			},
-			assert: func(obj *sign.SignedObject, err error) {
+			assert: func(_ *sign.SignedObject, err error) {
 				require.Nil(t, err)
 			},
 		},
@@ -528,7 +528,7 @@ func TestIsImageSigned(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.ImagesSignedReturns(nil, errTest)
 			},
-			assert: func(signed bool, err error) {
+			assert: func(_ bool, err error) {
 				require.Error(t, err)
 			},
 		},
@@ -537,7 +537,7 @@ func TestIsImageSigned(t *testing.T) {
 				m := &sync.Map{}
 				mock.ImagesSignedReturns(m, nil)
 			},
-			assert: func(signed bool, err error) {
+			assert: func(_ bool, err error) {
 				require.Error(t, err)
 			},
 		},
@@ -547,7 +547,7 @@ func TestIsImageSigned(t *testing.T) {
 				m.Store("", 1)
 				mock.ImagesSignedReturns(m, nil)
 			},
-			assert: func(signed bool, err error) {
+			assert: func(_ bool, err error) {
 				require.Error(t, err)
 			},
 		},

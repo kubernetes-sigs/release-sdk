@@ -1082,7 +1082,6 @@ func (g *GitHub) UpdateReleasePageWithOptions(owner, repo string,
 	release, err = g.Client().UpdateReleasePage(
 		context.Background(), owner, repo, releaseID, releaseData,
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("updating the release page: %w", err)
 	}
