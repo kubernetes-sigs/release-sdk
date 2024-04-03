@@ -1,7 +1,7 @@
 ---
 run:
   concurrency: 6
-  deadline: 5m
+  timeout: 10m
   build-tags:
     - integration
 issues:
@@ -122,38 +122,21 @@ linters-settings:
   gocritic:
     enabled-checks:
       # Diagnostic
-      - appendAssign
-      - argOrder
-      - badCall
-      - badCond
       - badLock
       - badRegexp
       - badSorting
       - builtinShadowDecl
-      - caseOrder
-      - codegenComment
       - commentedOutCode
       - deferInLoop
-      - deprecatedComment
-      - dupArg
-      - dupBranchBody
-      - dupCase
-      - dupSubExpr
       - dynamicFmtString
       - emptyDecl
       - evalOrder
-      - exitAfterDefer
       - externalErrorReassign
       - filepathJoin
-      - flagDeref
-      - flagName
-      - mapKey
       - nilValReturn
-      - offBy1
       - regexpPattern
       - returnAfterHttpError
       - sloppyReassign
-      - sloppyTypeAssert
       - sortSlice
       - sprintfQuotedString
       - sqlQuery
@@ -177,47 +160,29 @@ linters-settings:
       - stringXbytes
 
       # Style
-      - assignOp
       - boolExprSimplify
-      - captLocal
-      - commentFormatting
       - commentedOutImport
-      - defaultCaseOrder
       - deferUnlambda
       - docStub
       - dupImport
-      - elseif
       - emptyFallthrough
       - emptyStringTest
       - exposedSyncMutex
       - hexLiteral
       - httpNoBody
-      - ifElseChain
       - methodExprCall
-      - newDeref
       - octalLiteral
       - preferFilepathJoin
       - redundantSprint
-      - regexpMust
       - regexpSimplify
       - ruleguard
-      - singleCaseSwitch
-      - sloppyLen
       - stringConcatSimplify
       - stringsCompare
-      - switchTrue
-      - timeCmpSimplify
       - timeExprSimplify
       - tooManyResultsChecker
       - typeAssertChain
       - typeDefFirst
-      - typeSwitchVar
-      - underef
       - unlabelStmt
-      - unlambda
-      - unslice
-      - valSwap
-      - wrapperFunc
       - yodaStyleExpr
       # - whyNoLint
 
