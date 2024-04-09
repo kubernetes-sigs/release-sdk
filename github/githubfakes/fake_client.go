@@ -47,6 +47,21 @@ type FakeClient struct {
 		result2 *githuba.Response
 		result3 error
 	}
+	CheckRateLimitStub        func(context.Context) (*githuba.RateLimits, *githuba.Response, error)
+	checkRateLimitMutex       sync.RWMutex
+	checkRateLimitArgsForCall []struct {
+		arg1 context.Context
+	}
+	checkRateLimitReturns struct {
+		result1 *githuba.RateLimits
+		result2 *githuba.Response
+		result3 error
+	}
+	checkRateLimitReturnsOnCall map[int]struct {
+		result1 *githuba.RateLimits
+		result2 *githuba.Response
+		result3 error
+	}
 	CreateCommentStub        func(context.Context, string, string, int, string) (*githuba.IssueComment, *githuba.Response, error)
 	createCommentMutex       sync.RWMutex
 	createCommentArgsForCall []struct {
@@ -550,6 +565,73 @@ func (fake *FakeClient) AddLabelsReturnsOnCall(i int, result1 []*githuba.Label, 
 	}
 	fake.addLabelsReturnsOnCall[i] = struct {
 		result1 []*githuba.Label
+		result2 *githuba.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeClient) CheckRateLimit(arg1 context.Context) (*githuba.RateLimits, *githuba.Response, error) {
+	fake.checkRateLimitMutex.Lock()
+	ret, specificReturn := fake.checkRateLimitReturnsOnCall[len(fake.checkRateLimitArgsForCall)]
+	fake.checkRateLimitArgsForCall = append(fake.checkRateLimitArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.CheckRateLimitStub
+	fakeReturns := fake.checkRateLimitReturns
+	fake.recordInvocation("CheckRateLimit", []interface{}{arg1})
+	fake.checkRateLimitMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeClient) CheckRateLimitCallCount() int {
+	fake.checkRateLimitMutex.RLock()
+	defer fake.checkRateLimitMutex.RUnlock()
+	return len(fake.checkRateLimitArgsForCall)
+}
+
+func (fake *FakeClient) CheckRateLimitCalls(stub func(context.Context) (*githuba.RateLimits, *githuba.Response, error)) {
+	fake.checkRateLimitMutex.Lock()
+	defer fake.checkRateLimitMutex.Unlock()
+	fake.CheckRateLimitStub = stub
+}
+
+func (fake *FakeClient) CheckRateLimitArgsForCall(i int) context.Context {
+	fake.checkRateLimitMutex.RLock()
+	defer fake.checkRateLimitMutex.RUnlock()
+	argsForCall := fake.checkRateLimitArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClient) CheckRateLimitReturns(result1 *githuba.RateLimits, result2 *githuba.Response, result3 error) {
+	fake.checkRateLimitMutex.Lock()
+	defer fake.checkRateLimitMutex.Unlock()
+	fake.CheckRateLimitStub = nil
+	fake.checkRateLimitReturns = struct {
+		result1 *githuba.RateLimits
+		result2 *githuba.Response
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeClient) CheckRateLimitReturnsOnCall(i int, result1 *githuba.RateLimits, result2 *githuba.Response, result3 error) {
+	fake.checkRateLimitMutex.Lock()
+	defer fake.checkRateLimitMutex.Unlock()
+	fake.CheckRateLimitStub = nil
+	if fake.checkRateLimitReturnsOnCall == nil {
+		fake.checkRateLimitReturnsOnCall = make(map[int]struct {
+			result1 *githuba.RateLimits
+			result2 *githuba.Response
+			result3 error
+		})
+	}
+	fake.checkRateLimitReturnsOnCall[i] = struct {
+		result1 *githuba.RateLimits
 		result2 *githuba.Response
 		result3 error
 	}{result1, result2, result3}
@@ -2238,6 +2320,8 @@ func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addLabelsMutex.RLock()
 	defer fake.addLabelsMutex.RUnlock()
+	fake.checkRateLimitMutex.RLock()
+	defer fake.checkRateLimitMutex.RUnlock()
 	fake.createCommentMutex.RLock()
 	defer fake.createCommentMutex.RUnlock()
 	fake.createIssueMutex.RLock()
