@@ -728,3 +728,30 @@ func TestUpdateReleasePageWithOptions(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckRateLimit(t *testing.T) {
+	// Given
+	sut, client := newSUT()
+
+	now := gogithub.Timestamp{time.Now().UTC()} //nolint: govet
+
+	rt := &gogithub.RateLimits{
+		Core: &gogithub.Rate{
+			Limit:     5000,
+			Remaining: 200,
+			Reset:     now,
+		},
+	}
+
+	client.CheckRateLimitReturns(rt, &gogithub.Response{}, nil)
+
+	// When
+	rt, result, err := sut.CheckRateLimit(context.Background())
+
+	// Then
+	require.Nil(t, err)
+	require.NotNil(t, result)
+	require.Equal(t, rt.Core.Limit, 5000)
+	require.Equal(t, rt.Core.Remaining, 200)
+	require.Equal(t, rt.Core.Reset, now)
+}

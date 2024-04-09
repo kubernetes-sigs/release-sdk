@@ -156,6 +156,9 @@ type Client interface {
 	RequestPullRequestReview(
 		context.Context, string, string, int, []string, []string,
 	) (*github.PullRequest, error)
+	CheckRateLimit(
+		context.Context,
+	) (*github.RateLimits, *github.Response, error)
 }
 
 // NewIssueOptions is a struct of optional fields for new issues
@@ -566,6 +569,17 @@ func (g *githubClient) ListComments(
 	}
 
 	return comments, response, nil
+}
+
+func (g *githubClient) CheckRateLimit(
+	ctx context.Context,
+) (*github.RateLimits, *github.Response, error) {
+	rt, response, err := g.RateLimit.Get(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("fetching rate limit: %w", err)
+	}
+
+	return rt, response, nil
 }
 
 // SetClient can be used to manually set the internal GitHub client
@@ -1159,6 +1173,11 @@ func (g *GitHub) ListTags(owner, repo string) ([]*github.RepositoryTag, error) {
 		options.Page = r.NextPage
 	}
 	return tags, nil
+}
+
+// RateLimit returns the rate limits for the current client.
+func (g *GitHub) CheckRateLimit(ctx context.Context) (*github.RateLimits, *github.Response, error) {
+	return g.Client().CheckRateLimit(ctx)
 }
 
 func (g *githubClient) UpdateIssue(
