@@ -226,14 +226,20 @@ func NewWithToken(token string) (*GitHub, error) {
 // Empty string will result in unauthenticated client, which makes
 // unauthenticated requests.
 func NewWithTokenWithClient(token string, httpClient *http.Client) (*GitHub, error) {
-	ctx := context.Background()
 	client := httpClient
 	state := unauthenticated
 	if token != "" {
 		state = strings.TrimPrefix(state, "un")
-		client = oauth2.NewClient(ctx, oauth2.StaticTokenSource(
-			&oauth2.Token{AccessToken: token},
-		))
+		// Set the Transport of the existing httpClient to include the OAuth2 transport
+		if client == nil {
+			client = &http.Client{}
+		}
+		client.Transport = &oauth2.Transport{
+			Source: oauth2.StaticTokenSource(
+				&oauth2.Token{AccessToken: token},
+			),
+			Base: client.Transport, // Preserve the original transport
+		}
 	}
 
 	logrus.Debugf("Using %s GitHub client", state)
