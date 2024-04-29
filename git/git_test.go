@@ -42,6 +42,11 @@ var testAuthor = &object.Signature{
 	When:  time.Now(),
 }
 
+const (
+	errDesc = "opening test repo in "
+	origin  = "origin"
+)
+
 func newSUT() (*git.Repo, *gitfakes.FakeWorktree) {
 	repoMock := &gitfakes.FakeRepository{}
 	worktreeMock := &gitfakes.FakeWorktree{}
@@ -108,10 +113,10 @@ func TestGetUserName(t *testing.T) {
 
 	// Call git to configure the user's name:
 	_, err = exec.Command("git", "config", "user.name", fakeUserName).Output()
-	require.Nil(t, err, fmt.Sprintf("configuring fake user email in %s", repoPath))
+	require.Nil(t, err, "configuring fake user email in "+repoPath)
 
 	testRepo, err := git.OpenRepo(repoPath)
-	require.Nil(t, err, fmt.Sprintf("opening test repo in %s", repoPath))
+	require.Nil(t, err, errDesc+repoPath)
 	defer testRepo.Cleanup() //nolint: errcheck
 
 	actual, err := git.GetUserName()
@@ -132,10 +137,10 @@ func TestGetUserEmail(t *testing.T) {
 
 	// Call git to configure the user's name:
 	_, err = exec.Command("git", "config", "user.email", fakeUserEmail).Output()
-	require.Nil(t, err, fmt.Sprintf("configuring fake user email in %s", repoPath))
+	require.Nil(t, err, "configuring fake user email in "+repoPath)
 
 	testRepo, err := git.OpenRepo(repoPath)
-	require.Nil(t, err, fmt.Sprintf("opening test repo in %s", repoPath))
+	require.Nil(t, err, errDesc+repoPath)
 	defer testRepo.Cleanup() //nolint: errcheck
 
 	// Do the actual call
@@ -206,7 +211,7 @@ func TestGetRepoURLSuccess(t *testing.T) {
 func TestRemotify(t *testing.T) {
 	testcases := []struct{ provided, expected string }{
 		{provided: git.DefaultBranch, expected: git.DefaultRemote + "/" + git.DefaultBranch},
-		{provided: "origin/ref", expected: "origin/ref"},
+		{provided: origin + "/ref", expected: origin + "/ref"},
 		{provided: "base/another_ref", expected: "base/another_ref"},
 	}
 
@@ -346,18 +351,18 @@ func TestHasBranch(t *testing.T) {
 	require.Nil(t, err, "writing test file")
 
 	err = command.NewWithWorkDir(repoPath, "git", "add", testfile).RunSuccess()
-	require.Nil(t, err, fmt.Sprintf("adding test file in %s", repoPath))
+	require.Nil(t, err, "adding test file in "+repoPath)
 
 	err = command.NewWithWorkDir(repoPath, "git", "commit", "-m", "adding test file").RunSuccess()
 	require.Nil(t, err, "creating first commit")
 
 	// Call git to configure the user's name:
 	err = command.NewWithWorkDir(repoPath, "git", "branch", testBranchName).RunSuccess()
-	require.Nil(t, err, fmt.Sprintf("configuring test branch in %s", repoPath))
+	require.Nil(t, err, "configuring test branch in "+repoPath)
 
 	// Now, open the repo and test to see if branches are there
 	testRepo, err := git.OpenRepo(repoPath)
-	require.Nil(t, err, fmt.Sprintf("opening test repo in %s", repoPath))
+	require.Nil(t, err, errDesc+repoPath)
 	defer testRepo.Cleanup() //nolint: errcheck
 
 	actual, err := testRepo.HasBranch(testBranchName)
@@ -434,7 +439,7 @@ func TestShowLastCommit(t *testing.T) {
 	// Create an untracked file
 	require.Nil(t, os.WriteFile(filepath.Join(testRepo.Dir(), testFile), []byte("Hello SIG Release"), 0o644))
 	require.Nil(t, testRepo.Add(testFile))
-	require.Nil(t, testRepo.Commit(fmt.Sprintf("Commit test file at %s", timeNow)))
+	require.Nil(t, testRepo.Commit("Commit test file at "+timeNow))
 
 	// Now get the log message back and check if it contains the time
 	lastLog, err := testRepo.ShowLastCommit()
@@ -487,12 +492,12 @@ func TestFetchRemote(t *testing.T) {
 	require.Nil(t, err)
 
 	// Now, call fetch
-	newContent, err := testRepo.FetchRemote("origin")
+	newContent, err := testRepo.FetchRemote(origin)
 	require.Nil(t, err, "Calling fetch to get a test tag")
 	require.True(t, newContent)
 
 	// Fetching again should provide no updates
-	newContent, err = testRepo.FetchRemote("origin")
+	newContent, err = testRepo.FetchRemote(origin)
 	require.Nil(t, err, "Calling fetch to get a test tag again")
 	require.False(t, newContent)
 
@@ -535,7 +540,7 @@ func TestRebase(t *testing.T) {
 	defer testRepo.Cleanup() //nolint: errcheck
 
 	// Test 1. Rebase should not fail if both repos are in sync
-	require.Nil(t, testRepo.Rebase(fmt.Sprintf("origin/%s", branchName)), "cloning synchronizaed repos")
+	require.Nil(t, testRepo.Rebase(origin+"/"+branchName), "cloning synchronizaed repos")
 
 	// Test 2. Rebase should not fail with pulling changes in the remote
 	require.Nil(t, os.WriteFile(filepath.Join(rawRepoDir, testFile), []byte("Hello SIG Release"), 0o644))
@@ -548,12 +553,12 @@ func TestRebase(t *testing.T) {
 	require.Nil(t, err)
 
 	// Pull the changes to the test repo
-	newContent, err := testRepo.FetchRemote("origin")
+	newContent, err := testRepo.FetchRemote(origin)
 	require.Nil(t, err)
 	require.True(t, newContent)
 
 	// Do the Rebase
-	require.Nil(t, testRepo.Rebase(fmt.Sprintf("origin/%s", branchName)), "rebasing changes from origin")
+	require.Nil(t, testRepo.Rebase(origin+"/"+branchName), "rebasing changes from origin")
 
 	// Verify we got the commit
 	lastLog, err := testRepo.ShowLastCommit()
@@ -561,7 +566,7 @@ func TestRebase(t *testing.T) {
 	require.True(t, strings.Contains(lastLog, "Test2-Commit"))
 
 	// Test 3: Rebase must on an invalid branch
-	require.NotNil(t, testRepo.Rebase("origin/invalidBranch"), "rebasing to invalid branch")
+	require.NotNil(t, testRepo.Rebase(origin+"/invalidBranch"), "rebasing to invalid branch")
 
 	// Test 4: Rebase must fail on merge conflicts
 	require.Nil(t, os.WriteFile(filepath.Join(rawRepoDir, testFile), []byte("Hello again SIG Release"), 0o644))
@@ -579,11 +584,11 @@ func TestRebase(t *testing.T) {
 	require.Nil(t, testRepo.Commit("Adding file to cause conflict"))
 
 	// Now, fetch and rebase
-	newContent, err = testRepo.FetchRemote("origin")
+	newContent, err = testRepo.FetchRemote(origin)
 	require.Nil(t, err)
 	require.True(t, newContent)
 
-	err = testRepo.Rebase(fmt.Sprintf("origin/%s", branchName))
+	err = testRepo.Rebase(origin + "/" + branchName)
 	require.NotNil(t, err, "testing for merge conflicts")
 }
 

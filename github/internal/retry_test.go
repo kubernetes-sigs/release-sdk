@@ -17,7 +17,7 @@ limitations under the License.
 package internal_test
 
 import (
-	"fmt"
+	"errors"
 	"io"
 	"os"
 	"testing"
@@ -54,7 +54,7 @@ func TestGithubRetryer(t *testing.T) {
 		"when error is a random error, don't retry": {
 			maxTries:        1,
 			sleeper:         nilSleeper,
-			errs:            []error{fmt.Errorf("some randm error")},
+			errs:            []error{errors.New("some randm error")},
 			expectedResults: []bool{false},
 		},
 		"when the error is a github rate limit error, retry": {
@@ -86,7 +86,7 @@ func TestGithubRetryer(t *testing.T) {
 		"when hitting the secondary rate limit, sleep for random": {
 			maxTries:        1,
 			sleeper:         nilSleeper,
-			errs:            []error{fmt.Errorf("You have exceeded a secondary rate limit. Please wait a few minutes")},
+			errs:            []error{errors.New("You have exceeded a secondary rate limit. Please wait a few minutes")},
 			expectedResults: []bool{true},
 		},
 		"when the error is a github abuse rate limit error but max tries have been reached, don't retry": {
