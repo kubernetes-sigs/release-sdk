@@ -53,6 +53,11 @@ type Signer struct {
 	signedObjs *ttlcache.Cache[string, *SignedObject]              // key: imageRef, value: signed object
 }
 
+const (
+	sigExt  = ".sig"
+	certExt = ".cert"
+)
+
 // New returns a new Signer instance.
 func New(options *Options) *Signer {
 	if options == nil {
@@ -251,10 +256,10 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 	}
 
 	if s.options.OutputCertificatePath == "" {
-		s.options.OutputCertificatePath = fmt.Sprintf("%s.cert", path)
+		s.options.OutputCertificatePath = path + certExt
 	}
 	if s.options.OutputSignaturePath == "" {
-		s.options.OutputSignaturePath = fmt.Sprintf("%s.sig", path)
+		s.options.OutputSignaturePath = path + sigExt
 	}
 
 	fileSHA, err := hash.SHA256ForFile(path)
@@ -460,10 +465,10 @@ func (s *Signer) VerifyFile(path string, ignoreTLog bool) (*SignedObject, error)
 	}
 
 	if s.options.OutputCertificatePath == "" {
-		s.options.OutputCertificatePath = fmt.Sprintf("%s.cert", path)
+		s.options.OutputCertificatePath = path + certExt
 	}
 	if s.options.OutputSignaturePath == "" {
-		s.options.OutputSignaturePath = fmt.Sprintf("%s.sig", path)
+		s.options.OutputSignaturePath = path + sigExt
 	}
 
 	certOpts := cliOpts.CertVerifyOptions{
@@ -704,7 +709,7 @@ func (s *Signer) transportForRepo(ctx context.Context, repo name.Repository) (ht
 }
 
 func repoDigestToSig(repo name.Repository, digest string) string {
-	return repo.Name() + ":" + strings.Replace(digest, ":", "-", 1) + ".sig"
+	return repo.Name() + ":" + strings.Replace(digest, ":", "-", 1) + sigExt
 }
 
 // IsFileSigned takes an path reference and return true if there is a signature
