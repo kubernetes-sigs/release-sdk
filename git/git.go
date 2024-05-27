@@ -1138,6 +1138,12 @@ func (r *Repo) Add(filename string) error {
 
 // GetUserName Reads the local user's name from the git configuration
 func GetUserName() (string, error) {
+	// check first if the env var is set otherwise check the git config
+	userNameFromEnv := os.Getenv("GIT_COMMITTER_NAME")
+	if userNameFromEnv != "" {
+		return userNameFromEnv, nil
+	}
+
 	// Retrieve username from git
 	userName, err := filterCommand(
 		"", "config", "--get", "user.name",
@@ -1145,17 +1151,25 @@ func GetUserName() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("reading the user name from git: %w", err)
 	}
+
 	return userName.OutputTrimNL(), nil
 }
 
 // GetUserEmail reads the user's name from git
 func GetUserEmail() (string, error) {
+	// check first if the env var is set otherwise check the git config
+	userEmailFromEnv := os.Getenv("GIT_COMMITTER_EMAIL")
+	if userEmailFromEnv != "" {
+		return userEmailFromEnv, nil
+	}
+
 	userEmail, err := filterCommand(
 		"", "config", "--get", "user.email",
 	).RunSilentSuccessOutput()
 	if err != nil {
 		return "", fmt.Errorf("reading the user's email from git: %w", err)
 	}
+
 	return userEmail.OutputTrimNL(), nil
 }
 

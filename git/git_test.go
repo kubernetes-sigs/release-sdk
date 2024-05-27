@@ -102,6 +102,8 @@ func createTestRepository() (repoPath string, err error) {
 }
 
 func TestGetUserName(t *testing.T) {
+	require.Empty(t, os.Getenv("GIT_COMMITTER_NAME"))
+
 	const fakeUserName = "SIG Release Test User"
 	currentDir, err := os.Getwd()
 	require.Nil(t, err, "error reading the current directory")
@@ -123,9 +125,19 @@ func TestGetUserName(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, fakeUserName, actual)
 	require.NotEqual(t, fakeUserName, "")
+
+	envVarName := fakeUserName + " env var"
+	require.Nil(t, os.Setenv("GIT_COMMITTER_NAME", envVarName))
+	actual, err = git.GetUserName()
+	require.Nil(t, err)
+	require.Equal(t, envVarName, actual)
+	require.NotEqual(t, fakeUserName, "")
+	require.Nil(t, os.Unsetenv("GIT_COMMITTER_NAME"))
 }
 
 func TestGetUserEmail(t *testing.T) {
+	require.Empty(t, os.Getenv("GIT_COMMITTER_EMAIL"))
+
 	const fakeUserEmail = "kubernetes-test@example.com"
 	currentDir, err := os.Getwd()
 	require.Nil(t, err, "error reading the current directory")
@@ -148,6 +160,14 @@ func TestGetUserEmail(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, fakeUserEmail, actual)
 	require.NotEqual(t, fakeUserEmail, "")
+
+	envVarEmail := "kubernetes-honk@example.com"
+	require.Nil(t, os.Setenv("GIT_COMMITTER_EMAIL", envVarEmail))
+	actual, err = git.GetUserEmail()
+	require.Nil(t, err)
+	require.Equal(t, envVarEmail, actual)
+	require.NotEqual(t, envVarEmail, "")
+	require.Nil(t, os.Unsetenv("GIT_COMMITTER_EMAIL"))
 }
 
 func TestGetKubernetesRepoURLSuccess(t *testing.T) {
