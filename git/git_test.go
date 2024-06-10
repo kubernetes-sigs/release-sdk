@@ -641,3 +641,68 @@ func TestLastCommitSha(t *testing.T) {
 	require.Equal(t, shas[0], lastCommit, "Checking HEAD~1 sha matches commit #1")
 	require.NotEqual(t, shas[1], lastCommit, "Checking HEAD~1 sha does not matches commit #2")
 }
+
+func TestNextCommit(t *testing.T) {
+	// Create a test repository
+	rawRepoDir, err := os.MkdirTemp("", "k8s-test-repo-")
+	require.Nil(t, err)
+	defer os.RemoveAll(rawRepoDir)
+	_, err = gogit.PlainInit(rawRepoDir, false)
+	require.Nil(t, err)
+
+	repo, err := git.OpenRepo(rawRepoDir)
+	require.Nil(t, err)
+
+	// Create commits in the repository
+	shas := make([]string, 3)
+	for _, i := range []int{0, 1, 2} {
+		require.Nil(t, repo.CommitEmpty(fmt.Sprintf("Empty commit %d", i+1)))
+		shas[i], err = repo.LastCommitSha()
+		require.Nil(t, err)
+		require.NotEmpty(t, shas[i])
+		require.Nil(t, repo.Tag(fmt.Sprintf("tag-%d", i), "New tag"))
+	}
+	require.Len(t, shas, 3)
+
+	// shas[0] is the child of shas[1]
+	nextCommit, err := repo.NextCommit(shas[0], git.DefaultBranch)
+	require.Nil(t, err)
+	require.Equal(t, shas[1], nextCommit)
+
+	// shas[1] is the child of shas[2]
+	nextCommit, err = repo.NextCommit(shas[1], git.DefaultBranch)
+	require.Nil(t, err)
+	require.Equal(t, shas[2], nextCommit)
+
+	// shas[2] has no child
+	nextCommit, err = repo.NextCommit(shas[2], git.DefaultBranch)
+	require.Nil(t, err)
+	require.Empty(t, nextCommit)
+
+	// tag-0 is the child of shas[1]
+	nextCommit, err = repo.NextCommit("tag-0", git.DefaultBranch)
+	require.Nil(t, err)
+	require.Equal(t, shas[1], nextCommit)
+
+	// tag-1 is the child of shas[2]
+	nextCommit, err = repo.NextCommit("tag-1", git.DefaultBranch)
+	require.Nil(t, err)
+	require.Equal(t, shas[2], nextCommit)
+
+	// tag-2 has no child
+	nextCommit, err = repo.NextCommit("tag-2", git.DefaultBranch)
+	require.Nil(t, err)
+	require.Empty(t, nextCommit)
+
+	// branch does not exist
+	nextCommit, err = repo.NextCommit(shas[0], "does-not-exist")
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "unknown revision")
+	require.Empty(t, nextCommit)
+
+	// commit does not exist
+	nextCommit, err = repo.NextCommit("does-not-exist", git.DefaultBranch)
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "unknown revision")
+	require.Empty(t, nextCommit)
+}
