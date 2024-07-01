@@ -19,6 +19,8 @@ package osc
 import (
 	"fmt"
 
+	"github.com/blang/semver/v4"
+
 	"sigs.k8s.io/release-utils/command"
 )
 
@@ -60,4 +62,42 @@ func Output(workDir string, args ...string) (string, error) {
 // Status can be used to run a 'osc' command while capturing its status
 func Status(workDir string, args ...string) (*command.Status, error) {
 	return command.NewWithWorkDir(workDir, OSCExecutable, args...).Run()
+}
+
+// WaitResults waits for the build results. If can fail on error if an osc
+// version >= 1.8.0 is being used.
+func WaitResults(project, packageName string) error {
+	ver, err := Version()
+	if err != nil {
+		return fmt.Errorf("retrieve version: %w", err)
+	}
+
+	args := []string{
+		"results",
+		"-w",
+		fmt.Sprintf("%s/%s", project, packageName),
+	}
+
+	// Version 1.8.0 contains the feature to fail on wait error
+	// ref: https://github.com/openSUSE/osc/pull/1573
+	if ver.GE(semver.Version{Major: 1, Minor: 8}) {
+		args = append(args, "-F")
+	}
+
+	return command.New(OSCExecutable, args...).RunSuccess()
+}
+
+// Version returns the semver version of the osc executable.
+func Version() (*semver.Version, error) {
+	out, err := command.New(OSCExecutable, "version").RunSilentSuccessOutput()
+	if err != nil {
+		return nil, fmt.Errorf("run version command: %w", err)
+	}
+
+	ver, err := semver.Parse(out.OutputTrimNL())
+	if err != nil {
+		return nil, fmt.Errorf("parse semver version: %w", err)
+	}
+
+	return &ver, nil
 }
