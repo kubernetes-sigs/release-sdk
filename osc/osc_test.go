@@ -24,6 +24,7 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"sigs.k8s.io/release-sdk/osc"
 )
 
@@ -56,14 +57,14 @@ fi
 
 		// Run the version test
 		ver, err := osc.Version()
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.True(t, ver.EQ(semver.MustParse(version)))
 
 		// Run the wait results test
 		err = osc.WaitResults(testProject, testPackage)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		res, err := os.ReadFile(filepath.Join(tempDir, "res"))
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		testString := "results -w project/package"
 		if version == "1.8.0" {
 			testString += " -F"
@@ -71,6 +72,6 @@ fi
 		assert.Equal(t, testString, string(res))
 
 		// Cleanup
-		require.Nil(t, os.RemoveAll(tempDir))
+		require.NoError(t, os.RemoveAll(tempDir))
 	}
 }

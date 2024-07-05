@@ -40,30 +40,31 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/sirupsen/logrus"
 
-	"sigs.k8s.io/release-sdk/regex"
 	"sigs.k8s.io/release-utils/command"
 	"sigs.k8s.io/release-utils/util"
+
+	"sigs.k8s.io/release-sdk/regex"
 )
 
 const (
 	// DefaultGithubOrg is the default GitHub org used for Kubernetes project
-	// repos
+	// repos.
 	DefaultGithubOrg = "kubernetes"
 
-	// DefaultGithubRepo is the default git repository
+	// DefaultGithubRepo is the default git repository.
 	DefaultGithubRepo = "kubernetes"
 
 	// DefaultGithubReleaseRepo is the default git repository used for
-	// SIG Release
+	// SIG Release.
 	DefaultGithubReleaseRepo = "sig-release"
 
-	// DefaultRemote is the default git remote name
+	// DefaultRemote is the default git remote name.
 	DefaultRemote = "origin"
 
-	// DefaultRef is the default git reference name
+	// DefaultRef is the default git reference name.
 	DefaultRef = "HEAD"
 
-	// DefaultBranch is the default branch name
+	// DefaultBranch is the default branch name.
 	DefaultBranch = "master"
 
 	// DefaultGitUser is the default user name used for commits.
@@ -163,7 +164,7 @@ func GetDefaultKubernetesRepoURL() string {
 // returns a repo URL for Kubernetes.
 // Expected result is one of the following:
 // - https://github.com/<org>/kubernetes
-// - git@github.com:<org>/kubernetes
+// - git@github.com:<org>/kubernetes.
 func GetKubernetesRepoURL(org string, useSSH bool) string {
 	if org == "" {
 		org = DefaultGithubOrg
@@ -176,7 +177,7 @@ func GetKubernetesRepoURL(org string, useSSH bool) string {
 // returns a repo URL for the specified repo.
 // Expected result is one of the following:
 // - https://github.com/<org>/<repo>
-// - git@github.com:<org>/<repo>
+// - git@github.com:<org>/<repo>.
 func GetRepoURL(org, repo string, useSSH bool) (repoURL string) {
 	slug := filepath.Join(org, repo)
 
@@ -243,53 +244,53 @@ func filterCommand(workdir string, args ...string) *command.Command {
 	return c
 }
 
-// DiscoverResult is the result of a revision discovery
+// DiscoverResult is the result of a revision discovery.
 type DiscoverResult struct {
 	startSHA, startRev, endSHA, endRev string
 }
 
-// StartSHA returns the start SHA for the DiscoverResult
+// StartSHA returns the start SHA for the DiscoverResult.
 func (d *DiscoverResult) StartSHA() string {
 	return d.startSHA
 }
 
-// StartRev returns the start revision for the DiscoverResult
+// StartRev returns the start revision for the DiscoverResult.
 func (d *DiscoverResult) StartRev() string {
 	return d.startRev
 }
 
-// EndSHA returns the end SHA for the DiscoverResult
+// EndSHA returns the end SHA for the DiscoverResult.
 func (d *DiscoverResult) EndSHA() string {
 	return d.endSHA
 }
 
-// EndRev returns the end revision for the DiscoverResult
+// EndRev returns the end revision for the DiscoverResult.
 func (d *DiscoverResult) EndRev() string {
 	return d.endRev
 }
 
-// Remote is a representation of a git remote location
+// Remote is a representation of a git remote location.
 type Remote struct {
 	name string
 	urls []string
 }
 
-// NewRemote creates a new remote for the provided name and URLs
+// NewRemote creates a new remote for the provided name and URLs.
 func NewRemote(name string, urls []string) *Remote {
 	return &Remote{name, urls}
 }
 
-// Name returns the name of the remote
+// Name returns the name of the remote.
 func (r *Remote) Name() string {
 	return r.name
 }
 
-// URLs returns all available URLs of the remote
+// URLs returns all available URLs of the remote.
 func (r *Remote) URLs() []string {
 	return r.urls
 }
 
-// Repo is a wrapper for a Kubernetes repository instance
+// Repo is a wrapper for a Kubernetes repository instance.
 type Repo struct {
 	inner      Repository
 	worktree   Worktree
@@ -329,7 +330,7 @@ type Worktree interface {
 	Status() (git.Status, error)
 }
 
-// Dir returns the directory where the repository is stored on disk
+// Dir returns the directory where the repository is stored on disk.
 func (r *Repo) Dir() string {
 	return r.dir
 }
@@ -340,19 +341,19 @@ func (r *Repo) SetDry() {
 	r.dryRun = true
 }
 
-// SetWorktree can be used to manually set the repository worktree
+// SetWorktree can be used to manually set the repository worktree.
 func (r *Repo) SetWorktree(worktree Worktree) {
 	r.worktree = worktree
 }
 
-// SetInnerRepo can be used to manually set the inner repository
+// SetInnerRepo can be used to manually set the inner repository.
 func (r *Repo) SetInnerRepo(repo Repository) {
 	r.inner = repo
 }
 
 // SetMaxRetries defines the number of times, the git client will retry
 // some operations when timing out or network failures. Setting it to
-// 0 disables retrying
+// 0 disables retrying.
 func (r *Repo) SetMaxRetries(numRetries int) {
 	r.maxRetries = numRetries
 }
@@ -405,7 +406,7 @@ func ShallowCleanCloneGitHubRepo(owner, repo string, useSSH bool) (*Repo, error)
 
 // ShallowCloneOrOpenGitHubRepo this is the *GitHub* counterpart of
 // ShallowCloneOrOpenRepo. It works exactly the same but it takes a
-// GitHub org and repo instead of a URL
+// GitHub org and repo instead of a URL.
 func ShallowCloneOrOpenGitHubRepo(owner, repoPath string, useSSH bool) (*Repo, error) {
 	repoURL := GetRepoURL(owner, repoPath, useSSH)
 	return ShallowCloneOrOpenRepo(repoPath, repoURL, useSSH)
@@ -526,7 +527,7 @@ func ensureRepoPath(repoPath string) (targetDir string, exisitingDir bool, err e
 }
 
 // updateRepo tries to open the provided repoPath and fetches the latest
-// changes from the configured remote location
+// changes from the configured remote location.
 func updateRepo(repoPath string, updateRepository bool) (*Repo, error) {
 	r, err := OpenRepo(repoPath)
 	if err != nil {
@@ -545,7 +546,7 @@ func updateRepo(repoPath string, updateRepository bool) (*Repo, error) {
 	return r, nil
 }
 
-// OpenRepo tries to open the provided repoPath
+// OpenRepo tries to open the provided repoPath.
 func OpenRepo(repoPath string) (*Repo, error) {
 	if !command.Available(gitExecutable) {
 		return nil, fmt.Errorf(
@@ -765,7 +766,7 @@ func (r *Repo) releaseBranchOrMainRef(major, minor uint64) (sha, rev string, err
 	return "", "", err
 }
 
-// HasBranch checks if a branch exists in the repo
+// HasBranch checks if a branch exists in the repo.
 func (r *Repo) HasBranch(branch string) (branchExists bool, err error) {
 	logrus.Infof("Verifying %s branch exists in the repo", branch)
 
@@ -788,7 +789,7 @@ func (r *Repo) HasBranch(branch string) (branchExists bool, err error) {
 }
 
 // HasRemoteBranch takes a branch string and verifies that it exists
-// on the default remote
+// on the default remote.
 func (r *Repo) HasRemoteBranch(branch string) (branchExists bool, err error) {
 	logrus.Infof("Verifying %s branch exists on the remote", branch)
 
@@ -842,7 +843,7 @@ func (r *Repo) RemoteBranches() (branches []string, err error) {
 	return branches, nil
 }
 
-// Checkout can be used to checkout any revision inside the repository
+// Checkout can be used to checkout any revision inside the repository.
 func (r *Repo) Checkout(rev string, args ...string) error {
 	cmdArgs := append([]string{"checkout", rev}, args...)
 	return command.
@@ -851,7 +852,7 @@ func (r *Repo) Checkout(rev string, args ...string) error {
 }
 
 // IsReleaseBranch returns true if the provided branch is a Kubernetes release
-// branch
+// branch.
 func IsReleaseBranch(branch string) bool {
 	if !regex.BranchRegex.MatchString(branch) {
 		logrus.Warnf("%s is not a release branch", branch)
@@ -903,7 +904,7 @@ func (r *Repo) MergeBase(from, to string) (string, error) {
 	return mergeBase, nil
 }
 
-// Remotify returns the name prepended with the default remote
+// Remotify returns the name prepended with the default remote.
 func Remotify(name string) string {
 	split := strings.Split(name, "/")
 	if len(split) > 1 {
@@ -912,7 +913,7 @@ func Remotify(name string) string {
 	return fmt.Sprintf("%s/%s", DefaultRemote, name)
 }
 
-// Merge does a git merge into the current branch from the provided one
+// Merge does a git merge into the current branch from the provided one.
 func (r *Repo) Merge(from string) error {
 	if err := filterCommand(
 		r.Dir(), "merge", "-X", "ours", from,
@@ -923,7 +924,7 @@ func (r *Repo) Merge(from string) error {
 }
 
 // Push does push the specified branch to the default remote, but only if the
-// repository is not in dry run mode
+// repository is not in dry run mode.
 func (r *Repo) Push(remoteBranch string) (err error) {
 	args := []string{"push"}
 	if r.dryRun {
@@ -951,7 +952,7 @@ func (r *Repo) Push(remoteBranch string) (err error) {
 	return fmt.Errorf("trying to push %s %d times: %w", remoteBranch, r.maxRetries, err)
 }
 
-// Head retrieves the current repository HEAD as a string
+// Head retrieves the current repository HEAD as a string.
 func (r *Repo) Head() (string, error) {
 	ref, err := r.inner.Head()
 	if err != nil {
@@ -1045,7 +1046,7 @@ func (r *Repo) LatestPatchToLatest(branch string) (DiscoverResult, error) {
 	}, nil
 }
 
-// LatestTagForBranch returns the latest available semver tag for a given branch
+// LatestTagForBranch returns the latest available semver tag for a given branch.
 func (r *Repo) LatestTagForBranch(branch string) (tag semver.Version, err error) {
 	tags, err := r.TagsForBranch(branch)
 	if err != nil {
@@ -1064,7 +1065,7 @@ func (r *Repo) LatestTagForBranch(branch string) (tag semver.Version, err error)
 }
 
 // PreviousTag tries to find the previous tag for a provided branch and errors
-// on any failure
+// on any failure.
 func (r *Repo) PreviousTag(tag, branch string) (string, error) {
 	tags, err := r.TagsForBranch(branch)
 	if err != nil {
@@ -1089,7 +1090,7 @@ func (r *Repo) PreviousTag(tag, branch string) (string, error) {
 }
 
 // TagsForBranch returns a list of tags for the provided branch sorted by
-// creation date
+// creation date.
 func (r *Repo) TagsForBranch(branch string) (res []string, err error) {
 	previousBranch, err := r.CurrentBranch()
 	if err != nil {
@@ -1126,7 +1127,7 @@ func (r *Repo) Tags() (res []string, err error) {
 	return res, nil
 }
 
-// Add adds a file to the staging area of the repo
+// Add adds a file to the staging area of the repo.
 func (r *Repo) Add(filename string) error {
 	if err := filterCommand(
 		r.Dir(), "add", filename,
@@ -1136,7 +1137,7 @@ func (r *Repo) Add(filename string) error {
 	return nil
 }
 
-// GetUserName Reads the local user's name from the git configuration
+// GetUserName Reads the local user's name from the git configuration.
 func GetUserName() (string, error) {
 	// check first if the env var is set otherwise check the git config
 	userNameFromEnv := os.Getenv("GIT_COMMITTER_NAME")
@@ -1155,7 +1156,7 @@ func GetUserName() (string, error) {
 	return userName.OutputTrimNL(), nil
 }
 
-// GetUserEmail reads the user's name from git
+// GetUserEmail reads the user's name from git.
 func GetUserEmail() (string, error) {
 	// check first if the env var is set otherwise check the git config
 	userEmailFromEnv := os.Getenv("GIT_COMMITTER_EMAIL")
@@ -1174,7 +1175,7 @@ func GetUserEmail() (string, error) {
 }
 
 // UserCommit makes a commit using the local user's config as well as adding
-// the Signed-off-by line to the commit message
+// the Signed-off-by line to the commit message.
 func (r *Repo) UserCommit(msg string) error {
 	// Retrieve username and mail
 	userName, err := GetUserName()
@@ -1203,7 +1204,7 @@ func (r *Repo) UserCommit(msg string) error {
 	return nil
 }
 
-// Commit commits the current repository state
+// Commit commits the current repository state.
 func (r *Repo) Commit(msg string) error {
 	return r.CommitWithOptions(
 		msg,
@@ -1217,7 +1218,7 @@ func (r *Repo) Commit(msg string) error {
 	)
 }
 
-// CommitWithOptions commits the current repository state
+// CommitWithOptions commits the current repository state.
 func (r *Repo) CommitWithOptions(msg string, options *git.CommitOptions) error {
 	if _, err := r.worktree.Commit(msg, options); err != nil {
 		return err
@@ -1225,7 +1226,7 @@ func (r *Repo) CommitWithOptions(msg string, options *git.CommitOptions) error {
 	return nil
 }
 
-// CommitEmpty commits an empty commit into the repository
+// CommitEmpty commits an empty commit into the repository.
 func (r *Repo) CommitEmpty(msg string) error {
 	return command.
 		NewWithWorkDir(r.Dir(), gitExecutable,
@@ -1257,7 +1258,7 @@ func (r *Repo) Tag(name, message string) error {
 }
 
 // CurrentBranch returns the current branch of the repository or an error in
-// case of any failure
+// case of any failure.
 func (r *Repo) CurrentBranch() (branch string, err error) {
 	branches, err := r.inner.Branches()
 	if err != nil {
@@ -1283,7 +1284,7 @@ func (r *Repo) CurrentBranch() (branch string, err error) {
 	return branch, nil
 }
 
-// Rm removes files from the repository
+// Rm removes files from the repository.
 func (r *Repo) Rm(force bool, files ...string) error {
 	args := []string{"rm"}
 	if force {
@@ -1296,7 +1297,7 @@ func (r *Repo) Rm(force bool, files ...string) error {
 		RunSilentSuccess()
 }
 
-// Remotes lists the currently available remotes for the repository
+// Remotes lists the currently available remotes for the repository.
 func (r *Repo) Remotes() (res []*Remote, err error) {
 	remotes, err := r.inner.Remotes()
 	if err != nil {
@@ -1317,7 +1318,7 @@ func (r *Repo) Remotes() (res []*Remote, err error) {
 }
 
 // HasRemote checks if the provided remote `name` is available and matches the
-// expected `url`
+// expected `url`.
 func (r *Repo) HasRemote(name, expectedURL string) bool {
 	remotes, err := r.Remotes()
 	if err != nil {
@@ -1338,7 +1339,7 @@ func (r *Repo) HasRemote(name, expectedURL string) bool {
 	return false
 }
 
-// AddRemote adds a new remote to the current working tree
+// AddRemote adds a new remote to the current working tree.
 func (r *Repo) AddRemote(name, owner, repo string, useSSH bool) error {
 	repoURL := GetRepoURL(owner, repo, useSSH)
 	args := []string{"remote", "add", name, repoURL}
@@ -1348,7 +1349,7 @@ func (r *Repo) AddRemote(name, owner, repo string, useSSH bool) error {
 }
 
 // PushToRemote push the current branch to a specified remote, but only if the
-// repository is not in dry run mode
+// repository is not in dry run mode.
 func (r *Repo) PushToRemote(remote, remoteBranch string) error {
 	args := []string{"push", "--set-upstream"}
 	if r.dryRun {
@@ -1361,13 +1362,13 @@ func (r *Repo) PushToRemote(remote, remoteBranch string) error {
 }
 
 // PushToRemote push the current branch to a specified remote, but only if the
-// repository is not in dry run mode
+// repository is not in dry run mode.
 func (r *Repo) PushToRemoteWithOptions(pushOptions *git.PushOptions) error {
 	return r.inner.Push(pushOptions)
 }
 
 // LsRemote can be used to run `git ls-remote` with the provided args on the
-// repository
+// repository.
 func (r *Repo) LsRemote(args ...string) (output string, err error) {
 	for i := r.maxRetries + 1; i > 0; i-- {
 		params := []string{}
@@ -1393,7 +1394,7 @@ func (r *Repo) LsRemote(args ...string) (output string, err error) {
 }
 
 // Branch can be used to run `git branch` with the provided args on the
-// repository
+// repository.
 func (r *Repo) Branch(args ...string) (string, error) {
 	return r.runGitCmd("branch", args...)
 }
@@ -1420,7 +1421,7 @@ func (r *Repo) IsDirty() (bool, error) {
 	return !status.IsClean(), nil
 }
 
-// RemoteTags return the tags that currently exist in the
+// RemoteTags return the tags that currently exist in the.
 func (r *Repo) RemoteTags() (tags []string, err error) {
 	logrus.Debug("Listing remote tags with ls-remote")
 	output, err := r.LsRemote(DefaultRemote)
@@ -1440,7 +1441,7 @@ func (r *Repo) RemoteTags() (tags []string, err error) {
 	return tags, nil
 }
 
-// HasRemoteTag Checks if the default remote already has a tag
+// HasRemoteTag Checks if the default remote already has a tag.
 func (r *Repo) HasRemoteTag(tag string) (hasTag bool, err error) {
 	remoteTags, err := r.RemoteTags()
 	if err != nil {
@@ -1455,7 +1456,7 @@ func (r *Repo) HasRemoteTag(tag string) (hasTag bool, err error) {
 	return false, nil
 }
 
-// SetURL can be used to overwrite the URL for a remote
+// SetURL can be used to overwrite the URL for a remote.
 func (r *Repo) SetURL(remote, newURL string) error {
 	if err := r.inner.DeleteRemote(remote); err != nil {
 		return fmt.Errorf("delete remote: %w", err)
@@ -1469,7 +1470,7 @@ func (r *Repo) SetURL(remote, newURL string) error {
 	return nil
 }
 
-// Status reads and returns the Status object from the repository
+// Status reads and returns the Status object from the repository.
 func (r *Repo) Status() (*git.Status, error) {
 	status, err := r.worktree.Status()
 	if err != nil {
@@ -1479,7 +1480,7 @@ func (r *Repo) Status() (*git.Status, error) {
 }
 
 // ShowLastCommit is a simple function that runs git show and returns the
-// last commit in the log
+// last commit in the log.
 func (r *Repo) ShowLastCommit() (logData string, err error) {
 	logData, err = r.runGitCmd("show")
 	if err != nil {
@@ -1488,7 +1489,7 @@ func (r *Repo) ShowLastCommit() (logData string, err error) {
 	return logData, nil
 }
 
-// LastCommitSha returns the sha of the last commit in the repository
+// LastCommitSha returns the sha of the last commit in the repository.
 func (r *Repo) LastCommitSha() (string, error) {
 	shaval, err := r.runGitCmd("log", "--pretty=format:%H", "-n1")
 	if err != nil {
@@ -1530,7 +1531,7 @@ func (r *Repo) FetchRemote(remoteName string) (bool, error) {
 	return output != "", nil
 }
 
-// Rebase calls rebase on the current repo to the specified branch
+// Rebase calls rebase on the current repo to the specified branch.
 func (r *Repo) Rebase(branch string) error {
 	if branch == "" {
 		return errors.New("cannot rebase repository, branch is empty")
@@ -1544,7 +1545,7 @@ func (r *Repo) Rebase(branch string) error {
 	return nil
 }
 
-// ParseRepoSlug parses a repository string and return the organization and repository name/
+// ParseRepoSlug parses a repository string and return the organization and repository name/.
 func ParseRepoSlug(repoSlug string) (org, repo string, err error) {
 	match, err := regexp.MatchString(`(?i)^[a-z0-9-/]+$`, repoSlug)
 	if err != nil {
@@ -1565,7 +1566,7 @@ func ParseRepoSlug(repoSlug string) (org, repo string, err error) {
 	return org, repo, nil
 }
 
-// NewNetworkError creates a new NetworkError
+// NewNetworkError creates a new NetworkError.
 func NewNetworkError(err error) NetworkError {
 	gerror := NetworkError{
 		error: err,
@@ -1573,12 +1574,12 @@ func NewNetworkError(err error) NetworkError {
 	return gerror
 }
 
-// NetworkError is a wrapper for the error class
+// NetworkError is a wrapper for the error class.
 type NetworkError struct {
 	error
 }
 
-// CanRetry tells if an error can be retried
+// CanRetry tells if an error can be retried.
 func (e NetworkError) CanRetry() bool {
 	// We consider these strings as part of errors we can retry
 	retryMessages := []string{

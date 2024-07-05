@@ -27,6 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"k8s.io/utils/ptr"
+
 	"sigs.k8s.io/release-sdk/git"
 	"sigs.k8s.io/release-sdk/github"
 	"sigs.k8s.io/release-sdk/github/githubfakes"
@@ -49,7 +50,7 @@ func TestLatestGitHubTagsPerBranchSuccessEmptyResult(t *testing.T) {
 	res, err := sut.LatestGitHubTagsPerBranch()
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Empty(t, res)
 }
 
@@ -69,7 +70,7 @@ func TestLatestGitHubTagsPerBranchSuccessAlphaAfterMinor(t *testing.T) {
 	res, err := sut.LatestGitHubTagsPerBranch()
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, res, 2)
 	require.Equal(t, tag1, res[git.DefaultBranch])
 	require.Equal(t, tag2, res["release-1.18"])
@@ -93,7 +94,7 @@ func TestLatestGitHubTagsPerBranchMultiplePages(t *testing.T) {
 	res, err := sut.LatestGitHubTagsPerBranch()
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, res, 2)
 	require.Equal(t, tag1, res[git.DefaultBranch])
 	require.Equal(t, tag2, res["release-1.18"])
@@ -127,7 +128,7 @@ func TestLatestGitHubTagsPerBranchSuccessMultipleForSameBranch(t *testing.T) {
 	res, err := sut.LatestGitHubTagsPerBranch()
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, res, 4)
 	require.Equal(t, tag1, res[git.DefaultBranch])
 	require.Empty(t, res["release-1.18"])
@@ -156,7 +157,7 @@ func TestLatestGitHubTagsPerBranchSuccessPatchReleases(t *testing.T) {
 	res, err := sut.LatestGitHubTagsPerBranch()
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, res, 4)
 	require.Equal(t, tag1, res[git.DefaultBranch])
 	require.Equal(t, tag1, res["release-1.17"])
@@ -174,7 +175,7 @@ func TestLatestGitHubTagsPerBranchFailedOnList(t *testing.T) {
 	res, err := sut.LatestGitHubTagsPerBranch()
 
 	// Then
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Nil(t, res)
 }
 
@@ -190,7 +191,7 @@ func TestLatestGitHubTagsPerBranchSkippedNonSemverTag(t *testing.T) {
 	res, err := sut.LatestGitHubTagsPerBranch()
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Empty(t, res)
 }
 
@@ -203,7 +204,7 @@ func TestReleasesSuccessEmpty(t *testing.T) {
 	res, err := sut.Releases("", "", false)
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Empty(t, res)
 }
 
@@ -228,7 +229,7 @@ func TestReleasesSuccessNoPreReleases(t *testing.T) {
 	res, err := sut.Releases("", "", false)
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, res, 3)
 	require.Equal(t, tag1, res[0].GetTagName())
 	require.Equal(t, tag2, res[1].GetTagName())
@@ -256,7 +257,7 @@ func TestReleasesSuccessWithPreReleases(t *testing.T) {
 	res, err := sut.Releases("", "", true)
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, res, 4)
 	require.Equal(t, tag1, res[0].GetTagName())
 	require.Equal(t, tag2, res[1].GetTagName())
@@ -273,7 +274,7 @@ func TestReleasesFailed(t *testing.T) {
 	res, err := sut.Releases("", "", false)
 
 	// Then
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Nil(t, res, nil)
 }
 
@@ -287,7 +288,7 @@ func TestCreatePullRequest(t *testing.T) {
 	pr, err := sut.CreatePullRequest("kubernetes-fake-org", "kubernetes-fake-repo", git.DefaultBranch, "user:head-branch", "PR Title", "PR Body")
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, pr, nil)
 	require.Equal(t, fakeID, pr.GetID())
 }
@@ -311,11 +312,11 @@ func TestRequestReviewers(t *testing.T) {
 
 	// When requesting reviewers
 	updatedPr, err := sut.RequestPullRequestReview("kubernetes-fake-org", "kubernetes-fake-repo", fakeNumber, []string{fakeUser}, []string{})
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, updatedPr, nil)
 	require.Equal(t, fakeID, updatedPr.GetID())
 	require.Equal(t, fakeNumber, updatedPr.GetNumber())
-	require.Equal(t, 1, len(updatedPr.RequestedReviewers))
+	require.Len(t, updatedPr.RequestedReviewers, 1)
 	require.Equal(t, fakeUser, updatedPr.RequestedReviewers[0].GetName())
 }
 
@@ -361,9 +362,9 @@ func TestGetMilestone(t *testing.T) {
 		}
 
 		if tc.Err {
-			require.NotNil(t, err)
+			require.Error(t, err)
 		} else {
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}
 	}
 }
@@ -388,7 +389,7 @@ func TestGetRepository(t *testing.T) {
 	repo, err := sut.GetRepository("kubernetes", "release")
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, repo, nil)
 	require.Equal(t, fakeRepositoryID, repo.GetID())
 	require.Equal(t, kubernetesUserID, repo.GetOwner().GetID())
@@ -427,8 +428,8 @@ func TestRepoIsForkOf(t *testing.T) {
 	result, err := sut.RepoIsForkOf("fork", repoName, "kubernetes", repoName)
 
 	// Then
-	require.Nil(t, err)
-	require.Equal(t, result, true)
+	require.NoError(t, err)
+	require.True(t, result)
 }
 
 func TestRepoIsNotForkOf(t *testing.T) {
@@ -462,8 +463,8 @@ func TestRepoIsNotForkOf(t *testing.T) {
 	result, err := sut.RepoIsForkOf("fork", repoName, "kubernetes", repoName)
 
 	// Then
-	require.Nil(t, err)
-	require.Equal(t, result, false)
+	require.NoError(t, err)
+	require.False(t, result)
 }
 
 func TestListBranches(t *testing.T) {
@@ -492,7 +493,7 @@ func TestListBranches(t *testing.T) {
 	result, err := sut.ListBranches("kubernetes", "kubernotia")
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, result, 3)
 	require.Equal(t, result[1].GetName(), branch1)
 }
@@ -523,11 +524,11 @@ func TestCreateIssue(t *testing.T) {
 
 		// Then
 		if tcErr == nil {
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.NotNil(t, newissue)
 			require.Equal(t, fakeID, issue.GetNumber())
 		} else {
-			require.NotNil(t, err)
+			require.Error(t, err)
 		}
 	}
 }
@@ -569,11 +570,11 @@ func TestUpdateIssue(t *testing.T) {
 		client.CreateIssueReturns(issue, tcErr)
 		newissue, err := sut.CreateIssue("kubernetes-fake-org", "kubernetes-fake-repo", title, body, opts)
 		if tcErr == nil {
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.NotNil(t, newissue)
 			require.Equal(t, fakeID, issue.GetNumber())
 		} else {
-			require.NotNil(t, err)
+			require.Error(t, err)
 		}
 
 		client.UpdateIssueReturns(updatedIssue, nil, tcErr)
@@ -581,11 +582,11 @@ func TestUpdateIssue(t *testing.T) {
 
 		// Then
 		if tcErr == nil {
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.NotNil(t, updatedIssue)
 			require.Equal(t, updatedopts.State, updatedIssue.GetState())
 		} else {
-			require.NotNil(t, err)
+			require.Error(t, err)
 		}
 	}
 }
@@ -608,11 +609,11 @@ func TestAddLabels(t *testing.T) {
 
 		// Then
 		if tcErr == nil {
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.NotNil(t, updatedLabel)
 			require.EqualValues(t, labelToAdd, updatedLabel)
 		} else {
-			require.NotNil(t, err)
+			require.Error(t, err)
 		}
 	}
 }
@@ -637,7 +638,7 @@ func TestListIssues(t *testing.T) {
 	result, err := sut.ListIssues("kubernetes", "kubernotia", github.IssueStateOpen)
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, result, 3)
 	require.Equal(t, result[0].GetTitle(), issue0)
 	require.Equal(t, result[1].GetTitle(), issue1)
@@ -673,7 +674,7 @@ func TestListComments(t *testing.T) {
 	)
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, result, 3)
 	require.Equal(t, result[0].GetBody(), comment0)
 	require.Equal(t, result[1].GetBody(), comment1)
@@ -714,17 +715,17 @@ func TestUpdateReleasePageWithOptions(t *testing.T) {
 
 		// Then
 		if tcErr == nil {
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.NotNil(t, releaseData)
 			require.Equal(t, fakeID, releaseData.GetID())
 			require.Equal(t, commitish, releaseData.GetTargetCommitish())
 			require.Equal(t, name, releaseData.GetName())
 			require.Equal(t, body, releaseData.GetBody())
-			require.Equal(t, false, release.GetDraft())
-			require.Equal(t, false, release.GetPrerelease())
+			require.False(t, release.GetDraft())
+			require.False(t, release.GetPrerelease())
 			require.Equal(t, "true", release.GetMakeLatest())
 		} else {
-			require.NotNil(t, err)
+			require.Error(t, err)
 		}
 	}
 }
@@ -749,9 +750,9 @@ func TestCheckRateLimit(t *testing.T) {
 	rt, result, err := sut.CheckRateLimit(context.Background())
 
 	// Then
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, result)
-	require.Equal(t, rt.Core.Limit, 5000)
-	require.Equal(t, rt.Core.Remaining, 200)
+	require.Equal(t, 5000, rt.Core.Limit)
+	require.Equal(t, 200, rt.Core.Remaining)
 	require.Equal(t, rt.Core.Reset, now)
 }

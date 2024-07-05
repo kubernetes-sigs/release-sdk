@@ -25,12 +25,12 @@ import (
 )
 
 const (
-	// OSCExecutable is the name of the OpenBuildService CLI executable
+	// OSCExecutable is the name of the OpenBuildService CLI executable.
 	OSCExecutable = "osc"
 )
 
 // PreCheck checks if all requirements are fulfilled to run this package and
-// all sub-packages
+// all sub-packages.
 func PreCheck() error {
 	for _, e := range []string{
 		OSCExecutable,
@@ -45,12 +45,12 @@ func PreCheck() error {
 	return nil
 }
 
-// OSC can be used to run a 'osc' command
+// OSC can be used to run a 'osc' command.
 func OSC(workDir string, args ...string) error {
 	return command.NewWithWorkDir(workDir, OSCExecutable, args...).RunSilentSuccess()
 }
 
-// Output can be used to run a 'osc' command while capturing its output
+// Output can be used to run a 'osc' command while capturing its output.
 func Output(workDir string, args ...string) (string, error) {
 	stream, err := command.NewWithWorkDir(workDir, OSCExecutable, args...).RunSilentSuccessOutput()
 	if err != nil {
@@ -59,7 +59,7 @@ func Output(workDir string, args ...string) (string, error) {
 	return stream.OutputTrimNL(), nil
 }
 
-// Status can be used to run a 'osc' command while capturing its status
+// Status can be used to run a 'osc' command while capturing its status.
 func Status(workDir string, args ...string) (*command.Status, error) {
 	return command.NewWithWorkDir(workDir, OSCExecutable, args...).Run()
 }

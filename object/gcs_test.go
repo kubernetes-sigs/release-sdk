@@ -56,7 +56,7 @@ func TestGCSSetOptions(t *testing.T) {
 	}
 }
 
-// TODO: Add production use cases
+// TODO: Add production use cases.
 func TestGetReleasePath(t *testing.T) {
 	for _, tc := range []struct {
 		bucket, gcsRoot, version string
@@ -97,14 +97,14 @@ func TestGetReleasePath(t *testing.T) {
 		require.Equal(t, tc.expected, actual)
 
 		if tc.shouldError {
-			require.NotNil(t, err)
+			require.Error(t, err)
 		} else {
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}
 	}
 }
 
-// TODO: Add production use cases
+// TODO: Add production use cases.
 func TestGetMarkerPath(t *testing.T) {
 	for _, tc := range []struct {
 		bucket, gcsRoot string
@@ -144,7 +144,7 @@ func TestGetMarkerPath(t *testing.T) {
 			require.NotEqual(t, tc.expected, actual)
 		} else {
 			require.Equal(t, tc.expected, actual)
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}
 	}
 }
@@ -218,9 +218,9 @@ func TestNormalizePath(t *testing.T) {
 		require.Equal(t, tc.expected, actual)
 
 		if tc.shouldError {
-			require.NotNil(t, err)
+			require.Error(t, err)
 		} else {
-			require.Nil(t, err)
+			require.NoError(t, err)
 		}
 	}
 }

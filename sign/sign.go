@@ -39,7 +39,9 @@ import (
 	sigs "github.com/sigstore/cosign/v2/pkg/signature"
 	signatureoptions "github.com/sigstore/sigstore/pkg/signature/options"
 	"github.com/sirupsen/logrus"
+
 	"k8s.io/apimachinery/pkg/util/wait"
+
 	"sigs.k8s.io/release-utils/hash"
 )
 
@@ -337,7 +339,7 @@ func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 
 // VerifyImages can be used to validate any provided container image reference
 // list by using keyless signing. It ignores unsigned images. Returns a sync map
-// where the key is the ref (string) and the value is the *SignedObject
+// where the key is the ref (string) and the value is the *SignedObject.
 func (s *Signer) VerifyImages(refs ...string) (*sync.Map, error) {
 	s.log().Debug("Checking cache")
 	res := &sync.Map{}
@@ -759,7 +761,7 @@ func (s *Signer) IsFileSigned(ctx context.Context, path string) (bool, error) {
 // identityToken returns an identity token to perform keyless signing.
 // If there is one set in the options we will use that one. If not,
 // signer will try to get one from the cosign OIDC identity providers
-// if options.EnableTokenProviders is set
+// if options.EnableTokenProviders is set.
 func (s *Signer) identityToken(ctx context.Context) (string, error) {
 	tok := s.options.IdentityToken
 	if s.options.PrivateKeyPath == "" && s.options.IdentityToken == "" {

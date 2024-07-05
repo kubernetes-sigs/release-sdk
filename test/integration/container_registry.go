@@ -49,14 +49,14 @@ func runDockerRegistryWithDummyImage(t *testing.T, imageName string) *dockerRegi
 	cmd := command.New(dockerCommand, "run", "--detach", "--network", "host",
 		"--name", registryContainerName, registryImage)
 	err := cmd.RunSuccess()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Setup the temp dir
 	tempDir, err := os.MkdirTemp("", "k8s-test-img-")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Add the image
-	require.Nil(t, os.WriteFile(
+	require.NoError(t, os.WriteFile(
 		filepath.Join(tempDir, dockerfileName),
 		[]byte(dockerfile),
 		os.FileMode(0o644),
@@ -65,15 +65,15 @@ func runDockerRegistryWithDummyImage(t *testing.T, imageName string) *dockerRegi
 	// Build the image
 	cmd = command.New(dockerCommand, "build", "--tag", imageName, tempDir)
 	err = cmd.RunSuccess()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Push the image
 	cmd = command.New(dockerCommand, "push", imageName)
 	err = cmd.RunSuccess()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// After the image is pushed, we don't need the Dockerfile any longer
-	require.Nil(t, os.RemoveAll(tempDir))
+	require.NoError(t, os.RemoveAll(tempDir))
 
 	return &dockerRegistry{
 		ImageName:      imageName,
@@ -84,5 +84,5 @@ func runDockerRegistryWithDummyImage(t *testing.T, imageName string) *dockerRegi
 func deleteRegistryContainer(t *testing.T) {
 	cmd := command.New(dockerCommand, "rm", "-f", registryContainerName)
 	err := cmd.RunSuccess()
-	require.Nil(t, err)
+	require.NoError(t, err)
 }

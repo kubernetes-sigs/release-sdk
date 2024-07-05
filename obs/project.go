@@ -26,21 +26,21 @@ import (
 )
 
 type Project struct {
-	XMLName      xml.Name     `json:"project" xml:"project"`
-	Name         string       `json:"name" xml:"name,attr"`
-	Kind         string       `json:"kind,omitempty" xml:"kind,attr,omitempty"`
-	Title        string       `json:"title,omitempty" xml:"title,omitempty"`
-	Description  string       `json:"description,omitempty" xml:"description,omitempty"`
-	URL          string       `json:"url,omitempty" xml:"url,omitempty"`
-	Persons      []Person     `json:"persons,omitempty" xml:"person,omitempty"`
+	XMLName      xml.Name     `json:"project"                xml:"project"`
+	Name         string       `json:"name"                   xml:"name,attr"`
+	Kind         string       `json:"kind,omitempty"         xml:"kind,attr,omitempty"`
+	Title        string       `json:"title,omitempty"        xml:"title,omitempty"`
+	Description  string       `json:"description,omitempty"  xml:"description,omitempty"`
+	URL          string       `json:"url,omitempty"          xml:"url,omitempty"`
+	Persons      []Person     `json:"persons,omitempty"      xml:"person,omitempty"`
 	Repositories []Repository `json:"repositories,omitempty" xml:"repository,omitempty"`
-	Build        *Build       `json:"build,omitempty" xml:"build,omitempty"`
-	Publish      *Publish     `json:"publish,omitempty" xml:"publish,omitempty"`
-	DebugInfo    *DebugInfo   `json:"debugInfo,omitempty" xml:"debuginfo,omitempty"`
-	UseForBuild  *UseForBuild `json:"useForBuild,omitempty" xml:"useforbuild,omitempty"`
+	Build        *Build       `json:"build,omitempty"        xml:"build,omitempty"`
+	Publish      *Publish     `json:"publish,omitempty"      xml:"publish,omitempty"`
+	DebugInfo    *DebugInfo   `json:"debugInfo,omitempty"    xml:"debuginfo,omitempty"`
+	UseForBuild  *UseForBuild `json:"useForBuild,omitempty"  xml:"useforbuild,omitempty"`
 }
 
-// OBS is a wrapper around OBS related functionality
+// OBS is a wrapper around OBS related functionality.
 type OBS struct {
 	client  Client
 	options *Options
@@ -50,12 +50,12 @@ type obsClient struct {
 	*http.Client
 }
 
-// Client is an interface modeling supported OBS operations
+// Client is an interface modeling supported OBS operations.
 type Client interface {
 	InvokeOBSEndpoint(ctx context.Context, username, password, method, apiURL string, xml *bytes.Buffer) (*http.Response, error)
 }
 
-// InvokeOBSEndpoint invokes an OBS endpoint by making a HTTP request
+// InvokeOBSEndpoint invokes an OBS endpoint by making a HTTP request.
 func (o *obsClient) InvokeOBSEndpoint(ctx context.Context, username, password, method, apiURL string, xmlData *bytes.Buffer) (*http.Response, error) {
 	if xmlData == nil {
 		xmlData = &bytes.Buffer{}
@@ -84,21 +84,21 @@ func (o *obsClient) InvokeOBSEndpoint(ctx context.Context, username, password, m
 	return resp, nil
 }
 
-// Options is a set of options to configure the behavior of the OBS package
+// Options is a set of options to configure the behavior of the OBS package.
 type Options struct {
 	Username string
 	Password string
 	APIURL   string
 }
 
-// DefaultOptions return an options struct with commonly used settings
+// DefaultOptions return an options struct with commonly used settings.
 func DefaultOptions() *Options {
 	return &Options{
 		APIURL: "https://api.opensuse.org/",
 	}
 }
 
-// New creates a new default OBS client
+// New creates a new default OBS client.
 func New(opts *Options) *OBS {
 	return &OBS{
 		client:  &obsClient{Client: http.DefaultClient},
@@ -126,7 +126,7 @@ type UseForBuild struct {
 
 type Person struct {
 	UserID string     `json:"userid" xml:"userid,attr"`
-	Role   PersonRole `json:"role" xml:"role,attr"`
+	Role   PersonRole `json:"role"   xml:"role,attr"`
 }
 
 type PersonRole string
@@ -140,24 +140,24 @@ const (
 )
 
 type Repository struct {
-	Repository     string           `json:"name" xml:"name,attr"`
-	Architectures  []string         `json:"architectures" xml:"arch"`
+	Repository     string           `json:"name"                     xml:"name,attr"`
+	Architectures  []string         `json:"architectures"            xml:"arch"`
 	ReleaseTargets []ReleaseTarget  `json:"releaseTargets,omitempty" xml:"releasetarget,omitempty"`
-	Paths          []RepositoryPath `json:"path,omitempty" xml:"path,omitempty"`
+	Paths          []RepositoryPath `json:"path,omitempty"           xml:"path,omitempty"`
 }
 
 type ReleaseTarget struct {
-	ProjectName string `json:"project" xml:"project,attr"`
+	ProjectName string `json:"project"    xml:"project,attr"`
 	Repository  string `json:"repository" xml:"repository,attr"`
-	Trigger     string `json:"trigger" xml:"trigger,attr"`
+	Trigger     string `json:"trigger"    xml:"trigger,attr"`
 }
 
 type RepositoryPath struct {
-	Project    string `json:"project" xml:"project,attr"`
+	Project    string `json:"project"    xml:"project,attr"`
 	Repository string `json:"repository" xml:"repository,attr"`
 }
 
-// CreateUpdateProject creates a new OBS project or updates an existing OBS project
+// CreateUpdateProject creates a new OBS project or updates an existing OBS project.
 func (o *OBS) CreateUpdateProject(ctx context.Context, project *Project) error {
 	xmlData, err := xml.MarshalIndent(project, "", " ")
 	if err != nil {
@@ -195,7 +195,7 @@ func (o *OBS) CreateUpdateProject(ctx context.Context, project *Project) error {
 	return nil
 }
 
-// GetProjectMetaFile returns project's meta for a given OBS project
+// GetProjectMetaFile returns project's meta for a given OBS project.
 func (o *OBS) GetProjectMetaFile(ctx context.Context, projectName string) (*Project, error) {
 	urlPath, err := url.JoinPath(o.options.APIURL, "source", projectName, "_meta")
 	if err != nil {
@@ -233,7 +233,7 @@ func (o *OBS) GetProjectMetaFile(ctx context.Context, projectName string) (*Proj
 	return &project, nil
 }
 
-// DeleteProject deletes an existing OBS project
+// DeleteProject deletes an existing OBS project.
 func (o *OBS) DeleteProject(ctx context.Context, project *Project) error {
 	urlPath, err := url.JoinPath(o.options.APIURL, "source", project.Name)
 	if err != nil {

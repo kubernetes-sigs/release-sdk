@@ -146,14 +146,14 @@ func (d *defaultImpl) TokenFromProviders(ctx context.Context, logger *logrus.Log
 	return tok, nil
 }
 
-// FileExists returns true if a file exists
+// FileExists returns true if a file exists.
 func (*defaultImpl) FileExists(path string) bool {
 	return util.Exists(path)
 }
 
 // IdentityProvidersEnabled returns true if any of the cosign
 // identity providers is able to obteain an OIDC identity token
-// suitable for keyless signing,
+// suitable for keyless signing,.
 func (*defaultImpl) IdentityProvidersEnabled(ctx context.Context) bool {
 	return providers.Enabled(ctx)
 }

@@ -23,13 +23,13 @@ import (
 )
 
 const (
-	// GCloudExecutable is the name of the Google Cloud SDK executable
+	// GCloudExecutable is the name of the Google Cloud SDK executable.
 	GCloudExecutable = "gcloud"
 	gsutilExecutable = "gsutil"
 )
 
 // PreCheck checks if all requirements are fulfilled to run this package and
-// all sub-packages
+// all sub-packages.
 func PreCheck() error {
 	for _, e := range []string{
 		GCloudExecutable,
@@ -45,12 +45,12 @@ func PreCheck() error {
 	return nil
 }
 
-// GCloud can be used to run a 'gcloud' command
+// GCloud can be used to run a 'gcloud' command.
 func GCloud(args ...string) error {
 	return command.New(GCloudExecutable, args...).RunSilentSuccess()
 }
 
-// GCloudOutput can be used to run a 'gcloud' command while capturing its output
+// GCloudOutput can be used to run a 'gcloud' command while capturing its output.
 func GCloudOutput(args ...string) (string, error) {
 	stream, err := command.New(GCloudExecutable, args...).RunSilentSuccessOutput()
 	if err != nil {
@@ -59,12 +59,12 @@ func GCloudOutput(args ...string) (string, error) {
 	return stream.OutputTrimNL(), nil
 }
 
-// GSUtil can be used to run a 'gsutil' command
+// GSUtil can be used to run a 'gsutil' command.
 func GSUtil(args ...string) error {
 	return command.New(gsutilExecutable, args...).RunSilentSuccess()
 }
 
-// GSUtilOutput can be used to run a 'gsutil' command while capturing its output
+// GSUtilOutput can be used to run a 'gsutil' command while capturing its output.
 func GSUtilOutput(args ...string) (string, error) {
 	stream, err := command.New(gsutilExecutable, args...).RunSilentSuccessOutput()
 	if err != nil {
@@ -73,7 +73,7 @@ func GSUtilOutput(args ...string) (string, error) {
 	return stream.OutputTrimNL(), nil
 }
 
-// GSUtilStatus can be used to run a 'gsutil' command while capturing its status
+// GSUtilStatus can be used to run a 'gsutil' command while capturing its status.
 func GSUtilStatus(args ...string) (*command.Status, error) {
 	return command.New(gsutilExecutable, args...).Run()
 }

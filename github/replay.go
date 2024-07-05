@@ -175,7 +175,7 @@ func (c *githubNotesReplayClient) GetReleaseByTag(
 	return result, record.response(), nil
 }
 
-// TODO: Complete logic
+// TODO: Complete logic.
 func (c *githubNotesReplayClient) DownloadReleaseAsset(
 	context.Context, string, string, int64,
 ) (io.ReadCloser, string, error) {
@@ -279,21 +279,21 @@ func (c *githubNotesReplayClient) readRecordedData(api gitHubAPI) ([]byte, error
 	return file, nil
 }
 
-// UpdateReleasePage modifies a release, not recorded
+// UpdateReleasePage modifies a release, not recorded.
 func (c *githubNotesReplayClient) UpdateReleasePage(
 	ctx context.Context, owner, repo string, releaseID int64, releaseData *github.RepositoryRelease, //nolint: revive
 ) (*github.RepositoryRelease, error) {
 	return &github.RepositoryRelease{}, nil
 }
 
-// UploadReleaseAsset uploads files, not recorded
+// UploadReleaseAsset uploads files, not recorded.
 func (c *githubNotesReplayClient) UploadReleaseAsset(
 	context.Context, string, string, int64, *github.UploadOptions, *os.File,
 ) (*github.ReleaseAsset, error) {
 	return &github.ReleaseAsset{}, nil
 }
 
-// DeleteReleaseAsset removes an asset from a page, note recorded
+// DeleteReleaseAsset removes an asset from a page, note recorded.
 func (c *githubNotesReplayClient) DeleteReleaseAsset(
 	ctx context.Context, owner, repo string, assetID int64, //nolint: revive
 ) error {

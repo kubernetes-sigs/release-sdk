@@ -31,6 +31,7 @@ import (
 	"github.com/sigstore/cosign/v2/pkg/cosign"
 	"github.com/sigstore/rekor/pkg/generated/models"
 	"github.com/stretchr/testify/require"
+
 	"sigs.k8s.io/release-sdk/sign"
 	"sigs.k8s.io/release-sdk/sign/signfakes"
 )
@@ -48,7 +49,7 @@ func TestUploadBlob(t *testing.T) {
 			prepare: func(_ *signfakes.FakeImpl) {
 			},
 			assert: func(err error) {
-				require.Nil(t, err)
+				require.NoError(t, err)
 			},
 		},
 	} {
@@ -95,9 +96,9 @@ func TestSignImage(t *testing.T) {
 				require.NotEmpty(t, obj.Image().Reference())
 				require.NotEmpty(t, obj.Image().Digest())
 				require.NotEmpty(t, obj.Image().Signature())
-				require.Equal(t, obj.Image().Reference(), "gcr.io/fake/honk:99.99.99")
-				require.Equal(t, obj.Image().Digest(), "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a")
-				require.Equal(t, obj.Image().Signature(), "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig")
+				require.Equal(t, "gcr.io/fake/honk:99.99.99", obj.Image().Reference())
+				require.Equal(t, "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", obj.Image().Digest())
+				require.Equal(t, "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig", obj.Image().Signature())
 			},
 		},
 		{ // Failure on Verify
@@ -174,14 +175,14 @@ func TestSignFile(t *testing.T) {
 
 	// Create temporary directory for files.
 	tempDir, err := os.MkdirTemp("", "k8s-test-file-")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer func() {
-		require.Nil(t, os.RemoveAll(tempDir))
+		require.NoError(t, os.RemoveAll(tempDir))
 	}()
 
 	// Create temporary file for test.
 	tempFile := filepath.Join(tempDir, "test-file")
-	require.Nil(t, os.WriteFile(tempFile, []byte("dummy-content"), 0o644))
+	require.NoError(t, os.WriteFile(tempFile, []byte("dummy-content"), 0o644))
 
 	for _, tc := range []struct {
 		path    string
@@ -197,7 +198,7 @@ func TestSignFile(t *testing.T) {
 				mock.SignFileInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
-				require.Nil(t, err)
+				require.NoError(t, err)
 				require.NotNil(t, obj)
 				require.NotEmpty(t, obj.File().Path())
 				require.NotEmpty(t, obj.File().CertificatePath())
@@ -216,7 +217,7 @@ func TestSignFile(t *testing.T) {
 				mock.SignFileInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
-				require.Nil(t, err)
+				require.NoError(t, err)
 				require.NotNil(t, obj)
 				require.NotEmpty(t, obj.File().Path())
 				require.NotEmpty(t, obj.File().CertificatePath())
@@ -253,7 +254,7 @@ func TestSignFile(t *testing.T) {
 				mock.SignFileInternalReturns(nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
-				require.Nil(t, err)
+				require.NoError(t, err)
 
 				require.NotNil(t, obj)
 				require.NotEmpty(t, obj.File().Path())
@@ -272,7 +273,7 @@ func TestSignFile(t *testing.T) {
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorContains(t, err, "verifying signed file:")
 			},
 		},
@@ -314,7 +315,7 @@ func TestVerifyImage(t *testing.T) {
 				mock.NewWithContextReturns(&testRoundTripper{}, nil)
 			},
 			assert: func(_ *sign.SignedObject, err error) {
-				require.Nil(t, err)
+				require.NoError(t, err)
 			},
 		},
 		{ // Failure on Verify
@@ -331,7 +332,7 @@ func TestVerifyImage(t *testing.T) {
 				mock.ImagesSignedReturns(m, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.Nil(t, obj)
 			},
 		},
@@ -347,7 +348,7 @@ func TestVerifyImage(t *testing.T) {
 				mock.ImagesSignedReturns(m, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
-				require.Nil(t, err)
+				require.NoError(t, err)
 				require.Nil(t, obj)
 			},
 		},
@@ -369,9 +370,9 @@ func TestVerifyFile(t *testing.T) {
 
 	// Create temporary directory for files.
 	tempDir, err := os.MkdirTemp("", "k8s-test-file-")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer func() {
-		require.Nil(t, os.RemoveAll(tempDir))
+		require.NoError(t, os.RemoveAll(tempDir))
 	}()
 
 	// Create temporary file for test.
@@ -387,7 +388,7 @@ func TestVerifyFile(t *testing.T) {
 			LogIndex: &logindex,
 		},
 	}
-	require.Nil(t, os.WriteFile(tempFile, payload, 0o644))
+	require.NoError(t, os.WriteFile(tempFile, payload, 0o644))
 
 	for _, tc := range []struct {
 		path    string
@@ -406,7 +407,7 @@ func TestVerifyFile(t *testing.T) {
 				require.NotNil(t, obj.File)
 				require.Equal(t, obj.File().Path(), tempFile)
 				require.Equal(t, obj.File().SHA256(), payloadSha256)
-				require.Nil(t, err)
+				require.NoError(t, err)
 			},
 		},
 		{ // File not signed
@@ -418,7 +419,7 @@ func TestVerifyFile(t *testing.T) {
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
-				require.Nil(t, err)
+				require.NoError(t, err)
 			},
 		},
 		{ // File tlog not found
@@ -431,7 +432,7 @@ func TestVerifyFile(t *testing.T) {
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorContains(t, err, "verify file reference")
 			},
 		},
@@ -444,7 +445,7 @@ func TestVerifyFile(t *testing.T) {
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.ErrorContains(t, err, "find rekor tlog entries")
 			},
 		},
@@ -510,7 +511,7 @@ func TestIsImageSigned(t *testing.T) {
 			},
 			assert: func(signed bool, err error) {
 				require.True(t, signed)
-				require.Nil(t, err)
+				require.NoError(t, err)
 			},
 		},
 		{ // Success, not signed
@@ -521,7 +522,7 @@ func TestIsImageSigned(t *testing.T) {
 			},
 			assert: func(signed bool, err error) {
 				require.False(t, signed)
-				require.Nil(t, err)
+				require.NoError(t, err)
 			},
 		},
 		{ // failure ImagesSigned errors
@@ -631,7 +632,7 @@ func TestImagesSigned(t *testing.T) {
 				mock.NewWithContextReturns(&testRoundTripper{}, nil)
 			},
 			assert: func(res *sync.Map, err error) {
-				require.Nil(t, err)
+				require.NoError(t, err)
 
 				signed, ok := res.Load("")
 				require.True(t, ok)
@@ -649,7 +650,7 @@ func TestImagesSigned(t *testing.T) {
 				})
 			},
 			assert: func(res *sync.Map, err error) {
-				require.Nil(t, err)
+				require.NoError(t, err)
 
 				signed, ok := res.Load("")
 				require.True(t, ok)
@@ -661,7 +662,7 @@ func TestImagesSigned(t *testing.T) {
 				mock.ParseReferenceReturns(nil, errTest)
 			},
 			assert: func(res *sync.Map, err error) {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.Nil(t, res)
 			},
 		},
@@ -671,7 +672,7 @@ func TestImagesSigned(t *testing.T) {
 				mock.NewWithContextReturns(nil, errTest)
 			},
 			assert: func(res *sync.Map, err error) {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.Nil(t, res)
 			},
 		},
@@ -682,7 +683,7 @@ func TestImagesSigned(t *testing.T) {
 				mock.DigestReturns("", errTest)
 			},
 			assert: func(res *sync.Map, err error) {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.NotNil(t, res) // partial results are possible
 			},
 		},
@@ -693,7 +694,7 @@ func TestImagesSigned(t *testing.T) {
 				mock.DigestReturnsOnCall(1, "", errTest)
 			},
 			assert: func(res *sync.Map, err error) {
-				require.NotNil(t, err)
+				require.Error(t, err)
 				require.NotNil(t, res) // partial results are possible
 			},
 		},

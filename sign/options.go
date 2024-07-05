@@ -119,7 +119,7 @@ func (o *Options) ToCosignRootOptions() options.RootOptions {
 }
 
 // verifySignOptions checks that options have the minimum settings
-// for signing files or images:
+// for signing files or images:.
 func (o *Options) verifySignOptions() error {
 	// Our library is not designed to run in interactive mode
 	// this means that we will only support signing if we get a keypair or

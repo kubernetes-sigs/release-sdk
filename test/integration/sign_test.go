@@ -41,19 +41,19 @@ type cleanupFn func() error
 
 func generateCosignKeyPair(t *testing.T) (privateKeyPath, publicKeyPath string, fn cleanupFn) {
 	tempDir, err := os.MkdirTemp("", "k8s-cosign-keys-")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	keys, err := cosign.GenerateKeyPair(nil)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, keys)
 
 	privateKeyPath = filepath.Join(tempDir, "cosign.key")
 	err = os.WriteFile(privateKeyPath, keys.PrivateBytes, 0o600)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	publicKeyPath = filepath.Join(tempDir, "cosign.pub")
 	err = os.WriteFile(publicKeyPath, keys.PublicBytes, 0o644)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	cleanupFn := func() error {
 		return os.RemoveAll(tempDir)
 	}
@@ -67,7 +67,7 @@ func TestSuccessSignImage(t *testing.T) {
 
 	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t)
 	defer func() {
-		require.Nil(t, cleanup())
+		require.NoError(t, cleanup())
 	}()
 
 	opts := sign.Default()
@@ -79,30 +79,30 @@ func TestSuccessSignImage(t *testing.T) {
 	signer := sign.New(opts)
 
 	signedObject, err := signer.SignImage(reg.ImageName)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, signedObject)
 	verifiedObject, err := signer.VerifyImage(reg.ImageName)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, verifiedObject)
 }
 
 func TestSuccessSignFile(t *testing.T) {
 	// Setup the temp dir
 	tempDir, err := os.MkdirTemp("", "k8s-test-file-")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer func() {
-		require.Nil(t, os.RemoveAll(tempDir))
+		require.NoError(t, os.RemoveAll(tempDir))
 	}()
 
 	// Write the test file
 	testFilePath := filepath.Join(tempDir, "test")
 	testFileCertPath := filepath.Join(tempDir, "test.cert")
 	testFileSigPath := filepath.Join(tempDir, "test.sig")
-	require.Nil(t, os.WriteFile(testFilePath, []byte(testFile), 0o644))
+	require.NoError(t, os.WriteFile(testFilePath, []byte(testFile), 0o644))
 
 	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t)
 	defer func() {
-		require.Nil(t, cleanup())
+		require.NoError(t, cleanup())
 	}()
 
 	opts := sign.Default()
@@ -114,11 +114,11 @@ func TestSuccessSignFile(t *testing.T) {
 	signer := sign.New(opts)
 
 	signedObject, err := signer.SignFile(testFilePath)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, signedObject.File)
 
 	verifiedObject, err := signer.VerifyFile(testFilePath, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.NotNil(t, verifiedObject.File)
 }
 

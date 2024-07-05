@@ -25,23 +25,31 @@ linters:
     - asciicheck
     - bidichk
     - bodyclose
+    - canonicalheader
     - containedctx
     - contextcheck
+    - copyloopvar
     - decorder
     - dogsled
     - dupl
+    - dupword
     - durationcheck
     - errcheck
     - errchkjson
     - errname
-    - execinquery
     - exhaustive
     - exportloopref
+    - fatcontext
     - forbidigo
+    - gci
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    - gochecksumtype
     - gocognit
     - goconst
     - gocritic
     - gocyclo
+    - godot
     - godox
     - gofmt
     - gofumpt
@@ -51,13 +59,16 @@ linters:
     - gomodguard
     - goprintffuncname
     - gosimple
+    - gosmopolitan
     - govet
     - grouper
     - importas
     - ineffassign
-    - logrlint
+    - intrange
+    - loggercheck
     - maintidx
     - makezero
+    - mirror
     - misspell
     - nakedret
     - nestif
@@ -68,14 +79,20 @@ linters:
     - prealloc
     - predeclared
     - promlinter
+    - protogetter
     - reassign
     - revive
     - rowserrcheck
+    - sloglint
+    - spancheck
     - sqlclosecheck
     - staticcheck
     - stylecheck
+    - tagalign
     - tagliatelle
     - tenv
+    - testableexamples
+    - testifylint
     - typecheck
     - unconvert
     - unparam
@@ -83,21 +100,23 @@ linters:
     - usestdlibvars
     - wastedassign
     - whitespace
+    - zerologlint
     # - cyclop
+    # - depguard
+    # - err113
     # - errorlint
     # - exhaustruct
     # - forcetypeassert
     # - funlen
-    # - gci
     # - gochecknoglobals
     # - gochecknoinits
-    # - godot
-    # - goerr113
-    # - gomnd
     # - gosec
+    # - inamedparam
     # - interfacebloat
     # - ireturn
     # - lll
+    # - mnd
+    # - musttag
     # - nilerr
     # - nilnil
     # - nlreturn
@@ -110,6 +129,13 @@ linters:
     # - wrapcheck
     # - wsl
 linters-settings:
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(k8s.io)
+      - prefix(sigs.k8s.io)
+      - localmodule
   godox:
     keywords:
       - BUG
@@ -122,81 +148,77 @@ linters-settings:
     min-complexity: 40
   gocritic:
     enabled-checks:
-      # Diagnostic
+      - appendCombine
       - badLock
       - badRegexp
       - badSorting
+      - badSyncOnceFunc
+      - boolExprSimplify
+      - builtinShadow
       - builtinShadowDecl
       - commentedOutCode
+      - commentedOutImport
       - deferInLoop
+      - deferUnlambda
+      - docStub
+      - dupImport
       - dynamicFmtString
       - emptyDecl
+      - emptyFallthrough
+      - emptyStringTest
+      - equalFold
       - evalOrder
+      - exposedSyncMutex
       - externalErrorReassign
       - filepathJoin
+      - hexLiteral
+      - httpNoBody
+      - hugeParam
+      - importShadow
+      - indexAlloc
+      - initClause
+      - methodExprCall
+      - nestingReduce
       - nilValReturn
+      - octalLiteral
+      - paramTypeCombine
+      - preferDecodeRune
+      - preferFilepathJoin
+      - preferFprint
+      - preferStringWriter
+      - preferWriteByte
+      - ptrToRefParam
+      - rangeExprCopy
+      - rangeValCopy
+      - redundantSprint
       - regexpPattern
+      - regexpSimplify
       - returnAfterHttpError
+      - ruleguard
+      - sliceClear
       - sloppyReassign
       - sortSlice
       - sprintfQuotedString
       - sqlQuery
-      - syncMapLoadAndDelete
-      - truncateCmp
-      - unnecessaryDefer
-      - weakCond
-
-      # Performance
-      - appendCombine
-      - equalFold
-      - hugeParam
-      - indexAlloc
-      - preferDecodeRune
-      - preferFprint
-      - preferStringWriter
-      - preferWriteByte
-      - rangeExprCopy
-      - rangeValCopy
-      - sliceClear
-      - stringXbytes
-
-      # Style
-      - boolExprSimplify
-      - commentedOutImport
-      - deferUnlambda
-      - docStub
-      - dupImport
-      - emptyFallthrough
-      - emptyStringTest
-      - exposedSyncMutex
-      - hexLiteral
-      - httpNoBody
-      - methodExprCall
-      - octalLiteral
-      - preferFilepathJoin
-      - redundantSprint
-      - regexpSimplify
-      - ruleguard
       - stringConcatSimplify
+      - stringXbytes
       - stringsCompare
+      - syncMapLoadAndDelete
       - timeExprSimplify
+      - todoCommentWithoutDetail
       - tooManyResultsChecker
+      - truncateCmp
       - typeAssertChain
       - typeDefFirst
-      - unlabelStmt
-      - yodaStyleExpr
-      # - whyNoLint
-
-      # Opinionated
-      - builtinShadow
-      - importShadow
-      - initClause
-      - nestingReduce
-      - paramTypeCombine
-      - ptrToRefParam
       - typeUnparen
+      - uncheckedInlineErr
+      - unlabelStmt
       - unnamedResult
       - unnecessaryBlock
+      - unnecessaryDefer
+      - weakCond
+      # - whyNoLint
+      - yodaStyleExpr
   nolintlint:
     # Enable to ensure that nolint directives are all used. Default is true.
     allow-unused: false

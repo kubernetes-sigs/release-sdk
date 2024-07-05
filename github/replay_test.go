@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"sigs.k8s.io/release-sdk/github"
 )
 
@@ -29,6 +30,6 @@ const testDataDir = "testdata"
 func TestReplayListTags(t *testing.T) {
 	replayer := github.NewReplayer(testDataDir)
 	tags, _, err := replayer.ListTags(context.Background(), "", "", nil)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Len(t, tags, 19)
 }
