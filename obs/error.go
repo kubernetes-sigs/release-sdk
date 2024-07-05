@@ -22,8 +22,8 @@ import (
 )
 
 type Status struct {
-	XMLName xml.Name `json:"status" xml:"status"`
-	Code    string   `json:"code" xml:"code,attr"`
+	XMLName xml.Name `json:"status"  xml:"status"`
+	Code    string   `json:"code"    xml:"code,attr"`
 	Summary string   `json:"summary" xml:"summary"`
 }
 

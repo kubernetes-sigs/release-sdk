@@ -35,7 +35,7 @@ credentials_mgr_class=osc.credentials.PlaintextConfigFileCredentialsManager
 )
 
 // CreateOSCConfigFile creates the osc config file (~/.oscrc) that contains
-// API URL and credentials needed to authenticate with the API
+// API URL and credentials needed to authenticate with the API.
 func CreateOSCConfigFile(apiURL, username, password string) error {
 	userHome, err := os.UserHomeDir()
 	if err != nil {

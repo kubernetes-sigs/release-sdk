@@ -23,7 +23,7 @@ import (
 	"sigs.k8s.io/release-utils/command"
 )
 
-// DescribeOptions is the type for the argument passed to repo.Describe
+// DescribeOptions is the type for the argument passed to repo.Describe.
 type DescribeOptions struct {
 	revision string
 	abbrev   int16
@@ -32,7 +32,7 @@ type DescribeOptions struct {
 	tags     bool
 }
 
-// NewDescribeOptions creates new repository describe options
+// NewDescribeOptions creates new repository describe options.
 func NewDescribeOptions() *DescribeOptions {
 	return &DescribeOptions{
 		revision: "",
@@ -43,37 +43,37 @@ func NewDescribeOptions() *DescribeOptions {
 	}
 }
 
-// WithRevision sets the revision in the DescribeOptions
+// WithRevision sets the revision in the DescribeOptions.
 func (d *DescribeOptions) WithRevision(rev string) *DescribeOptions {
 	d.revision = rev
 	return d
 }
 
-// WithAbbrev sets the --abbrev=<parameter> in the DescribeOptions
+// WithAbbrev sets the --abbrev=<parameter> in the DescribeOptions.
 func (d *DescribeOptions) WithAbbrev(abbrev uint8) *DescribeOptions {
 	d.abbrev = int16(abbrev)
 	return d
 }
 
-// WithAlways sets always to true in the DescribeOptions
+// WithAlways sets always to true in the DescribeOptions.
 func (d *DescribeOptions) WithAlways() *DescribeOptions {
 	d.always = true
 	return d
 }
 
-// WithDirty sets dirty to true in the DescribeOptions
+// WithDirty sets dirty to true in the DescribeOptions.
 func (d *DescribeOptions) WithDirty() *DescribeOptions {
 	d.dirty = true
 	return d
 }
 
-// WithTags sets tags to true in the DescribeOptions
+// WithTags sets tags to true in the DescribeOptions.
 func (d *DescribeOptions) WithTags() *DescribeOptions {
 	d.tags = true
 	return d
 }
 
-// toArgs converts DescribeOptions to string arguments
+// toArgs converts DescribeOptions to string arguments.
 func (d *DescribeOptions) toArgs() (args []string) {
 	if d.tags {
 		args = append(args, "--tags")
@@ -93,7 +93,7 @@ func (d *DescribeOptions) toArgs() (args []string) {
 	return args
 }
 
-// Describe runs `git describe` with the provided arguments
+// Describe runs `git describe` with the provided arguments.
 func (r *Repo) Describe(opts *DescribeOptions) (string, error) {
 	if opts == nil {
 		return "", errors.New("provided describe options are nil")

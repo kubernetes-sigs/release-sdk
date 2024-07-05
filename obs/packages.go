@@ -25,23 +25,23 @@ import (
 	"net/url"
 )
 
-// Package contains information about an OBS Package
+// Package contains information about an OBS Package.
 type Package struct {
-	XMLName     xml.Name `json:"package" xml:"package"`
-	Name        string   `json:"name" xml:"name,attr"`
-	Project     string   `json:"project" xml:"project,attr"`
-	Title       string   `json:"title,omitempty" xml:"title,omitempty"`
+	XMLName     xml.Name `json:"package"               xml:"package"`
+	Name        string   `json:"name"                  xml:"name,attr"`
+	Project     string   `json:"project"               xml:"project,attr"`
+	Title       string   `json:"title,omitempty"       xml:"title,omitempty"`
 	Description string   `json:"description,omitempty" xml:"description,omitempty"`
-	Devel       *Devel   `json:"devel,omitempty" xml:"devel,omitempty"`
+	Devel       *Devel   `json:"devel,omitempty"       xml:"devel,omitempty"`
 }
 
-// Devel represents the development information
+// Devel represents the development information.
 type Devel struct {
 	Project string `json:"project" xml:"project,attr"`
 	Package string `json:"package" xml:"package,attr"`
 }
 
-// CreateUpdatePackage creates a new OBS package or updates an existing OBS package of a project
+// CreateUpdatePackage creates a new OBS package or updates an existing OBS package of a project.
 func (o *OBS) CreateUpdatePackage(ctx context.Context, projectName string, pkg *Package) error {
 	xmlData, err := xml.MarshalIndent(pkg, "", " ")
 	if err != nil {
@@ -79,7 +79,7 @@ func (o *OBS) CreateUpdatePackage(ctx context.Context, projectName string, pkg *
 	return nil
 }
 
-// GetPackageMetaFile returns package's meta for a given OBS project
+// GetPackageMetaFile returns package's meta for a given OBS project.
 func (o *OBS) GetPackageMetaFile(ctx context.Context, projectName, packageName string) (*Package, error) {
 	urlPath, err := url.JoinPath(o.options.APIURL, "source", projectName, packageName, "_meta")
 	if err != nil {
@@ -117,7 +117,7 @@ func (o *OBS) GetPackageMetaFile(ctx context.Context, projectName, packageName s
 	return pkg, nil
 }
 
-// DeletePackage deletes an existing OBS package
+// DeletePackage deletes an existing OBS package.
 func (o *OBS) DeletePackage(ctx context.Context, projectName, packageName string) error {
 	urlPath, err := url.JoinPath(o.options.APIURL, "source", projectName, packageName)
 	if err != nil {

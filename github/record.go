@@ -192,7 +192,7 @@ func (c *githubNotesRecordClient) GetReleaseByTag(
 	return release, resp, nil
 }
 
-// TODO: Complete logic
+// TODO: Complete logic.
 func (c *githubNotesRecordClient) DownloadReleaseAsset(
 	context.Context, string, string, int64,
 ) (io.ReadCloser, string, error) {
@@ -260,21 +260,21 @@ func (c *githubNotesRecordClient) ListBranches(
 	return branches, resp, nil
 }
 
-// UpdateReleasePage modifies a release, not recorded
+// UpdateReleasePage modifies a release, not recorded.
 func (c *githubNotesRecordClient) UpdateReleasePage(
 	_ context.Context, owner, repo string, releaseID int64, releaseData *github.RepositoryRelease, //nolint: revive
 ) (*github.RepositoryRelease, error) {
 	return &github.RepositoryRelease{}, nil
 }
 
-// UploadReleaseAsset uploads files, not recorded
+// UploadReleaseAsset uploads files, not recorded.
 func (c *githubNotesRecordClient) UploadReleaseAsset(
 	context.Context, string, string, int64, *github.UploadOptions, *os.File,
 ) (*github.ReleaseAsset, error) {
 	return &github.ReleaseAsset{}, nil
 }
 
-// DeleteReleaseAsset removes an asset from a page, note recorded
+// DeleteReleaseAsset removes an asset from a page, note recorded.
 func (c *githubNotesRecordClient) DeleteReleaseAsset(
 	_ context.Context, owner, repo string, assetID int64, //nolint: revive
 ) error {
@@ -360,7 +360,7 @@ func (c *githubNotesRecordClient) CheckRateLimit(
 }
 
 // recordAPICall records a single GitHub API call into a JSON file by ensuring
-// naming conventions
+// naming conventions.
 func (c *githubNotesRecordClient) recordAPICall(
 	api gitHubAPI, result interface{}, response *github.Response,
 ) error {

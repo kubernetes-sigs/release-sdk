@@ -32,22 +32,24 @@ import (
 	"golang.org/x/oauth2"
 
 	"k8s.io/utils/ptr"
-	"sigs.k8s.io/release-sdk/git"
-	"sigs.k8s.io/release-sdk/github/internal"
+
 	"sigs.k8s.io/release-utils/env"
 	"sigs.k8s.io/release-utils/util"
+
+	"sigs.k8s.io/release-sdk/git"
+	"sigs.k8s.io/release-sdk/github/internal"
 )
 
 const (
-	// TokenEnvKey is the default GitHub token environment variable key
+	// TokenEnvKey is the default GitHub token environment variable key.
 	TokenEnvKey = "GITHUB_TOKEN"
-	// GitHubURL Prefix for github URLs
+	// GitHubURL Prefix for github URLs.
 	GitHubURL = "https://github.com/"
 
 	unauthenticated = "unauthenticated"
 )
 
-// GitHub is a wrapper around GitHub related functionality
+// GitHub is a wrapper around GitHub related functionality.
 type GitHub struct {
 	client  Client
 	options *Options
@@ -57,7 +59,7 @@ type githubClient struct {
 	*github.Client
 }
 
-// Options is a set of options to configure the behavior of the GitHub package
+// Options is a set of options to configure the behavior of the GitHub package.
 type Options struct {
 	// How many items to request in calls to the github API
 	// that require pagination.
@@ -68,7 +70,7 @@ func (o *Options) GetItemsPerPage() int {
 	return o.ItemsPerPage
 }
 
-// DefaultOptions return an options struct with commonly used settings
+// DefaultOptions return an options struct with commonly used settings.
 func DefaultOptions() *Options {
 	return &Options{
 		ItemsPerPage: 50,
@@ -79,7 +81,7 @@ func DefaultOptions() *Options {
 //counterfeiter:generate . Client
 //go:generate /usr/bin/env bash -c "cat ../scripts/boilerplate/boilerplate.generatego.txt githubfakes/fake_client.go > githubfakes/_fake_client.go && mv githubfakes/_fake_client.go githubfakes/fake_client.go"
 
-// Client is an interface modeling supported GitHub operations
+// Client is an interface modeling supported GitHub operations.
 type Client interface {
 	GetCommit(
 		context.Context, string, string, string,
@@ -161,7 +163,7 @@ type Client interface {
 	) (*github.RateLimits, *github.Response, error)
 }
 
-// NewIssueOptions is a struct of optional fields for new issues
+// NewIssueOptions is a struct of optional fields for new issues.
 type NewIssueOptions struct {
 	Milestone string   // Name of milestone to set
 	State     string   // open, closed or all. Defaults to "open"
@@ -403,7 +405,7 @@ func (g *githubClient) ListBranches(
 	return branches, response, nil
 }
 
-// ListMilestones calls the github API to retrieve milestones (with retry)
+// ListMilestones calls the github API to retrieve milestones (with retry).
 func (g *githubClient) ListMilestones(
 	ctx context.Context, owner, repo string, opts *github.MilestoneListOptions,
 ) (mstones []*github.Milestone, resp *github.Response, err error) {
@@ -518,7 +520,7 @@ func (g *githubClient) DeleteReleaseAsset(
 }
 
 // ListReleaseAssets queries the GitHub API to get a list of asset files
-// that have been uploaded to a releases
+// that have been uploaded to a releases.
 func (g *githubClient) ListReleaseAssets(
 	ctx context.Context, owner, repo string, releaseID int64, options *github.ListOptions,
 ) ([]*github.ReleaseAsset, error) {
@@ -588,27 +590,27 @@ func (g *githubClient) CheckRateLimit(
 	return rt, response, nil
 }
 
-// SetClient can be used to manually set the internal GitHub client
+// SetClient can be used to manually set the internal GitHub client.
 func (g *GitHub) SetClient(client Client) {
 	g.client = client
 }
 
-// Client can be used to retrieve the Client type
+// Client can be used to retrieve the Client type.
 func (g *GitHub) Client() Client {
 	return g.client
 }
 
-// SetOptions gets an options set for the GitHub object
+// SetOptions gets an options set for the GitHub object.
 func (g *GitHub) SetOptions(opts *Options) {
 	g.options = opts
 }
 
-// Options return a pointer to the options struct
+// Options return a pointer to the options struct.
 func (g *GitHub) Options() *Options {
 	return g.options
 }
 
-// TagsPerBranch is an abstraction over a simple branch to latest tag association
+// TagsPerBranch is an abstraction over a simple branch to latest tag association.
 type TagsPerBranch map[string]string
 
 // LatestGitHubTagsPerBranch returns the latest GitHub available tag for each
@@ -620,7 +622,7 @@ type TagsPerBranch map[string]string
 // Releases are associated in the following way:
 // - x.y.0-alpha.z releases are only associated with the main branch
 // - x.y.0-beta.z releases are only associated with their release-x.y branch
-// - x.y.0 final releases are associated with the main branch and the release-x.y branch
+// - x.y.0 final releases are associated with the main branch and the release-x.y branch.
 func (g *GitHub) LatestGitHubTagsPerBranch() (TagsPerBranch, error) {
 	// List tags for all pages
 	allTags := []*github.RepositoryTag{}
@@ -671,7 +673,7 @@ func (g *GitHub) LatestGitHubTagsPerBranch() (TagsPerBranch, error) {
 }
 
 // addIfNotExisting adds a new `tag` for the `branch` if not already existing
-// in the map `TagsForBranch`
+// in the map `TagsForBranch`.
 func (t TagsPerBranch) addIfNotExisting(branch, tag string) {
 	if _, ok := t[branch]; !ok {
 		t[branch] = tag
@@ -681,7 +683,7 @@ func (t TagsPerBranch) addIfNotExisting(branch, tag string) {
 // Releases returns a list of GitHub releases for the provided `owner` and
 // `repo`. If `includePrereleases` is `true`, then the resulting slice will
 // also contain pre/drafted releases.
-// TODO: Create a more descriptive method name and update references
+// TODO: Create a more descriptive method name and update references.
 func (g *GitHub) Releases(owner, repo string, includePrereleases bool) ([]*github.RepositoryRelease, error) {
 	allReleases, _, err := g.client.ListReleases(
 		context.Background(), owner, repo, nil,
@@ -818,7 +820,7 @@ func (g *GitHub) downloadAssetsParallel(assets []*github.ReleaseAsset, owner, re
 	return finalErr
 }
 
-// UploadReleaseAsset uploads a file onto the release assets
+// UploadReleaseAsset uploads a file onto the release assets.
 func (g *GitHub) UploadReleaseAsset(
 	owner, repo string, releaseID int64, fileName string,
 ) (*github.ReleaseAsset, error) {
@@ -874,7 +876,7 @@ func (g *GitHub) UploadReleaseAsset(
 	return asset, nil
 }
 
-// ToRequest builds an issue request from the set of options
+// ToRequest builds an issue request from the set of options.
 func (nio *NewIssueOptions) toRequest() *github.IssueRequest {
 	request := &github.IssueRequest{}
 
@@ -894,7 +896,7 @@ func (nio *NewIssueOptions) toRequest() *github.IssueRequest {
 	return request
 }
 
-// CreateIssue files a new issue in the specified respoitory
+// CreateIssue files a new issue in the specified respoitory.
 func (g *GitHub) CreateIssue(
 	owner, repo, title, body string, opts *NewIssueOptions,
 ) (*github.Issue, error) {
@@ -908,7 +910,7 @@ func (g *GitHub) CreateIssue(
 }
 
 // CreatePullRequest Creates a new pull request in owner/repo:baseBranch to merge changes from headBranchName
-// which is a string containing a branch in the same repository or a user:branch pair
+// which is a string containing a branch in the same repository or a user:branch pair.
 func (g *GitHub) CreatePullRequest(
 	owner, repo, baseBranchName, headBranchName, title, body string,
 ) (*github.PullRequest, error) {
@@ -934,7 +936,7 @@ func (g *GitHub) RequestPullRequestReview(
 	return pr, nil
 }
 
-// GetMilestone returns a milestone object from its string name
+// GetMilestone returns a milestone object from its string name.
 func (g *GitHub) GetMilestone(owner, repo, title string) (
 	ms *github.Milestone, exists bool, err error,
 ) {
@@ -966,7 +968,7 @@ func (g *GitHub) GetMilestone(owner, repo, title string) (
 	return nil, false, nil
 }
 
-// GetRepository gets a repository using the current client
+// GetRepository gets a repository using the current client.
 func (g *GitHub) GetRepository(
 	owner, repo string,
 ) (*github.Repository, error) {
@@ -978,7 +980,7 @@ func (g *GitHub) GetRepository(
 	return repository, nil
 }
 
-// ListBranches gets a repository using the current client
+// ListBranches gets a repository using the current client.
 func (g *GitHub) ListBranches(
 	owner, repo string,
 ) ([]*github.Branch, error) {
@@ -1001,7 +1003,7 @@ func (g *GitHub) ListBranches(
 	return branches, nil
 }
 
-// RepoIsForkOf Function that checks if a repository is a fork of another
+// RepoIsForkOf Function that checks if a repository is a fork of another.
 func (g *GitHub) RepoIsForkOf(
 	forkOwner, forkRepo, parentOwner, parentRepo string,
 ) (bool, error) {
@@ -1026,7 +1028,7 @@ func (g *GitHub) RepoIsForkOf(
 	return false, nil
 }
 
-// BranchExists checks if a branch exists in a given repo
+// BranchExists checks if a branch exists in a given repo.
 func (g *GitHub) BranchExists(
 	owner, repo, branchname string,
 ) (isBranch bool, err error) {
@@ -1046,7 +1048,7 @@ func (g *GitHub) BranchExists(
 	return false, nil
 }
 
-// UpdateReleasePage updates a release page in GitHub
+// UpdateReleasePage updates a release page in GitHub.
 func (g *GitHub) UpdateReleasePage(
 	owner, repo string,
 	releaseID int64,
@@ -1109,7 +1111,7 @@ func (g *GitHub) UpdateReleasePageWithOptions(owner, repo string,
 	return release, nil
 }
 
-// DeleteReleaseAsset deletes an asset from a release
+// DeleteReleaseAsset deletes an asset from a release.
 func (g *GitHub) DeleteReleaseAsset(owner, repo string, assetID int64) error {
 	if err := g.Client().DeleteReleaseAsset(
 		context.Background(), owner, repo, assetID,
@@ -1119,7 +1121,7 @@ func (g *GitHub) DeleteReleaseAsset(owner, repo string, assetID int64) error {
 	return nil
 }
 
-// ListReleaseAssets gets the assets uploaded to a GitHub release
+// ListReleaseAssets gets the assets uploaded to a GitHub release.
 func (g *GitHub) ListReleaseAssets(
 	owner, repo string, releaseID int64,
 ) ([]*github.ReleaseAsset, error) {
@@ -1134,7 +1136,7 @@ func (g *GitHub) ListReleaseAssets(
 	return assets, nil
 }
 
-// TagExists returns true is a specified tag exists in the repo
+// TagExists returns true is a specified tag exists in the repo.
 func (g *GitHub) TagExists(owner, repo, tag string) (exists bool, err error) {
 	options := &github.ListOptions{PerPage: g.Options().GetItemsPerPage()}
 	for {
@@ -1159,7 +1161,7 @@ func (g *GitHub) TagExists(owner, repo, tag string) (exists bool, err error) {
 	return false, nil
 }
 
-// ListTags gets the tags from a GitHub repository
+// ListTags gets the tags from a GitHub repository.
 func (g *GitHub) ListTags(owner, repo string) ([]*github.RepositoryTag, error) {
 	options := &github.ListOptions{PerPage: g.Options().GetItemsPerPage()}
 	tags := []*github.RepositoryTag{}

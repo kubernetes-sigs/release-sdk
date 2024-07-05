@@ -98,14 +98,14 @@ func (g *GCS) AllowMissing() bool {
 }
 
 var (
-	// GcsPrefix url prefix for google cloud storage buckets
+	// GcsPrefix url prefix for google cloud storage buckets.
 	GcsPrefix      = "gs://"
 	concurrentFlag = "-m"
 	recursiveFlag  = "-r"
 	noClobberFlag  = "-n"
 )
 
-// CopyToRemote copies a local directory to the specified GCS path
+// CopyToRemote copies a local directory to the specified GCS path.
 func (g *GCS) CopyToRemote(src, gcsPath string) error {
 	logrus.Infof("Copying %s to GCS (%s)", src, gcsPath)
 	gcsPath, err := g.NormalizePath(gcsPath)
@@ -127,7 +127,7 @@ func (g *GCS) CopyToRemote(src, gcsPath string) error {
 	return g.bucketCopy(src, gcsPath)
 }
 
-// CopyToLocal copies a GCS path to the specified local directory
+// CopyToLocal copies a GCS path to the specified local directory.
 func (g *GCS) CopyToLocal(gcsPath, dst string) error {
 	logrus.Infof("Copying GCS (%s) to %s", gcsPath, dst)
 	gcsPath, err := g.NormalizePath(gcsPath)
@@ -235,7 +235,7 @@ func (g *GCS) GetMarkerPath(
 //
 //	gs://<bucket>/<gcsRoot>[/fast][/<version>]
 //
-// TODO: Support "release" buildType
+// TODO: Support "release" buildType.
 func (g *GCS) getPath(
 	bucket, gcsRoot, version, pathType string,
 	fast bool,
@@ -402,7 +402,7 @@ func (g *GCS) PathExists(gcsPath string) (bool, error) {
 	return true, nil
 }
 
-// DeletePath deletes a bucket location recursively
+// DeletePath deletes a bucket location recursively.
 func (g *GCS) DeletePath(path string) error {
 	path, err := g.NormalizePath(path)
 	if err != nil {
