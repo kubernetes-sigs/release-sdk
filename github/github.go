@@ -766,7 +766,7 @@ func (g *GitHub) DownloadReleaseAssets(owner, repo string, releaseTags []string,
 		})
 	}
 
-	for i := 0; i < cap(errChan); i++ {
+	for range cap(errChan) {
 		if err := <-errChan; err != nil {
 			if finalErr == nil {
 				finalErr = err
@@ -775,6 +775,7 @@ func (g *GitHub) DownloadReleaseAssets(owner, repo string, releaseTags []string,
 			finalErr = fmt.Errorf("%v: %w", finalErr, err)
 		}
 	}
+
 	return finalErr
 }
 
@@ -808,7 +809,7 @@ func (g *GitHub) downloadAssetsParallel(assets []*github.ReleaseAsset, owner, re
 		})
 	}
 
-	for i := 0; i < cap(errChan); i++ {
+	for range cap(errChan) {
 		if err := <-errChan; err != nil {
 			if finalErr == nil {
 				finalErr = err
@@ -817,6 +818,7 @@ func (g *GitHub) downloadAssetsParallel(assets []*github.ReleaseAsset, owner, re
 			finalErr = fmt.Errorf("%v: %w", finalErr, err)
 		}
 	}
+
 	return finalErr
 }
 

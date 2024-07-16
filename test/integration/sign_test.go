@@ -157,7 +157,7 @@ func TestImagesSigned(t *testing.T) {
 	const repo = "registry.k8s.io/security-profiles-operator/security-profiles-operator"
 
 	// Running it twice should lead to the same results
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		for _, tc := range []struct {
 			refs      map[string]bool
 			shouldErr bool
@@ -216,7 +216,7 @@ func TestVerifyImages(t *testing.T) {
 	const repo = "registry.k8s.io/security-profiles-operator/security-profiles-operator"
 
 	// Running it twice should lead to the same results
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		for _, tc := range []struct {
 			refs           map[string]bool
 			certIdentity   string
