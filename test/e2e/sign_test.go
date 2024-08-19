@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 
@@ -41,22 +42,16 @@ const (
 )
 
 func TestSignImageSuccess(t *testing.T) {
-	// Test the prerequisites
-	opts := sign.Default()
-	opts.IgnoreTlog = true
-	opts.CertIdentityRegexp = "https://github.com/kubernetes-sigs/release-sdk/.github/workflows/e2e.yml@.*"
-	opts.CertOidcIssuer = "https://token.actions.githubusercontent.com"
-
-	signer := sign.New(opts)
+	signer := testSigner(t)
 	signed, err := signer.IsImageSigned(imageRef)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.False(t, signed)
 
 	// Sign the image
 	res, err := signer.SignImage(imageRef)
 
 	// Verify the results
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Nil(t, res.File())
 	image := res.Image()
 	assert.NotNil(t, image)
@@ -73,16 +68,16 @@ func TestSignImageSuccess(t *testing.T) {
 	fmt.Printf(": %s\n", url)
 
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
-	require.Nil(t, err)
+	req, err := http.NewRequest("GET", url, http.NoBody)
+	require.NoError(t, err)
 	req.Header.Set("Accept", ociManifestType)
 
 	resp, err := client.Do(req)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	response := string(body)
 	assert.Contains(t, response, "-----BEGIN CERTIFICATE-----")
@@ -90,11 +85,11 @@ func TestSignImageSuccess(t *testing.T) {
 	assert.Contains(t, response, fmt.Sprintf(`"mediaType":"%s"`, ociManifestType))
 
 	signed, err = signer.IsImageSigned(imageRef)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.True(t, signed)
 
 	obj, err := signer.VerifyImage(imageRef)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, res, obj)
 }
 
@@ -103,4 +98,38 @@ func TestSignImageFailureWrongImageRef(t *testing.T) {
 	signer := sign.New(nil)
 	_, err := signer.SignImage(registry + "/not-existing:latest")
 	assert.ErrorContains(t, err, "entity not found in registry")
+}
+
+func TestSignFileSuccess(t *testing.T) {
+	signer := testSigner(t)
+
+	// propagated by the github actions workflow
+	testFilePath := os.Getenv("INPUT_PATH")
+	require.NotEmpty(t, testFilePath)
+	signedObject, err := signer.SignFile(testFilePath)
+	require.NoError(t, err)
+	require.NotNil(t, signedObject.File)
+
+	verifiedObject, err := signer.VerifyFile(testFilePath, true)
+	require.NoError(t, err)
+	require.NotNil(t, verifiedObject.File)
+}
+
+func TestSignFileFailureWrongFilePath(t *testing.T) {
+	signer := sign.New(nil)
+	_, err := signer.SignFile("/dummy/test")
+	assert.ErrorContains(t, err, "file retrieve sha256:")
+}
+
+func testSigner(t *testing.T) *sign.Signer {
+	t.Helper()
+
+	opts := sign.Default()
+	opts.IgnoreTlog = true
+	opts.CertIdentityRegexp = "https://github.com/kubernetes-sigs/release-sdk/.github/workflows/e2e.yml@.*"
+	opts.CertOidcIssuer = "https://token.actions.githubusercontent.com"
+
+	signer := sign.New(opts)
+
+	return signer
 }
