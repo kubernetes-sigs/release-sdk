@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -45,5 +48,11 @@ jobs:
           registry: localhost:5000
           tls-verify: false
 
+      - name: Generate test file
+        id: test-file
+        run: |
+          echo "release sign test" > ${{ runner.temp }}/test-file-${{ github.run_id }}
       - name: Run e2e tests
         run: go run mage.go E2ETest
+        with:
+          path: ${{ runner.temp }}/test-file-${{ github.run_id }}
