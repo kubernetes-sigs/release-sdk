@@ -54,5 +54,5 @@ jobs:
           echo "release sign test" > ${{ runner.temp }}/test-file-${{ github.run_id }}
       - name: Run e2e tests
         run: go run mage.go E2ETest
-        with:
-          path: ${{ runner.temp }}/test-file-${{ github.run_id }}
+        env:
+          TEST_FILE_PATH: ${{ runner.temp }}/test-file-${{ github.run_id }}
