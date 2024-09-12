@@ -1,13 +1,9 @@
 ---
 dependencies:
   - name: go (GitHub Actions)
-    version: 1.22
+    version: 1.23
     refPaths:
       - path: .github/workflows/e2e.yml
         match: go-version
-
-  - name: go (go.mod)
-    version: 1.22.5
-    refPaths:
       - path: go.mod
         match: go

@@ -128,7 +128,7 @@ func TestGetUserName(t *testing.T) {
 	require.NotEqual(t, fakeUserName, "")
 
 	envVarName := fakeUserName + " env var"
-	require.NoError(t, os.Setenv("GIT_COMMITTER_NAME", envVarName))
+	t.Setenv("GIT_COMMITTER_NAME", envVarName)
 	actual, err = git.GetUserName()
 	require.NoError(t, err)
 	require.Equal(t, envVarName, actual)
@@ -163,7 +163,7 @@ func TestGetUserEmail(t *testing.T) {
 	require.NotEqual(t, fakeUserEmail, "")
 
 	envVarEmail := "kubernetes-honk@example.com"
-	require.NoError(t, os.Setenv("GIT_COMMITTER_EMAIL", envVarEmail))
+	t.Setenv("GIT_COMMITTER_EMAIL", envVarEmail)
 	actual, err = git.GetUserEmail()
 	require.NoError(t, err)
 	require.Equal(t, envVarEmail, actual)

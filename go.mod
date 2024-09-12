@@ -1,6 +1,6 @@
 module sigs.k8s.io/release-sdk
 
-go 1.22.5
+go 1.23
 
 require (
 	github.com/blang/semver/v4 v4.0.0
@@ -20,7 +20,7 @@ require (
 	golang.org/x/oauth2 v0.23.0
 	k8s.io/apimachinery v0.31.1
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8
-	sigs.k8s.io/release-utils v0.8.4
+	sigs.k8s.io/release-utils v0.8.5
 )
 
 require (

@@ -38,7 +38,6 @@ linters:
     - errchkjson
     - errname
     - exhaustive
-    - exportloopref
     - fatcontext
     - forbidigo
     - gci
