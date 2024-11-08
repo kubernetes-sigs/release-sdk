@@ -104,7 +104,7 @@ func TestSignFileSuccess(t *testing.T) {
 	signer := testSigner(t)
 
 	// propagated by the github actions workflow
-	testFilePath := os.Getenv("INPUT_PATH")
+	testFilePath := os.Getenv("TEST_FILE_PATH")
 	require.NotEmpty(t, testFilePath)
 	signedObject, err := signer.SignFile(testFilePath)
 	require.NoError(t, err)
@@ -129,7 +129,5 @@ func testSigner(t *testing.T) *sign.Signer {
 	opts.CertIdentityRegexp = "https://github.com/kubernetes-sigs/release-sdk/.github/workflows/e2e.yml@.*"
 	opts.CertOidcIssuer = "https://token.actions.githubusercontent.com"
 
-	signer := sign.New(opts)
-
-	return signer
+	return sign.New(opts)
 }
