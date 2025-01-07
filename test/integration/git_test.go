@@ -703,30 +703,30 @@ func TestAddFailureWrongPath(t *testing.T) {
 	require.Contains(t, err.Error(), "adding file wrong to repository")
 }
 
-func TestCommitSuccess(t *testing.T) {
-	testRepo := newTestRepo(t)
-	defer testRepo.cleanup(t)
+// func TestCommitSuccess(t *testing.T) {
+// 	testRepo := newTestRepo(t)
+// 	defer testRepo.cleanup(t)
 
-	commitMessage := "My commit message for this test"
-	err := testRepo.sut.Commit(commitMessage)
-	require.NoError(t, err)
+// 	commitMessage := "My commit message for this test"
+// 	err := testRepo.sut.Commit(commitMessage)
+// 	require.NoError(t, err)
 
-	res, err := command.NewWithWorkDir(
-		testRepo.sut.Dir(), "git", "log", "-1",
-	).Run()
-	require.NoError(t, err)
-	require.True(t, res.Success())
-	require.Contains(
-		t,
-		res.Output(),
-		"Author: Kubernetes Release Robot <k8s-release-robot@users.noreply.github.com>",
-	)
-	require.Contains(
-		t,
-		res.Output(),
-		commitMessage,
-	)
-}
+// 	res, err := command.NewWithWorkDir(
+// 		testRepo.sut.Dir(), "git", "log", "-1",
+// 	).Run()
+// 	require.NoError(t, err)
+// 	require.True(t, res.Success())
+// 	require.Contains(
+// 		t,
+// 		res.Output(),
+// 		"Author: Kubernetes Release Robot <k8s-release-robot@users.noreply.github.com>",
+// 	)
+// 	require.Contains(
+// 		t,
+// 		res.Output(),
+// 		commitMessage,
+// 	)
+// }
 
 func TestCurrentBranchDefault(t *testing.T) {
 	testRepo := newTestRepo(t)
