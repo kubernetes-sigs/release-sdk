@@ -707,7 +707,7 @@ func TestCommitSuccess(t *testing.T) {
 	testRepo := newTestRepo(t)
 	defer testRepo.cleanup(t)
 
-	textToAdd := "honk\n"
+	textToAdd := "\n\nhonk\n\n"
 
 	// Open the file with read/write permissions
 	file, err := os.OpenFile(testRepo.testFileName, os.O_APPEND|os.O_WRONLY, 0o644)
@@ -740,6 +740,13 @@ func TestCommitSuccess(t *testing.T) {
 		res.Output(),
 		commitMessage,
 	)
+
+	res, err = command.NewWithWorkDir(
+		testRepo.sut.Dir(), "git", "show", testRepo.testFileName,
+	).Run()
+	require.NoError(t, err, "failed to show committed file content")
+	require.True(t, res.Success())
+	require.Contains(t, res.Output(), "honk")
 }
 
 func TestCurrentBranchDefault(t *testing.T) {
