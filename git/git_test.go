@@ -23,7 +23,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -342,12 +341,12 @@ func TestRetryErrors(t *testing.T) {
 
 	for _, message := range retryErrorStrings {
 		err := git.NewNetworkError(errors.New(message))
-		require.True(t, err.CanRetry(), fmt.Sprintf("Checking retriable error '%s'", message))
+		require.True(t, err.CanRetry(), "Checking retriable error '%s'", message)
 	}
 
 	for _, message := range nonRetryErrorStrings {
 		err := git.NewNetworkError(errors.New(message))
-		require.False(t, err.CanRetry(), fmt.Sprintf("Checking non-retriable error '%s'", message))
+		require.False(t, err.CanRetry(), "Checking non-retriable error '%s'", message)
 	}
 }
 
@@ -358,7 +357,7 @@ func TestNetworkError(t *testing.T) {
 	}()
 	require.Error(t, err, "checking if NewNetWork error returns nil")
 	require.NotEmpty(t, err.Error(), "checking if NetworkError returns a message")
-	require.False(t, err.(git.NetworkError).CanRetry(), "checking if network error can be properly asserted")
+	require.False(t, err.(git.NetworkError).CanRetry(), "checking if network error can be properly asserted") //nolint: errcheck
 }
 
 func TestHasBranch(t *testing.T) {
@@ -466,7 +465,7 @@ func TestShowLastCommit(t *testing.T) {
 	lastLog, err := testRepo.ShowLastCommit()
 	require.NoError(t, err)
 	require.NotEmpty(t, lastLog)
-	require.True(t, strings.Contains(lastLog, timeNow))
+	require.Contains(t, lastLog, timeNow)
 }
 
 func TestFetchRemote(t *testing.T) {
@@ -584,7 +583,7 @@ func TestRebase(t *testing.T) {
 	// Verify we got the commit
 	lastLog, err := testRepo.ShowLastCommit()
 	require.NoError(t, err)
-	require.True(t, strings.Contains(lastLog, "Test2-Commit"))
+	require.Contains(t, lastLog, "Test2-Commit")
 
 	// Test 3: Rebase must on an invalid branch
 	require.Error(t, testRepo.Rebase(origin+"/invalidBranch"), "rebasing to invalid branch")

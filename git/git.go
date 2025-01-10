@@ -824,7 +824,7 @@ func (r *Repo) RemoteBranches() (branches []string, err error) {
 		logrus.Warn("Could not list references on the remote repository.")
 		// Convert to network error to see if we can retry the push
 		err = NewNetworkError(err)
-		if !err.(NetworkError).CanRetry() || r.maxRetries == 0 || i == 1 {
+		if !err.(NetworkError).CanRetry() || r.maxRetries == 0 || i == 1 { //nolint: errcheck
 			return nil, err
 		}
 		waitTime := math.Pow(2, float64(r.maxRetries-i))
@@ -939,7 +939,7 @@ func (r *Repo) Push(remoteBranch string) (err error) {
 		}
 		// Convert to network error to see if we can retry the push
 		err = NewNetworkError(err)
-		if !err.(NetworkError).CanRetry() || r.maxRetries == 0 {
+		if !err.(NetworkError).CanRetry() || r.maxRetries == 0 { //nolint: errcheck
 			return err
 		}
 		waitTime := math.Pow(2, float64(r.maxRetries-i))
@@ -1379,7 +1379,7 @@ func (r *Repo) LsRemote(args ...string) (output string, err error) {
 			return output, nil
 		}
 		err = NewNetworkError(err)
-		if !err.(NetworkError).CanRetry() || r.maxRetries == 0 || i == 1 {
+		if !err.(NetworkError).CanRetry() || r.maxRetries == 0 || i == 1 { //nolint: errcheck
 			return "", err
 		}
 
