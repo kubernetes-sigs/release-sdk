@@ -1,7 +1,6 @@
 module sigs.k8s.io/release-sdk
 
-go 1.23
-toolchain go1.23.4
+go 1.23.2
 
 require (
 	github.com/blang/semver/v4 v4.0.0
