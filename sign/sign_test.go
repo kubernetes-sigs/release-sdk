@@ -636,7 +636,7 @@ func TestImagesSigned(t *testing.T) {
 
 				signed, ok := res.Load("")
 				require.True(t, ok)
-				require.True(t, signed.(bool))
+				require.True(t, signed.(bool)) //nolint: errcheck
 			},
 		},
 		{ // Success, unsigned
@@ -654,7 +654,7 @@ func TestImagesSigned(t *testing.T) {
 
 				signed, ok := res.Load("")
 				require.True(t, ok)
-				require.False(t, signed.(bool))
+				require.False(t, signed.(bool)) //nolint: errcheck
 			},
 		},
 		{ // failure on ParseReference

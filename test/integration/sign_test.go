@@ -143,7 +143,7 @@ func TestIsImageSigned(t *testing.T) {
 		},
 	} {
 		res, err := signer.IsImageSigned(tc.imageRef)
-		require.Equal(t, tc.isSigned, res, fmt.Sprintf("Checking %s for signature", tc.imageRef))
+		require.Equal(t, tc.isSigned, res, "Checking %s for signature", tc.imageRef)
 		if tc.shouldErr {
 			require.Error(t, err)
 		} else {
