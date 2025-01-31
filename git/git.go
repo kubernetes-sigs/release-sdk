@@ -83,6 +83,7 @@ func setVerboseTrace() error {
 	if err := setVerbose(5, 2, 2, 2, 2, 2, 2, 2); err != nil {
 		return fmt.Errorf("set verbose: %w", err)
 	}
+
 	return nil
 }
 
@@ -91,6 +92,7 @@ func setVerboseDebug() error {
 	if err := setVerbose(2, 2, 2, 0, 0, 0, 2, 0); err != nil {
 		return fmt.Errorf("set verbose: %w", err)
 	}
+
 	return nil
 }
 
@@ -151,6 +153,7 @@ func setVerbose(
 			return fmt.Errorf("unable to set %s=%s: %w", key, value, err)
 		}
 	}
+
 	return nil
 }
 
@@ -360,6 +363,7 @@ func (r *Repo) SetMaxRetries(numRetries int) {
 
 func LSRemoteExec(repoURL string, args ...string) (string, error) {
 	cmdArgs := append([]string{"ls-remote", "--", repoURL}, args...)
+
 	cmdStatus, err := filterCommand("", cmdArgs...).
 		RunSilentSuccessOutput()
 	if err != nil {
@@ -392,6 +396,7 @@ func CleanCloneGitHubRepo(owner, repo string, useSSH, updateRepo bool, opts *git
 // repository using the defaultGithubAuthRoot.
 func CloneOrOpenGitHubRepo(repoPath, owner, repo string, useSSH bool) (*Repo, error) {
 	repoURL := GetRepoURL(owner, repo, useSSH)
+
 	return CloneOrOpenRepo(repoPath, repoURL, useSSH, true, nil)
 }
 
@@ -409,6 +414,7 @@ func ShallowCleanCloneGitHubRepo(owner, repo string, useSSH bool) (*Repo, error)
 // GitHub org and repo instead of a URL.
 func ShallowCloneOrOpenGitHubRepo(owner, repoPath string, useSSH bool) (*Repo, error) {
 	repoURL := GetRepoURL(owner, repoPath, useSSH)
+
 	return ShallowCloneOrOpenRepo(repoPath, repoURL, useSSH)
 }
 
@@ -474,6 +480,7 @@ func cloneOrOpenRepo(repoPath, repoURL string, updateRepository bool, opts *git.
 				progressBuffer.String(),
 			)
 		}
+
 		return nil, err
 	}
 
@@ -487,10 +494,12 @@ func cloneRepository(repoURL, repoPath string, opts *git.CloneOptions) error {
 	if opts == nil {
 		opts = &git.CloneOptions{}
 	}
+
 	opts.URL = repoURL
 	if _, err := git.PlainClone(repoPath, false, opts); err != nil {
 		return fmt.Errorf("unable to clone repo: %w", err)
 	}
+
 	return nil
 }
 
@@ -520,9 +529,11 @@ func ensureRepoPath(repoPath string) (targetDir string, exisitingDir bool, err e
 		if err != nil {
 			return "", false, fmt.Errorf("unable to create temp dir: %w", err)
 		}
+
 		targetDir = t
 		logrus.Debugf("Cloning to temporary directory %q", t)
 	}
+
 	return targetDir, false, nil
 }
 
@@ -553,14 +564,17 @@ func OpenRepo(repoPath string) (*Repo, error) {
 			"%s executable is not available in $PATH", gitExecutable,
 		)
 	}
+
 	logLevel := logrus.StandardLogger().Level
 	if logLevel == logrus.DebugLevel {
 		logrus.Info("Setting verbose git output (debug)")
+
 		if err := setVerboseDebug(); err != nil {
 			return nil, fmt.Errorf("set debug output: %w", err)
 		}
 	} else if logLevel == logrus.TraceLevel {
 		logrus.Info("Setting verbose git output (trace)")
+
 		if err := setVerboseTrace(); err != nil {
 			return nil, fmt.Errorf("set trace output: %w", err)
 		}
@@ -592,6 +606,7 @@ func OpenRepo(repoPath string) (*Repo, error) {
 
 func (r *Repo) Cleanup() error {
 	logrus.Debugf("Deleting %s", r.dir)
+
 	return os.RemoveAll(r.dir)
 }
 
@@ -603,6 +618,7 @@ func (r *Repo) RevParseTag(rev string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	if !matched {
 		// Prefix all non-tags the default remote "origin"
 		rev = Remotify(rev)
@@ -661,6 +677,7 @@ func (r *Repo) LatestReleaseBranchMergeBaseToLatest() (DiscoverResult, error) {
 	if err != nil {
 		return DiscoverResult{}, err
 	}
+
 	version := versions[0]
 	versionTag := util.SemverToTagString(version)
 	logrus.Debugf("Latest non patch version %s", versionTag)
@@ -694,6 +711,7 @@ func (r *Repo) LatestNonPatchFinalToMinor() (DiscoverResult, error) {
 	if err != nil {
 		return DiscoverResult{}, err
 	}
+
 	if len(versions) < 2 {
 		return DiscoverResult{}, errors.New("unable to find two latest non patch versions")
 	}
@@ -701,6 +719,7 @@ func (r *Repo) LatestNonPatchFinalToMinor() (DiscoverResult, error) {
 	latestVersion := versions[0]
 	latestVersionTag := util.SemverToTagString(latestVersion)
 	logrus.Debugf("Latest non patch version %s", latestVersionTag)
+
 	end, err := r.RevParseTag(latestVersionTag)
 	if err != nil {
 		return DiscoverResult{}, err
@@ -709,6 +728,7 @@ func (r *Repo) LatestNonPatchFinalToMinor() (DiscoverResult, error) {
 	previousVersion := versions[1]
 	previousVersionTag := util.SemverToTagString(previousVersion)
 	logrus.Debugf("Previous non patch version %s", previousVersionTag)
+
 	start, err := r.RevParseTag(previousVersionTag)
 	if err != nil {
 		return DiscoverResult{}, err
@@ -730,7 +750,7 @@ func (r *Repo) latestNonPatchFinalVersions() ([]semver.Version, error) {
 		return nil, err
 	}
 
-	_ = tags.ForEach(func(t *plumbing.Reference) error { //nolint: errcheck
+	_ = tags.ForEach(func(t *plumbing.Reference) error {
 		ver, err := util.TagStringToSemver(t.Name().Short())
 
 		if err == nil {
@@ -741,25 +761,31 @@ func (r *Repo) latestNonPatchFinalVersions() ([]semver.Version, error) {
 				}
 			}
 		}
+
 		return nil
 	})
+
 	if len(latestVersions) == 0 {
 		return nil, errors.New("unable to find latest non patch release")
 	}
+
 	return latestVersions, nil
 }
 
 func (r *Repo) releaseBranchOrMainRef(major, minor uint64) (sha, rev string, err error) {
 	relBranch := fmt.Sprintf("%s%d.%d", releaseBranchPrefix, major, minor)
 	sha, err = r.RevParseTag(relBranch)
+
 	if err == nil {
 		logrus.Debugf("Found release branch %s", relBranch)
+
 		return sha, relBranch, nil
 	}
 
 	sha, err = r.RevParseTag(DefaultBranch)
 	if err == nil {
 		logrus.Debugf("No release branch found, using %s", DefaultBranch)
+
 		return sha, DefaultBranch, nil
 	}
 
@@ -781,10 +807,12 @@ func (r *Repo) HasBranch(branch string) (branchExists bool, err error) {
 			logrus.Infof("Branch %s found in the repository", branch)
 			branchExists = true
 		}
+
 		return nil
 	}); err != nil {
 		return branchExists, fmt.Errorf("iterating branches to check for existence: %w", err)
 	}
+
 	return branchExists, nil
 }
 
@@ -801,10 +829,13 @@ func (r *Repo) HasRemoteBranch(branch string) (branchExists bool, err error) {
 	for _, remoteBranch := range branches {
 		if remoteBranch == branch {
 			logrus.Infof("Found branch %s", branch)
+
 			return true, nil
 		}
 	}
+
 	logrus.Infof("Branch %s not found", branch)
+
 	return false, nil
 }
 
@@ -814,6 +845,7 @@ func (r *Repo) RemoteBranches() (branches []string, err error) {
 	if err != nil {
 		return nil, NewNetworkError(err)
 	}
+
 	var refs []*plumbing.Reference
 	for i := r.maxRetries + 1; i > 0; i-- {
 		// We can then use every Remote functions to retrieve wanted information
@@ -821,12 +853,16 @@ func (r *Repo) RemoteBranches() (branches []string, err error) {
 		if err == nil {
 			break
 		}
+
 		logrus.Warn("Could not list references on the remote repository.")
 		// Convert to network error to see if we can retry the push
 		err = NewNetworkError(err)
-		if !err.(NetworkError).CanRetry() || r.maxRetries == 0 || i == 1 { //nolint: errcheck
+
+		networkErr := NetworkError{}
+		if (errors.As(err, &networkErr) && !networkErr.CanRetry()) || r.maxRetries == 0 || i == 1 {
 			return nil, err
 		}
+
 		waitTime := math.Pow(2, float64(r.maxRetries-i))
 		logrus.Errorf(
 			"Error listing remote references (will retry %d more times in %.0f secs): %s",
@@ -840,12 +876,14 @@ func (r *Repo) RemoteBranches() (branches []string, err error) {
 			branches = append(branches, ref.Name().Short())
 		}
 	}
+
 	return branches, nil
 }
 
 // Checkout can be used to checkout any revision inside the repository.
 func (r *Repo) Checkout(rev string, args ...string) error {
 	cmdArgs := append([]string{"checkout", rev}, args...)
+
 	return command.
 		NewWithWorkDir(r.Dir(), gitExecutable, cmdArgs...).
 		RunSilentSuccess()
@@ -856,6 +894,7 @@ func (r *Repo) Checkout(rev string, args ...string) error {
 func IsReleaseBranch(branch string) bool {
 	if !regex.BranchRegex.MatchString(branch) {
 		logrus.Warnf("%s is not a release branch", branch)
+
 		return false
 	}
 
@@ -869,23 +908,28 @@ func (r *Repo) MergeBase(from, to string) (string, error) {
 	logrus.Debugf("MainRef: %s, releaseRef: %s", mainRef, releaseRef)
 
 	commitRevs := []string{mainRef, releaseRef}
+
 	var res []*object.Commit
 
 	hashes := []*plumbing.Hash{}
+
 	for _, rev := range commitRevs {
 		hash, err := r.inner.ResolveRevision(plumbing.Revision(rev))
 		if err != nil {
 			return "", err
 		}
+
 		hashes = append(hashes, hash)
 	}
 
 	commits := []*object.Commit{}
+
 	for _, hash := range hashes {
 		commit, err := r.inner.CommitObject(*hash)
 		if err != nil {
 			return "", err
 		}
+
 		commits = append(commits, commit)
 	}
 
@@ -910,6 +954,7 @@ func Remotify(name string) string {
 	if len(split) > 1 {
 		return name
 	}
+
 	return fmt.Sprintf("%s/%s", DefaultRemote, name)
 }
 
@@ -920,6 +965,7 @@ func (r *Repo) Merge(from string) error {
 	).RunSilentSuccess(); err != nil {
 		return fmt.Errorf("run git merge: %w", err)
 	}
+
 	return nil
 }
 
@@ -927,10 +973,13 @@ func (r *Repo) Merge(from string) error {
 // repository is not in dry run mode.
 func (r *Repo) Push(remoteBranch string) (err error) {
 	args := []string{"push"}
+
 	if r.dryRun {
 		logrus.Infof("Won't push due to dry run repository")
+
 		args = append(args, "--dry-run")
 	}
+
 	args = append(args, DefaultRemote, remoteBranch)
 
 	for i := r.maxRetries + 1; i > 0; i-- {
@@ -939,9 +988,12 @@ func (r *Repo) Push(remoteBranch string) (err error) {
 		}
 		// Convert to network error to see if we can retry the push
 		err = NewNetworkError(err)
-		if !err.(NetworkError).CanRetry() || r.maxRetries == 0 { //nolint: errcheck
+
+		networkErr := NetworkError{}
+		if (errors.As(err, &networkErr) && !networkErr.CanRetry()) || r.maxRetries == 0 {
 			return err
 		}
+
 		waitTime := math.Pow(2, float64(r.maxRetries-i))
 		logrus.Errorf(
 			"Error pushing %s (will retry %d more times in %.0f secs): %s",
@@ -949,6 +1001,7 @@ func (r *Repo) Push(remoteBranch string) (err error) {
 		)
 		time.Sleep(time.Duration(waitTime) * time.Second)
 	}
+
 	return fmt.Errorf("trying to push %s %d times: %w", remoteBranch, r.maxRetries, err)
 }
 
@@ -958,6 +1011,7 @@ func (r *Repo) Head() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return ref.Hash().String(), nil
 }
 
@@ -990,6 +1044,7 @@ func (r *Repo) LatestPatchToPatch(branch string) (DiscoverResult, error) {
 
 	logrus.Debugf("Parsing latest tag %s%v", util.TagPrefix, latestTag)
 	latestVersionTag := util.SemverToTagString(latestTag)
+
 	end, err := r.RevParseTag(latestVersionTag)
 	if err != nil {
 		return DiscoverResult{}, fmt.Errorf("parsing version %v: %w", latestTag, err)
@@ -997,6 +1052,7 @@ func (r *Repo) LatestPatchToPatch(branch string) (DiscoverResult, error) {
 
 	logrus.Debugf("Parsing previous tag %s%v", util.TagPrefix, prevTag)
 	previousVersionTag := util.SemverToTagString(prevTag)
+
 	start, err := r.RevParseTag(previousVersionTag)
 	if err != nil {
 		return DiscoverResult{}, fmt.Errorf("parsing previous version %v: %w", prevTag, err)
@@ -1026,6 +1082,7 @@ func (r *Repo) LatestPatchToLatest(branch string) (DiscoverResult, error) {
 
 	logrus.Debugf("Parsing latest tag %s%v", util.TagPrefix, latestTag)
 	latestVersionTag := util.SemverToTagString(latestTag)
+
 	start, err := r.RevParseTag(latestVersionTag)
 	if err != nil {
 		return DiscoverResult{}, fmt.Errorf("parsing version %v: %w", latestTag, err)
@@ -1052,6 +1109,7 @@ func (r *Repo) LatestTagForBranch(branch string) (tag semver.Version, err error)
 	if err != nil {
 		return tag, err
 	}
+
 	if len(tags) == 0 {
 		return tag, errors.New("no tags found on branch")
 	}
@@ -1073,15 +1131,19 @@ func (r *Repo) PreviousTag(tag, branch string) (string, error) {
 	}
 
 	idx := -1
+
 	for i, t := range tags {
 		if t == tag {
 			idx = i
+
 			break
 		}
 	}
+
 	if idx == -1 {
 		return "", errors.New("could not find specified tag in branch")
 	}
+
 	if len(tags) < idx+1 {
 		return "", errors.New("unable to find previous tag")
 	}
@@ -1096,9 +1158,11 @@ func (r *Repo) TagsForBranch(branch string) (res []string, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("retrieving current branch: %w", err)
 	}
+
 	if err := r.Checkout(branch); err != nil {
 		return nil, fmt.Errorf("checking out %s: %w", branch, err)
 	}
+
 	defer func() { err = r.Checkout(previousBranch) }()
 
 	status, err := filterCommand(
@@ -1120,10 +1184,13 @@ func (r *Repo) Tags() (res []string, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("get tags: %w", err)
 	}
-	_ = tags.ForEach(func(t *plumbing.Reference) error { //nolint: errcheck
+
+	_ = tags.ForEach(func(t *plumbing.Reference) error {
 		res = append(res, t.Name().Short())
+
 		return nil
 	})
+
 	return res, nil
 }
 
@@ -1134,6 +1201,7 @@ func (r *Repo) Add(filename string) error {
 	).RunSilentSuccess(); err != nil {
 		return fmt.Errorf("adding file %s to repository: %w", filename, err)
 	}
+
 	return nil
 }
 
@@ -1223,6 +1291,7 @@ func (r *Repo) CommitWithOptions(msg string, options *git.CommitOptions) error {
 	if _, err := r.worktree.Commit(msg, options); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -1241,6 +1310,7 @@ func (r *Repo) Tag(name, message string) error {
 	if err != nil {
 		return err
 	}
+
 	if _, err := r.inner.CreateTag(
 		name,
 		head.Hash(),
@@ -1254,6 +1324,7 @@ func (r *Repo) Tag(name, message string) error {
 		}); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -1273,6 +1344,7 @@ func (r *Repo) CurrentBranch() (branch string, err error) {
 	if err := branches.ForEach(func(ref *plumbing.Reference) error {
 		if ref.Hash() == head.Hash() {
 			branch = ref.Name().Short()
+
 			return nil
 		}
 
@@ -1290,6 +1362,7 @@ func (r *Repo) Rm(force bool, files ...string) error {
 	if force {
 		args = append(args, "-f")
 	}
+
 	args = append(args, files...)
 
 	return command.
@@ -1323,6 +1396,7 @@ func (r *Repo) HasRemote(name, expectedURL string) bool {
 	remotes, err := r.Remotes()
 	if err != nil {
 		logrus.Warnf("Unable to get repository remotes: %v", err)
+
 		return false
 	}
 
@@ -1343,6 +1417,7 @@ func (r *Repo) HasRemote(name, expectedURL string) bool {
 func (r *Repo) AddRemote(name, owner, repo string, useSSH bool) error {
 	repoURL := GetRepoURL(owner, repo, useSSH)
 	args := []string{"remote", "add", name, repoURL}
+
 	return command.
 		NewWithWorkDir(r.Dir(), gitExecutable, args...).
 		RunSilentSuccess()
@@ -1352,10 +1427,13 @@ func (r *Repo) AddRemote(name, owner, repo string, useSSH bool) error {
 // repository is not in dry run mode.
 func (r *Repo) PushToRemote(remote, remoteBranch string) error {
 	args := []string{"push", "--set-upstream"}
+
 	if r.dryRun {
 		logrus.Infof("Won't push due to dry run repository")
+
 		args = append(args, "--dry-run")
 	}
+
 	args = append(args, remote, remoteBranch)
 
 	return filterCommand(r.Dir(), args...).RunSuccess()
@@ -1374,12 +1452,16 @@ func (r *Repo) LsRemote(args ...string) (output string, err error) {
 		params := []string{}
 		params = append(params, "--")
 		params = append(params, args...)
+
 		output, err = r.runGitCmd("ls-remote", params...)
 		if err == nil {
 			return output, nil
 		}
+
 		err = NewNetworkError(err)
-		if !err.(NetworkError).CanRetry() || r.maxRetries == 0 || i == 1 { //nolint: errcheck
+
+		networkErr := NetworkError{}
+		if (errors.As(err, &networkErr) && !networkErr.CanRetry()) || r.maxRetries == 0 || i == 1 {
 			return "", err
 		}
 
@@ -1390,6 +1472,7 @@ func (r *Repo) LsRemote(args ...string) (output string, err error) {
 		)
 		time.Sleep(time.Duration(waitTime) * time.Second)
 	}
+
 	return "", err
 }
 
@@ -1404,10 +1487,12 @@ func (r *Repo) Branch(args ...string) (string, error) {
 // error in case of any failure.
 func (r *Repo) runGitCmd(cmd string, args ...string) (string, error) {
 	cmdArgs := append([]string{cmd}, args...)
+
 	res, err := filterCommand(r.Dir(), cmdArgs...).RunSilentSuccessOutput()
 	if err != nil {
 		return "", fmt.Errorf("running git %s: %w", cmd, err)
 	}
+
 	return res.OutputTrimNL(), nil
 }
 
@@ -1418,26 +1503,33 @@ func (r *Repo) IsDirty() (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("retrieving worktree status: %w", err)
 	}
+
 	return !status.IsClean(), nil
 }
 
 // RemoteTags return the tags that currently exist in the.
 func (r *Repo) RemoteTags() (tags []string, err error) {
 	logrus.Debug("Listing remote tags with ls-remote")
+
 	output, err := r.LsRemote(DefaultRemote)
 	if err != nil {
 		return tags, fmt.Errorf("while listing tags using ls-remote: %w", err)
 	}
+
 	const gitTagPreRef = "refs/tags/"
+
 	tags = make([]string, 0)
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	scanner.Split(bufio.ScanWords)
+
 	for scanner.Scan() {
 		if strings.HasPrefix(scanner.Text(), gitTagPreRef) {
 			tags = append(tags, strings.TrimPrefix(scanner.Text(), gitTagPreRef))
 		}
 	}
+
 	logrus.Debugf("Remote repository contains %d tags", len(tags))
+
 	return tags, nil
 }
 
@@ -1447,12 +1539,15 @@ func (r *Repo) HasRemoteTag(tag string) (hasTag bool, err error) {
 	if err != nil {
 		return hasTag, fmt.Errorf("getting tags to check if tag exists: %w", err)
 	}
+
 	for _, remoteTag := range remoteTags {
 		if tag == remoteTag {
 			logrus.Infof("Tag %s found in default remote", tag)
+
 			return true, nil
 		}
 	}
+
 	return false, nil
 }
 
@@ -1461,12 +1556,14 @@ func (r *Repo) SetURL(remote, newURL string) error {
 	if err := r.inner.DeleteRemote(remote); err != nil {
 		return fmt.Errorf("delete remote: %w", err)
 	}
+
 	if _, err := r.inner.CreateRemote(&config.RemoteConfig{
 		Name: remote,
 		URLs: []string{newURL},
 	}); err != nil {
 		return fmt.Errorf("create remote: %w", err)
 	}
+
 	return nil
 }
 
@@ -1476,6 +1573,7 @@ func (r *Repo) Status() (*git.Status, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getting the repository status: %w", err)
 	}
+
 	return &status, nil
 }
 
@@ -1486,6 +1584,7 @@ func (r *Repo) ShowLastCommit() (logData string, err error) {
 	if err != nil {
 		return logData, fmt.Errorf("getting last commit log: %w", err)
 	}
+
 	return logData, nil
 }
 
@@ -1495,6 +1594,7 @@ func (r *Repo) LastCommitSha() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("trying to retrieve the last commit sha: %w", err)
 	}
+
 	return shaval, nil
 }
 
@@ -1511,12 +1611,15 @@ func (r *Repo) FetchRemote(remoteName string) (bool, error) {
 	}
 
 	remoteExists := false
+
 	for _, remote := range remotes {
 		if remote.Name() == remoteName {
 			remoteExists = true
+
 			break
 		}
 	}
+
 	if !remoteExists {
 		return false, errors.New("cannot fetch repository, the specified remote does not exist")
 	}
@@ -1528,6 +1631,7 @@ func (r *Repo) FetchRemote(remoteName string) (bool, error) {
 	// git fetch outputs on stderr
 	output := strings.TrimSpace(res.Error())
 	logrus.Debugf("Fetch result: %s", output)
+
 	return output != "", nil
 }
 
@@ -1536,12 +1640,14 @@ func (r *Repo) Rebase(branch string) error {
 	if branch == "" {
 		return errors.New("cannot rebase repository, branch is empty")
 	}
+
 	logrus.Infof("Rebasing repository to %s", branch)
 	_, err := r.runGitCmd("rebase", branch)
 	// If we get an error, try to interpret it to make more sense
 	if err != nil {
 		return fmt.Errorf("rebasing repository: %w", err)
 	}
+
 	return nil
 }
 
@@ -1551,6 +1657,7 @@ func ParseRepoSlug(repoSlug string) (org, repo string, err error) {
 	if err != nil {
 		return "", "", fmt.Errorf("checking repository slug: %w", err)
 	}
+
 	if !match {
 		return "", "", errors.New("repository slug contains invalid characters")
 	}
@@ -1559,10 +1666,13 @@ func ParseRepoSlug(repoSlug string) (org, repo string, err error) {
 	if len(parts) > 2 {
 		return "", "", errors.New("string is not a well formed org/repo slug")
 	}
+
 	org = parts[0]
+
 	if len(parts) > 1 {
 		repo = parts[1]
 	}
+
 	return org, repo, nil
 }
 
@@ -1571,6 +1681,7 @@ func NewNetworkError(err error) NetworkError {
 	gerror := NetworkError{
 		error: err,
 	}
+
 	return gerror
 }
 
@@ -1606,6 +1717,7 @@ func (r *Repo) LatestReleaseBranch() (string, error) {
 	}
 
 	var latest semver.Version
+
 	for _, branch := range branches {
 		if strings.HasPrefix(branch, releaseBranchPrefix) {
 			version := strings.TrimPrefix(branch, releaseBranchPrefix) + ".0"
@@ -1613,6 +1725,7 @@ func (r *Repo) LatestReleaseBranch() (string, error) {
 			parsed, err := semver.Parse(version)
 			if err != nil {
 				logrus.Debugf("Unable to parse semver for %s: %v", version, err)
+
 				continue
 			}
 
@@ -1639,10 +1752,12 @@ func (r *Repo) NextCommit(rev, branch string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("get next commit from log: %w", err)
 	}
+
 	shaSplit := strings.Fields(shaList)
 	if len(shaSplit) == 0 {
 		// no child available
 		return "", nil
 	}
+
 	return shaSplit[0], nil
 }

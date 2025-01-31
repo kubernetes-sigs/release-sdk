@@ -84,21 +84,20 @@ type testRepo struct {
 //     First commit
 func newTestRepo(t *testing.T) *testRepo {
 	// Setup the bare repo as base
-	bareTempDir, err := os.MkdirTemp("", "k8s-test-bare-")
-	require.NoError(t, err)
+	bareTempDir := t.TempDir()
 
 	bareRepo, err := gogit.PlainInit(bareTempDir, true)
 	require.NoError(t, err)
 	require.NotNil(t, bareRepo)
 
 	// Clone from the bare to be able to add our test data
-	cloneTempDir, err := os.MkdirTemp("", "k8s-test-clone-")
-	require.NoError(t, err)
+	cloneTempDir := t.TempDir()
 	cloneRepo, err := gogit.PlainInit(cloneTempDir, false)
 	require.NoError(t, err)
 
 	// Add the test data set
 	const testFileName = "test-file"
+
 	require.NoError(t, os.WriteFile(
 		filepath.Join(cloneTempDir, testFileName),
 		[]byte("test-content"),
@@ -131,11 +130,13 @@ func newTestRepo(t *testing.T) *testRepo {
 	).RunSuccess())
 
 	const branchTestFileName = "branch-test-file"
+
 	require.NoError(t, os.WriteFile(
 		filepath.Join(cloneTempDir, branchTestFileName),
 		[]byte("test-content"),
 		os.FileMode(0o644),
 	))
+
 	_, err = worktree.Add(branchTestFileName)
 	require.NoError(t, err)
 
@@ -155,11 +156,13 @@ func newTestRepo(t *testing.T) *testRepo {
 	require.NoError(t, err)
 
 	const secondBranchTestFileName = "branch-test-file-2"
+
 	require.NoError(t, os.WriteFile(
 		filepath.Join(cloneTempDir, secondBranchTestFileName),
 		[]byte("test-content"),
 		os.FileMode(0o644),
 	))
+
 	_, err = worktree.Add(secondBranchTestFileName)
 	require.NoError(t, err)
 
@@ -179,11 +182,13 @@ func newTestRepo(t *testing.T) *testRepo {
 	require.NoError(t, err)
 
 	const thirdBranchTestFileName = "branch-test-file-3"
+
 	require.NoError(t, os.WriteFile(
 		filepath.Join(cloneTempDir, thirdBranchTestFileName),
 		[]byte("test-content"),
 		os.FileMode(0o644),
 	))
+
 	_, err = worktree.Add(thirdBranchTestFileName)
 	require.NoError(t, err)
 
@@ -650,6 +655,7 @@ func TestCheckoutSuccess(t *testing.T) {
 		[]byte("hello world"),
 		os.FileMode(0o644),
 	))
+
 	res, err := command.NewWithWorkDir(
 		testRepo.sut.Dir(), "git", "diff", "--name-only").Run()
 	require.NoError(t, err)
@@ -974,6 +980,7 @@ func TestSetURLSuccess(t *testing.T) {
 	defer testRepo.cleanup(t)
 
 	const remote = "https://example.com"
+
 	require.NoError(t, testRepo.sut.SetURL(git.DefaultRemote, remote))
 	remotes, err := testRepo.sut.Remotes()
 	require.NoError(t, err)

@@ -40,8 +40,7 @@ const (
 type cleanupFn func() error
 
 func generateCosignKeyPair(t *testing.T) (privateKeyPath, publicKeyPath string, fn cleanupFn) {
-	tempDir, err := os.MkdirTemp("", "k8s-cosign-keys-")
-	require.NoError(t, err)
+	tempDir := t.TempDir()
 
 	keys, err := cosign.GenerateKeyPair(nil)
 	require.NoError(t, err)
@@ -54,15 +53,18 @@ func generateCosignKeyPair(t *testing.T) (privateKeyPath, publicKeyPath string, 
 	publicKeyPath = filepath.Join(tempDir, "cosign.pub")
 	err = os.WriteFile(publicKeyPath, keys.PublicBytes, 0o644)
 	require.NoError(t, err)
+
 	cleanupFn := func() error {
 		return os.RemoveAll(tempDir)
 	}
+
 	return privateKeyPath, publicKeyPath, cleanupFn
 }
 
 func TestSuccessSignImage(t *testing.T) {
 	imageName := fmt.Sprintf("localhost:5000/honk:%d", time.Now().Unix())
 	reg := runDockerRegistryWithDummyImage(t, imageName)
+
 	defer deleteRegistryContainer(t)
 
 	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t)
@@ -81,6 +83,7 @@ func TestSuccessSignImage(t *testing.T) {
 	signedObject, err := signer.SignImage(reg.ImageName)
 	require.NoError(t, err)
 	require.NotNil(t, signedObject)
+
 	verifiedObject, err := signer.VerifyImage(reg.ImageName)
 	require.NoError(t, err)
 	require.NotNil(t, verifiedObject)
@@ -88,16 +91,13 @@ func TestSuccessSignImage(t *testing.T) {
 
 func TestSuccessSignFile(t *testing.T) {
 	// Setup the temp dir
-	tempDir, err := os.MkdirTemp("", "k8s-test-file-")
-	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.RemoveAll(tempDir))
-	}()
+	tempDir := t.TempDir()
 
 	// Write the test file
 	testFilePath := filepath.Join(tempDir, "test")
 	testFileCertPath := filepath.Join(tempDir, "test.cert")
 	testFileSigPath := filepath.Join(tempDir, "test.sig")
+
 	require.NoError(t, os.WriteFile(testFilePath, []byte(testFile), 0o644))
 
 	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t)
@@ -144,6 +144,7 @@ func TestIsImageSigned(t *testing.T) {
 	} {
 		res, err := signer.IsImageSigned(tc.imageRef)
 		require.Equal(t, tc.isSigned, res, "Checking %s for signature", tc.imageRef)
+
 		if tc.shouldErr {
 			require.Error(t, err)
 		} else {
@@ -154,6 +155,7 @@ func TestIsImageSigned(t *testing.T) {
 
 func TestImagesSigned(t *testing.T) {
 	signer := sign.New(sign.Default())
+
 	const repo = "registry.k8s.io/security-profiles-operator/security-profiles-operator"
 
 	// Running it twice should lead to the same results

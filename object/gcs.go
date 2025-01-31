@@ -108,6 +108,7 @@ var (
 // CopyToRemote copies a local directory to the specified GCS path.
 func (g *GCS) CopyToRemote(src, gcsPath string) error {
 	logrus.Infof("Copying %s to GCS (%s)", src, gcsPath)
+
 	gcsPath, err := g.NormalizePath(gcsPath)
 	if err != nil {
 		return fmt.Errorf("normalize GCS path: %w", err)
@@ -118,6 +119,7 @@ func (g *GCS) CopyToRemote(src, gcsPath string) error {
 
 		if g.allowMissing {
 			logrus.Infof("Source directory (%s) does not exist. Skipping GCS upload.", src)
+
 			return nil
 		}
 
@@ -130,6 +132,7 @@ func (g *GCS) CopyToRemote(src, gcsPath string) error {
 // CopyToLocal copies a GCS path to the specified local directory.
 func (g *GCS) CopyToLocal(gcsPath, dst string) error {
 	logrus.Infof("Copying GCS (%s) to %s", gcsPath, dst)
+
 	gcsPath, err := g.NormalizePath(gcsPath)
 	if err != nil {
 		return fmt.Errorf("normalize GCS path: %w", err)
@@ -160,16 +163,21 @@ func (g *GCS) bucketCopy(src, dst string) error {
 
 	if g.concurrent {
 		logrus.Debug("Setting GCS copy to run concurrently")
+
 		args = append(args, concurrentFlag)
 	}
 
 	args = append(args, "cp")
+
 	if g.recursive {
 		logrus.Debug("Setting GCS copy to run recursively")
+
 		args = append(args, recursiveFlag)
 	}
+
 	if g.noClobber {
 		logrus.Debug("Setting GCS copy to not clobber existing files")
+
 		args = append(args, noClobberFlag)
 	}
 
@@ -203,6 +211,7 @@ func (g *GCS) GetReleasePath(
 	}
 
 	logrus.Infof("Release path is %s", gcsPath)
+
 	return gcsPath, nil
 }
 
@@ -226,6 +235,7 @@ func (g *GCS) GetMarkerPath(
 	}
 
 	logrus.Infof("Version marker path is %s", gcsPath)
+
 	return gcsPath, nil
 }
 
@@ -345,12 +355,14 @@ func (g *GCS) IsPathNormalized(gcsPath string) bool {
 		logrus.Errorf(
 			"GCS path (%s) should be prefixed with `%s`", gcsPath, GcsPrefix,
 		)
+
 		errCount++
 	}
 
 	strippedPath := strings.TrimPrefix(gcsPath, GcsPrefix)
 	if strings.Contains(strippedPath, "gs:/") {
 		logrus.Errorf("GCS path (%s) should be prefixed with `gs:/`", gcsPath)
+
 		errCount++
 	}
 
@@ -372,6 +384,7 @@ func (g *GCS) RsyncRecursive(src, dst string) error {
 	); err != nil {
 		return fmt.Errorf("running gsutil rsync: %w", err)
 	}
+
 	return nil
 }
 
@@ -399,6 +412,7 @@ func (g *GCS) PathExists(gcsPath string) (bool, error) {
 	}
 
 	logrus.Infof("Found %s", gcsPath)
+
 	return true, nil
 }
 
@@ -414,6 +428,7 @@ func (g *GCS) DeletePath(path string) error {
 
 	if g.concurrent {
 		logrus.Debug("Setting GCS copy to run concurrently")
+
 		args = append(args, concurrentFlag)
 	}
 
@@ -421,6 +436,7 @@ func (g *GCS) DeletePath(path string) error {
 
 	if g.recursive {
 		logrus.Debug("Setting GCS copy to run recursively")
+
 		args = append(args, recursiveFlag)
 	}
 

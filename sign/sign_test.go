@@ -174,11 +174,7 @@ func TestSignFile(t *testing.T) {
 	opts.PublicKeyPath = "/dummy/cosign.pub"
 
 	// Create temporary directory for files.
-	tempDir, err := os.MkdirTemp("", "k8s-test-file-")
-	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.RemoveAll(tempDir))
-	}()
+	tempDir := t.TempDir()
 
 	// Create temporary file for test.
 	tempFile := filepath.Join(tempDir, "test-file")
@@ -369,11 +365,7 @@ func TestVerifyFile(t *testing.T) {
 	t.Parallel()
 
 	// Create temporary directory for files.
-	tempDir, err := os.MkdirTemp("", "k8s-test-file-")
-	require.NoError(t, err)
-	defer func() {
-		require.NoError(t, os.RemoveAll(tempDir))
-	}()
+	tempDir := t.TempDir()
 
 	// Create temporary file for test.
 	tempFile := filepath.Join(tempDir, "test-file")
@@ -381,6 +373,7 @@ func TestVerifyFile(t *testing.T) {
 	payload := []byte("honk")
 	payloadSha256 := "4de18cc93efe15c1d1cc2407cfc9f054b4d9217975538ac005dba541acee1954"
 	uuid := "uuid"
+
 	var logindex int64 = 1
 	uuids := []models.LogEntryAnon{
 		{
@@ -388,6 +381,7 @@ func TestVerifyFile(t *testing.T) {
 			LogIndex: &logindex,
 		},
 	}
+
 	require.NoError(t, os.WriteFile(tempFile, payload, 0o644))
 
 	for _, tc := range []struct {
@@ -474,11 +468,14 @@ func generateKeyFile(t *testing.T, tmpDir string, pf cosign.PassFunc) (privFile,
 	if err != nil {
 		t.Fatalf("failed to create temp key file: %v", err)
 	}
+
 	defer tmpPrivFile.Close()
+
 	tmpPubFile, err := os.CreateTemp(tmpDir, "cosign_test_*.pub")
 	if err != nil {
 		t.Fatalf("failed to create temp pub file: %v", err)
 	}
+
 	defer tmpPubFile.Close()
 
 	// Generate a valid keypair.
@@ -490,9 +487,11 @@ func generateKeyFile(t *testing.T, tmpDir string, pf cosign.PassFunc) (privFile,
 	if _, err := tmpPrivFile.Write(keys.PrivateBytes); err != nil {
 		t.Fatalf("failed to write key file: %v", err)
 	}
+
 	if _, err := tmpPubFile.Write(keys.PublicBytes); err != nil {
 		t.Fatalf("failed to write pub file: %v", err)
 	}
+
 	return tmpPrivFile.Name(), tmpPubFile.Name()
 }
 
@@ -588,6 +587,7 @@ func (fr *FakeReferenceStub) Context() name.Repository {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return reg
 }
 
@@ -636,7 +636,7 @@ func TestImagesSigned(t *testing.T) {
 
 				signed, ok := res.Load("")
 				require.True(t, ok)
-				require.True(t, signed.(bool)) //nolint: errcheck
+				require.True(t, signed.(bool))
 			},
 		},
 		{ // Success, unsigned
@@ -654,7 +654,7 @@ func TestImagesSigned(t *testing.T) {
 
 				signed, ok := res.Load("")
 				require.True(t, ok)
-				require.False(t, signed.(bool)) //nolint: errcheck
+				require.False(t, signed.(bool))
 			},
 		},
 		{ // failure on ParseReference

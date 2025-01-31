@@ -104,6 +104,7 @@ func (*defaultImpl) VerifyImageInternal(ctx context.Context, certOpts options.Ce
 		},
 		IgnoreSCT: certOpts.IgnoreSCT,
 	}
+
 	return &SignedObject{}, v.Exec(ctx, images)
 }
 
@@ -120,6 +121,7 @@ func (*defaultImpl) SignFileInternal(ro options.RootOptions, ko options.KeyOpts,
 	// Ignoring the signature return value for now as we are setting the outputSignature path and to keep an consistent impl API
 	// Setting timeout as 0 is acceptable here because SignBlobCmd uses the passed context
 	_, err := sign.SignBlobCmd(&ro, ko, payloadPath, b64, outputSignature, outputCertificate, tlogUpload)
+
 	return err
 }
 
@@ -136,6 +138,7 @@ func (*defaultImpl) EnvDefault(key, def string) string {
 func (d *defaultImpl) TokenFromProviders(ctx context.Context, logger *logrus.Logger) (string, error) {
 	if !d.IdentityProvidersEnabled(ctx) {
 		logger.Warn("No OIDC provider enabled. Token cannot be obtained automatically.")
+
 		return "", nil
 	}
 
@@ -143,6 +146,7 @@ func (d *defaultImpl) TokenFromProviders(ctx context.Context, logger *logrus.Log
 	if err != nil {
 		return "", fmt.Errorf("fetching oidc token from environment: %w", err)
 	}
+
 	return tok, nil
 }
 
@@ -181,6 +185,7 @@ func (*defaultImpl) PayloadBytes(blobRef string) (blobBytes []byte, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("load file or url of sign payload: %w", err)
 	}
+
 	return blobBytes, nil
 }
 

@@ -133,6 +133,7 @@ func (o *Options) verifySignOptions() error {
 	if o.PrivateKeyPath != "" && !i.FileExists(o.PrivateKeyPath) {
 		return errors.New("specified private key file not found")
 	}
+
 	return nil
 }
 

@@ -60,6 +60,7 @@ func (o *obsClient) InvokeOBSEndpoint(ctx context.Context, username, password, m
 	if xmlData == nil {
 		xmlData = &bytes.Buffer{}
 	}
+
 	req, err := http.NewRequestWithContext(ctx, method, apiURL, xmlData)
 	if err != nil {
 		return nil, &APIError{
@@ -227,7 +228,7 @@ func (o *OBS) GetProjectMetaFile(ctx context.Context, projectName string) (*Proj
 
 	var project Project
 	if err = xml.NewDecoder(resp.Body).Decode(&project); err != nil {
-		return nil, fmt.Errorf("getting obs project: decoding response: %v", err)
+		return nil, fmt.Errorf("getting obs project: decoding response: %w", err)
 	}
 
 	return &project, nil
