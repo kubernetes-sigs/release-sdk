@@ -111,7 +111,7 @@ func (o *OBS) GetPackageMetaFile(ctx context.Context, projectName, packageName s
 
 	pkg := &Package{}
 	if err = xml.NewDecoder(resp.Body).Decode(&pkg); err != nil {
-		return nil, fmt.Errorf("getting obs package: decoding response: %v", err)
+		return nil, fmt.Errorf("getting obs package: decoding response: %w", err)
 	}
 
 	return pkg, nil

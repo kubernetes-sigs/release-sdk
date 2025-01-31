@@ -46,11 +46,14 @@ func (c *githubNotesReplayClient) GetCommit(ctx context.Context, owner, repo, sh
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := &github.Commit{}
+
 	record := apiRecord{Result: result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -59,11 +62,14 @@ func (c *githubNotesReplayClient) ListCommits(ctx context.Context, owner, repo s
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := []*github.RepositoryCommit{}
+
 	record := apiRecord{Result: &result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -72,11 +78,14 @@ func (c *githubNotesReplayClient) ListPullRequestsWithCommit(ctx context.Context
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := []*github.PullRequest{}
+
 	record := apiRecord{Result: &result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -85,11 +94,14 @@ func (c *githubNotesReplayClient) GetPullRequest(ctx context.Context, owner, rep
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := &github.PullRequest{}
+
 	record := apiRecord{Result: result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -98,11 +110,14 @@ func (c *githubNotesReplayClient) GetIssue(ctx context.Context, owner, repo stri
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := &github.Issue{}
+
 	record := apiRecord{Result: result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -111,11 +126,14 @@ func (c *githubNotesReplayClient) UpdateIssue(ctx context.Context, owner, repo s
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := &github.Issue{}
+
 	record := apiRecord{Result: result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -124,11 +142,14 @@ func (c *githubNotesReplayClient) AddLabels(ctx context.Context, owner, repo str
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := []*github.Label{}
+
 	record := apiRecord{Result: result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -137,11 +158,14 @@ func (c *githubNotesReplayClient) GetRepoCommit(ctx context.Context, owner, repo
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := &github.RepositoryCommit{}
+
 	record := apiRecord{Result: result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -152,11 +176,14 @@ func (c *githubNotesReplayClient) ListReleases(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := []*github.RepositoryRelease{}
+
 	record := apiRecord{Result: result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -167,11 +194,14 @@ func (c *githubNotesReplayClient) GetReleaseByTag(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := &github.RepositoryRelease{}
+
 	record := apiRecord{Result: result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -189,11 +219,14 @@ func (c *githubNotesReplayClient) ListTags(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := []*github.RepositoryTag{}
+
 	record := apiRecord{Result: &result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -222,11 +255,14 @@ func (c *githubNotesReplayClient) GetRepository(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	repository := &github.Repository{}
+
 	record := apiRecord{Result: repository}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return repository, record.response(), nil
 }
 
@@ -237,11 +273,14 @@ func (c *githubNotesReplayClient) ListBranches(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	branches := make([]*github.Branch, 0)
+
 	record := apiRecord{Result: branches}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return branches, record.response(), nil
 }
 
@@ -252,11 +291,14 @@ func (c *githubNotesReplayClient) ListMilestones(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	mstones = make([]*github.Milestone, 0)
+
 	record := apiRecord{Result: mstones}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return mstones, record.response(), nil
 }
 
@@ -270,12 +312,14 @@ func (c *githubNotesReplayClient) readRecordedData(api gitHubAPI) ([]byte, error
 	}
 
 	path := filepath.Join(c.replayDir, fmt.Sprintf("%s-%d.json", api, i))
+
 	file, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	c.replayState[api]++
+
 	return file, nil
 }
 
@@ -307,11 +351,14 @@ func (c *githubNotesReplayClient) ListReleaseAssets(
 	if err != nil {
 		return nil, err
 	}
+
 	assets := make([]*github.ReleaseAsset, 0)
+
 	record := apiRecord{Result: assets}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, err
 	}
+
 	return assets, nil
 }
 
@@ -320,11 +367,14 @@ func (c *githubNotesReplayClient) CreateComment(ctx context.Context, owner, repo
 	if err != nil {
 		return nil, nil, err
 	}
+
 	result := &github.IssueComment{}
+
 	record := apiRecord{Result: result}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return result, record.response(), nil
 }
 
@@ -335,11 +385,14 @@ func (c *githubNotesReplayClient) ListIssues(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	issues := make([]*github.Issue, 0)
+
 	record := apiRecord{Result: issues}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return issues, record.response(), nil
 }
 
@@ -350,11 +403,14 @@ func (c *githubNotesReplayClient) ListComments(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	comments := make([]*github.IssueComment, 0)
+
 	record := apiRecord{Result: comments}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return comments, record.response(), nil
 }
 
@@ -365,10 +421,13 @@ func (c *githubNotesReplayClient) CheckRateLimit(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	rt := &github.RateLimits{}
+
 	record := apiRecord{Result: rt}
 	if err := json.Unmarshal(data, &record); err != nil {
 		return nil, nil, err
 	}
+
 	return rt, record.response(), nil
 }

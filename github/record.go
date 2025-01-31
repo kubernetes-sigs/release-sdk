@@ -83,9 +83,11 @@ func (c *githubNotesRecordClient) GetCommit(ctx context.Context, owner, repo, sh
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIGetCommit, commit, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return commit, resp, nil
 }
 
@@ -94,9 +96,11 @@ func (c *githubNotesRecordClient) ListCommits(ctx context.Context, owner, repo s
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIListCommits, commits, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return commits, resp, nil
 }
 
@@ -105,9 +109,11 @@ func (c *githubNotesRecordClient) ListPullRequestsWithCommit(ctx context.Context
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIListPullRequestsWithCommit, prs, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return prs, resp, nil
 }
 
@@ -116,9 +122,11 @@ func (c *githubNotesRecordClient) GetPullRequest(ctx context.Context, owner, rep
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIGetPullRequest, pr, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return pr, resp, nil
 }
 
@@ -127,9 +135,11 @@ func (c *githubNotesRecordClient) GetIssue(ctx context.Context, owner, repo stri
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIGetIssue, issue, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return issue, resp, nil
 }
 
@@ -138,9 +148,11 @@ func (c *githubNotesRecordClient) UpdateIssue(ctx context.Context, owner, repo s
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIUpdateIssue, issue, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return issue, resp, nil
 }
 
@@ -149,9 +161,11 @@ func (c *githubNotesRecordClient) AddLabels(ctx context.Context, owner, repo str
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIAddLabels, labels, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return appliedLabels, resp, nil
 }
 
@@ -160,9 +174,11 @@ func (c *githubNotesRecordClient) GetRepoCommit(ctx context.Context, owner, repo
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIGetRepoCommit, commit, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return commit, resp, nil
 }
 
@@ -173,9 +189,11 @@ func (c *githubNotesRecordClient) ListReleases(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIListReleases, releases, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return releases, resp, nil
 }
 
@@ -186,9 +204,11 @@ func (c *githubNotesRecordClient) GetReleaseByTag(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIGetReleaseByTag, release, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return release, resp, nil
 }
 
@@ -206,9 +226,11 @@ func (c *githubNotesRecordClient) ListTags(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIListTags, tags, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return tags, resp, nil
 }
 
@@ -303,9 +325,11 @@ func (c *githubNotesRecordClient) ListMilestones(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIListMilestones, mstones, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return mstones, resp, nil
 }
 
@@ -314,9 +338,11 @@ func (c *githubNotesRecordClient) CreateComment(ctx context.Context, owner, repo
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIGetIssue, issueComment, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return issueComment, resp, nil
 }
 
@@ -327,9 +353,11 @@ func (c *githubNotesRecordClient) ListIssues(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIListIssues, issues, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return issues, resp, nil
 }
 
@@ -340,9 +368,11 @@ func (c *githubNotesRecordClient) ListComments(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPIListComments, comments, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return comments, resp, nil
 }
 
@@ -353,9 +383,11 @@ func (c *githubNotesRecordClient) CheckRateLimit(
 	if err != nil {
 		return nil, nil, err
 	}
+
 	if err := c.recordAPICall(gitHubAPICheckRateLimit, rt, resp); err != nil {
 		return nil, nil, err
 	}
+
 	return rt, resp, nil
 }
 
@@ -367,6 +399,7 @@ func (c *githubNotesRecordClient) recordAPICall(
 	if result == nil {
 		return errors.New("no result to record")
 	}
+
 	logrus.Debugf("Recording API call %s to %s", api, c.recordDir)
 
 	c.recordMutex.Lock()
@@ -376,6 +409,7 @@ func (c *githubNotesRecordClient) recordAPICall(
 	if j, ok := c.recordState[api]; ok {
 		i = j + 1
 	}
+
 	c.recordState[api] = i
 
 	fileName := fmt.Sprintf("%s-%d.json", api, i)

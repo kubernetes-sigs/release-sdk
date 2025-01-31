@@ -60,6 +60,7 @@ func TestLatestGitHubTagsPerBranchSuccessAlphaAfterMinor(t *testing.T) {
 		tag1 = "v1.18.0-alpha.2"
 		tag2 = "v1.18.0"
 	)
+
 	sut, client := newSUT()
 	client.ListTagsReturns([]*gogithub.RepositoryTag{
 		{Name: &tag1},
@@ -82,6 +83,7 @@ func TestLatestGitHubTagsPerBranchMultiplePages(t *testing.T) {
 		tag1 = "v1.18.0-alpha.2"
 		tag2 = "v1.18.0"
 	)
+
 	sut, client := newSUT()
 	client.ListTagsReturnsOnCall(0, []*gogithub.RepositoryTag{
 		{Name: &tag1},
@@ -112,6 +114,7 @@ func TestLatestGitHubTagsPerBranchSuccessMultipleForSameBranch(t *testing.T) {
 		tag7 = "v1.13.0"
 		tag8 = "v1.18.0-alpha.2"
 	)
+
 	sut, client := newSUT()
 	client.ListTagsReturns([]*gogithub.RepositoryTag{
 		{Name: &tag1},
@@ -146,6 +149,7 @@ func TestLatestGitHubTagsPerBranchSuccessPatchReleases(t *testing.T) {
 		tag2 = "v1.16.2"
 		tag3 = "v1.15.3"
 	)
+
 	sut, client := newSUT()
 	client.ListTagsReturns([]*gogithub.RepositoryTag{
 		{Name: &tag1},
@@ -217,6 +221,7 @@ func TestReleasesSuccessNoPreReleases(t *testing.T) {
 		tag4  = "v1.15.0"
 		aTrue = true
 	)
+
 	sut, client := newSUT()
 	client.ListReleasesReturns([]*gogithub.RepositoryRelease{
 		{TagName: &tag1},
@@ -245,6 +250,7 @@ func TestReleasesSuccessWithPreReleases(t *testing.T) {
 		tag4  = "v1.15.0"
 		aTrue = true
 	)
+
 	sut, client := newSUT()
 	client.ListReleasesReturns([]*gogithub.RepositoryRelease{
 		{TagName: &tag1},
@@ -520,6 +526,7 @@ func TestCreateIssue(t *testing.T) {
 	for _, tcErr := range []error{errors.New("Test error"), nil} {
 		// When
 		client.CreateIssueReturns(issue, tcErr)
+
 		newissue, err := sut.CreateIssue("kubernetes-fake-org", "kubernetes-fake-repo", title, body, opts)
 
 		// Then
@@ -568,6 +575,7 @@ func TestUpdateIssue(t *testing.T) {
 	for _, tcErr := range []error{errors.New("Test error"), nil} {
 		// When
 		client.CreateIssueReturns(issue, tcErr)
+
 		newissue, err := sut.CreateIssue("kubernetes-fake-org", "kubernetes-fake-repo", title, body, opts)
 		if tcErr == nil {
 			require.NoError(t, err)
@@ -711,6 +719,7 @@ func TestUpdateReleasePageWithOptions(t *testing.T) {
 	for _, tcErr := range []error{errors.New("Test error"), nil} {
 		// When
 		client.UpdateReleasePageReturns(release, tcErr)
+
 		releaseData, err := sut.UpdateReleasePageWithOptions("kubernetes-fake-org", "kubernetes-fake-repo", 0, tagName, commitish, opts)
 
 		// Then

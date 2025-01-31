@@ -56,6 +56,7 @@ func Output(workDir string, args ...string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("executing %s: %w", OSCExecutable, err)
 	}
+
 	return stream.OutputTrimNL(), nil
 }
 

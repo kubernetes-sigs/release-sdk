@@ -56,6 +56,7 @@ func GCloudOutput(args ...string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("executing %s: %w", GCloudExecutable, err)
 	}
+
 	return stream.OutputTrimNL(), nil
 }
 
@@ -70,6 +71,7 @@ func GSUtilOutput(args ...string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("executing %s: %w", gsutilExecutable, err)
 	}
+
 	return stream.OutputTrimNL(), nil
 }
 

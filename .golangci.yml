@@ -5,14 +5,6 @@ run:
   build-tags:
     - integration
 issues:
-  exclude-rules:
-    # counterfeiter fakes are usually named 'fake_<something>.go'
-    - path: fake_.*\.go
-      linters:
-        - gocritic
-        - golint
-        - dupl
-
   # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
   max-issues-per-linter: 0
 
@@ -37,7 +29,9 @@ linters:
     - errcheck
     - errchkjson
     - errname
+    - errorlint
     - exhaustive
+    - exptostd
     - fatcontext
     - forbidigo
     - gci
@@ -61,6 +55,7 @@ linters:
     - gosmopolitan
     - govet
     - grouper
+    - iface
     - importas
     - ineffassign
     - intrange
@@ -71,6 +66,8 @@ linters:
     - misspell
     - nakedret
     - nestif
+    - nilnesserr
+    - nlreturn
     - noctx
     - nolintlint
     - nosprintfhostport
@@ -80,6 +77,7 @@ linters:
     - promlinter
     - protogetter
     - reassign
+    - recvcheck
     - revive
     - rowserrcheck
     - sloglint
@@ -97,13 +95,14 @@ linters:
     - unparam
     - unused
     - usestdlibvars
+    - usetesting
     - wastedassign
     - whitespace
+    - wsl
     - zerologlint
     # - cyclop
     # - depguard
     # - err113
-    # - errorlint
     # - exhaustruct
     # - forcetypeassert
     # - funlen
@@ -118,7 +117,6 @@ linters:
     # - musttag
     # - nilerr
     # - nilnil
-    # - nlreturn
     # - nonamedreturns
     # - paralleltest
     # - testpackage
@@ -126,7 +124,6 @@ linters:
     # - tparallel
     # - varnamelen
     # - wrapcheck
-    # - wsl
 linters-settings:
   gci:
     sections:
@@ -140,9 +137,6 @@ linters-settings:
       - BUG
       - FIXME
       - HACK
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
   gocognit:
     min-complexity: 40
   gocritic:
@@ -187,6 +181,7 @@ linters-settings:
       - preferStringWriter
       - preferWriteByte
       - ptrToRefParam
+      - rangeAppendAll
       - rangeExprCopy
       - rangeValCopy
       - redundantSprint
@@ -216,18 +211,5 @@ linters-settings:
       - unnecessaryBlock
       - unnecessaryDefer
       - weakCond
-      # - whyNoLint
       - yodaStyleExpr
-  nolintlint:
-    # Enable to ensure that nolint directives are all used. Default is true.
-    allow-unused: false
-    # Disable to ensure that nolint directives don't have a leading space. Default is true.
-    # TODO(lint): Enforce machine-readable `nolint` directives
-    allow-leading-space: true
-    # Exclude following linters from requiring an explanation.  Default is [].
-    allow-no-explanation: []
-    # Enable to require an explanation of nonzero length after each nolint directive. Default is false.
-    # TODO(lint): Enforce explanations for `nolint` directives
-    require-explanation: false
-    # Enable to require nolint directives to mention the specific linter being suppressed. Default is false.
-    require-specific: true
+      # - whyNoLint

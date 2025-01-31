@@ -52,8 +52,7 @@ func runDockerRegistryWithDummyImage(t *testing.T, imageName string) *dockerRegi
 	require.NoError(t, err)
 
 	// Setup the temp dir
-	tempDir, err := os.MkdirTemp("", "k8s-test-img-")
-	require.NoError(t, err)
+	tempDir := t.TempDir()
 
 	// Add the image
 	require.NoError(t, os.WriteFile(
@@ -71,9 +70,6 @@ func runDockerRegistryWithDummyImage(t *testing.T, imageName string) *dockerRegi
 	cmd = command.New(dockerCommand, "push", imageName)
 	err = cmd.RunSuccess()
 	require.NoError(t, err)
-
-	// After the image is pushed, we don't need the Dockerfile any longer
-	require.NoError(t, os.RemoveAll(tempDir))
 
 	return &dockerRegistry{
 		ImageName:      imageName,

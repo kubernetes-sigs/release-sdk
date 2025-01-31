@@ -91,13 +91,16 @@ func createTestRepository() (repoPath string, err error) {
 	if err != nil {
 		return "", fmt.Errorf("creating a directory for test repository: %w", err)
 	}
+
 	if err := os.Chdir(repoPath); err != nil {
 		return "", fmt.Errorf("cd'ing into test repository: %w", err)
 	}
+
 	out, err := exec.Command("git", "init").Output()
 	if err != nil {
 		return "", fmt.Errorf("initializing test repository: %s: %w", out, err)
 	}
+
 	return repoPath, nil
 }
 
@@ -105,8 +108,10 @@ func TestGetUserName(t *testing.T) {
 	require.Empty(t, os.Getenv("GIT_COMMITTER_NAME"))
 
 	const fakeUserName = "SIG Release Test User"
+
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "error reading the current directory")
+
 	defer os.Chdir(currentDir) //nolint: errcheck
 
 	// Create an empty repo and configure the users name to test
@@ -128,6 +133,7 @@ func TestGetUserName(t *testing.T) {
 
 	envVarName := fakeUserName + " env var"
 	t.Setenv("GIT_COMMITTER_NAME", envVarName)
+
 	actual, err = git.GetUserName()
 	require.NoError(t, err)
 	require.Equal(t, envVarName, actual)
@@ -139,8 +145,10 @@ func TestGetUserEmail(t *testing.T) {
 	require.Empty(t, os.Getenv("GIT_COMMITTER_EMAIL"))
 
 	const fakeUserEmail = "kubernetes-test@example.com"
+
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "error reading the current directory")
+
 	defer os.Chdir(currentDir) //nolint: errcheck
 
 	// Create an empty repo and configure the users name to test
@@ -163,6 +171,7 @@ func TestGetUserEmail(t *testing.T) {
 
 	envVarEmail := "kubernetes-honk@example.com"
 	t.Setenv("GIT_COMMITTER_EMAIL", envVarEmail)
+
 	actual, err = git.GetUserEmail()
 	require.NoError(t, err)
 	require.Equal(t, envVarEmail, actual)
@@ -321,6 +330,7 @@ func TestParseRepoSlug(t *testing.T) {
 		} else {
 			require.Error(t, err, testCase.caseName)
 		}
+
 		require.Equal(t, testCase.orgName, org, testCase.caseName)
 		require.Equal(t, testCase.repoName, repo, testCase.caseName)
 	}
@@ -357,7 +367,10 @@ func TestNetworkError(t *testing.T) {
 	}()
 	require.Error(t, err, "checking if NewNetWork error returns nil")
 	require.NotEmpty(t, err.Error(), "checking if NetworkError returns a message")
-	require.False(t, err.(git.NetworkError).CanRetry(), "checking if network error can be properly asserted") //nolint: errcheck
+
+	networkError := git.NetworkError{}
+	require.ErrorAs(t, err, &networkError)
+	require.False(t, networkError.CanRetry(), "checking if network error can be properly asserted")
 }
 
 func TestHasBranch(t *testing.T) {
@@ -399,9 +412,8 @@ func TestHasBranch(t *testing.T) {
 }
 
 func TestStatus(t *testing.T) {
-	rawRepoDir, err := os.MkdirTemp("", "k8s-test-repo")
-	require.NoError(t, err)
-	_, err = gogit.PlainInit(rawRepoDir, false)
+	rawRepoDir := t.TempDir()
+	_, err := gogit.PlainInit(rawRepoDir, false)
 	require.NoError(t, err)
 
 	testFile := "test-status.txt"
@@ -444,9 +456,8 @@ func TestStatus(t *testing.T) {
 }
 
 func TestShowLastCommit(t *testing.T) {
-	rawRepoDir, err := os.MkdirTemp("", "k8s-test-repo")
-	require.NoError(t, err)
-	_, err = gogit.PlainInit(rawRepoDir, false)
+	rawRepoDir := t.TempDir()
+	_, err := gogit.PlainInit(rawRepoDir, false)
 	require.NoError(t, err)
 
 	testFile := "test-last-commit.txt"
@@ -471,8 +482,7 @@ func TestShowLastCommit(t *testing.T) {
 func TestFetchRemote(t *testing.T) {
 	testTagName := "test-tag" + strconv.FormatInt(time.Now().UnixNano(), 10)
 	// Create a new empty repo
-	rawRepoDir, err := os.MkdirTemp("", "k8s-test-repo")
-	require.NoError(t, err)
+	rawRepoDir := t.TempDir()
 	gogitRepo, err := gogit.PlainInit(rawRepoDir, false)
 	require.NoError(t, err)
 
@@ -532,8 +542,7 @@ func TestRebase(t *testing.T) {
 	testFile := "test-rebase.txt"
 
 	// Create a new empty repo
-	rawRepoDir, err := os.MkdirTemp("", "k8s-test-repo")
-	require.NoError(t, err)
+	rawRepoDir := t.TempDir()
 	gogitRepo, err := gogit.PlainInit(rawRepoDir, false)
 	require.NoError(t, err)
 
@@ -614,10 +623,9 @@ func TestRebase(t *testing.T) {
 
 func TestLastCommitSha(t *testing.T) {
 	// Create a test repository
-	rawRepoDir, err := os.MkdirTemp("", "k8s-test-repo")
-	require.NoError(t, err)
+	rawRepoDir := t.TempDir()
 	defer os.RemoveAll(rawRepoDir)
-	_, err = gogit.PlainInit(rawRepoDir, false)
+	_, err := gogit.PlainInit(rawRepoDir, false)
 	require.NoError(t, err)
 
 	repo, err := git.OpenRepo(rawRepoDir)
@@ -625,12 +633,14 @@ func TestLastCommitSha(t *testing.T) {
 
 	// Create two commits in the repository
 	shas := make([]string, 2)
+
 	for _, i := range []int{0, 1} {
 		require.NoError(t, repo.CommitEmpty(fmt.Sprintf("Empty commit %d", i+1)))
 		shas[i], err = repo.LastCommitSha()
 		require.NoError(t, err)
 		require.NotEmpty(t, shas[i])
 	}
+
 	require.Len(t, shas, 2)
 
 	// Now, checkout the first one and check we get the right hash
@@ -644,10 +654,8 @@ func TestLastCommitSha(t *testing.T) {
 
 func TestNextCommit(t *testing.T) {
 	// Create a test repository
-	rawRepoDir, err := os.MkdirTemp("", "k8s-test-repo-")
-	require.NoError(t, err)
-	defer os.RemoveAll(rawRepoDir)
-	_, err = gogit.PlainInit(rawRepoDir, false)
+	rawRepoDir := t.TempDir()
+	_, err := gogit.PlainInit(rawRepoDir, false)
 	require.NoError(t, err)
 
 	repo, err := git.OpenRepo(rawRepoDir)
@@ -655,6 +663,7 @@ func TestNextCommit(t *testing.T) {
 
 	// Create commits in the repository
 	shas := make([]string, 3)
+
 	for _, i := range []int{0, 1, 2} {
 		require.NoError(t, repo.CommitEmpty(fmt.Sprintf("Empty commit %d", i+1)))
 		shas[i], err = repo.LastCommitSha()
@@ -662,6 +671,7 @@ func TestNextCommit(t *testing.T) {
 		require.NotEmpty(t, shas[i])
 		require.NoError(t, repo.Tag(fmt.Sprintf("tag-%d", i), "New tag"))
 	}
+
 	require.Len(t, shas, 3)
 
 	// shas[0] is the child of shas[1]

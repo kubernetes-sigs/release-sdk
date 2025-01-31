@@ -37,8 +37,7 @@ const (
 func TestWaitResults(t *testing.T) {
 	for _, version := range []string{"1.6.2", "1.8.0"} {
 		// Setup a custom OSC executable
-		tempDir, err := os.MkdirTemp("", "osc-version-test-")
-		require.NoError(t, err)
+		tempDir := t.TempDir()
 		require.NoError(t, os.WriteFile(
 			filepath.Join(tempDir, osc.OSCExecutable),
 			[]byte(`#!/usr/bin/env sh
@@ -65,13 +64,12 @@ fi
 		require.NoError(t, err)
 		res, err := os.ReadFile(filepath.Join(tempDir, "res"))
 		require.NoError(t, err)
+
 		testString := "results -w project/package"
 		if version == "1.8.0" {
 			testString += " -F"
 		}
-		assert.Equal(t, testString, string(res))
 
-		// Cleanup
-		require.NoError(t, os.RemoveAll(tempDir))
+		assert.Equal(t, testString, string(res))
 	}
 }
