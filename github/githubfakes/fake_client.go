@@ -97,7 +97,7 @@ type FakeClient struct {
 		result1 *githuba.Issue
 		result2 error
 	}
-	CreatePullRequestStub        func(context.Context, string, string, string, string, string, string) (*githuba.PullRequest, error)
+	CreatePullRequestStub        func(context.Context, string, string, string, string, string, string, bool) (*githuba.PullRequest, error)
 	createPullRequestMutex       sync.RWMutex
 	createPullRequestArgsForCall []struct {
 		arg1 context.Context
@@ -107,6 +107,7 @@ type FakeClient struct {
 		arg5 string
 		arg6 string
 		arg7 string
+		arg8 bool
 	}
 	createPullRequestReturns struct {
 		result1 *githuba.PullRequest
@@ -775,7 +776,7 @@ func (fake *FakeClient) CreateIssueReturnsOnCall(i int, result1 *githuba.Issue, 
 	}{result1, result2}
 }
 
-func (fake *FakeClient) CreatePullRequest(arg1 context.Context, arg2 string, arg3 string, arg4 string, arg5 string, arg6 string, arg7 string) (*githuba.PullRequest, error) {
+func (fake *FakeClient) CreatePullRequest(arg1 context.Context, arg2 string, arg3 string, arg4 string, arg5 string, arg6 string, arg7 string, arg8 bool) (*githuba.PullRequest, error) {
 	fake.createPullRequestMutex.Lock()
 	ret, specificReturn := fake.createPullRequestReturnsOnCall[len(fake.createPullRequestArgsForCall)]
 	fake.createPullRequestArgsForCall = append(fake.createPullRequestArgsForCall, struct {
@@ -786,13 +787,14 @@ func (fake *FakeClient) CreatePullRequest(arg1 context.Context, arg2 string, arg
 		arg5 string
 		arg6 string
 		arg7 string
-	}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+		arg8 bool
+	}{arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8})
 	stub := fake.CreatePullRequestStub
 	fakeReturns := fake.createPullRequestReturns
-	fake.recordInvocation("CreatePullRequest", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+	fake.recordInvocation("CreatePullRequest", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8})
 	fake.createPullRequestMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -806,7 +808,7 @@ func (fake *FakeClient) CreatePullRequestCallCount() int {
 	return len(fake.createPullRequestArgsForCall)
 }
 
-func (fake *FakeClient) CreatePullRequestCalls(stub func(context.Context, string, string, string, string, string, string) (*githuba.PullRequest, error)) {
+func (fake *FakeClient) CreatePullRequestCalls(stub func(context.Context, string, string, string, string, string, string, bool) (*githuba.PullRequest, error)) {
 	fake.createPullRequestMutex.Lock()
 	defer fake.createPullRequestMutex.Unlock()
 	fake.CreatePullRequestStub = stub
