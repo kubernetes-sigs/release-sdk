@@ -291,7 +291,7 @@ func TestCreatePullRequest(t *testing.T) {
 	client.CreatePullRequestReturns(&gogithub.PullRequest{ID: &fakeID}, nil)
 
 	// When
-	pr, err := sut.CreatePullRequest("kubernetes-fake-org", "kubernetes-fake-repo", git.DefaultBranch, "user:head-branch", "PR Title", "PR Body")
+	pr, err := sut.CreatePullRequest("kubernetes-fake-org", "kubernetes-fake-repo", git.DefaultBranch, "user:head-branch", "PR Title", "PR Body", false)
 
 	// Then
 	require.NoError(t, err)

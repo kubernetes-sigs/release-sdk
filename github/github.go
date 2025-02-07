@@ -120,7 +120,7 @@ type Client interface {
 		context.Context, string, string, *github.BranchListOptions,
 	) ([]*github.Branch, *github.Response, error)
 	CreatePullRequest(
-		context.Context, string, string, string, string, string, string,
+		context.Context, string, string, string, string, string, string, bool,
 	) (*github.PullRequest, error)
 	CreateIssue(
 		context.Context, string, string, *github.IssueRequest,
@@ -430,7 +430,7 @@ func (g *githubClient) ListMilestones(
 }
 
 func (g *githubClient) CreatePullRequest(
-	ctx context.Context, owner, repo, baseBranchName, headBranchName, title, body string,
+	ctx context.Context, owner, repo, baseBranchName, headBranchName, title, body string, draft bool,
 ) (*github.PullRequest, error) {
 	newPullRequest := &github.NewPullRequest{
 		Title:               &title,
@@ -438,6 +438,7 @@ func (g *githubClient) CreatePullRequest(
 		Base:                &baseBranchName,
 		Body:                &body,
 		MaintainerCanModify: github.Bool(true),
+		Draft:               &draft,
 	}
 
 	for shouldRetry := internal.DefaultGithubErrChecker(); ; {
@@ -961,10 +962,10 @@ func (g *GitHub) CreateIssue(
 // CreatePullRequest Creates a new pull request in owner/repo:baseBranch to merge changes from headBranchName
 // which is a string containing a branch in the same repository or a user:branch pair.
 func (g *GitHub) CreatePullRequest(
-	owner, repo, baseBranchName, headBranchName, title, body string,
+	owner, repo, baseBranchName, headBranchName, title, body string, draft bool,
 ) (*github.PullRequest, error) {
 	// Use the client to create a new PR
-	pr, err := g.Client().CreatePullRequest(context.Background(), owner, repo, baseBranchName, headBranchName, title, body)
+	pr, err := g.Client().CreatePullRequest(context.Background(), owner, repo, baseBranchName, headBranchName, title, body, draft)
 	if err != nil {
 		return pr, err
 	}

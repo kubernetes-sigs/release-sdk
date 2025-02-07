@@ -231,7 +231,7 @@ func (c *githubNotesReplayClient) ListTags(
 }
 
 func (c *githubNotesReplayClient) CreatePullRequest(
-	ctx context.Context, owner, repo, baseBranchName, headBranchName, title, body string, //nolint: revive
+	ctx context.Context, owner, repo, baseBranchName, headBranchName, title, body string, draft bool, //nolint: revive
 ) (*github.PullRequest, error) {
 	return &github.PullRequest{}, nil
 }
