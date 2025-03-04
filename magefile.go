@@ -101,7 +101,7 @@ func Verify() error {
 	}
 
 	fmt.Println("Running external dependency checks...")
-	if err := mage.VerifyDeps("v0.3.0", "", "", true); err != nil {
+	if err := mage.VerifyDeps("", "", "", true); err != nil {
 		return err
 	}
 
