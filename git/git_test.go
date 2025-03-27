@@ -175,7 +175,7 @@ func TestGetUserEmail(t *testing.T) {
 	actual, err = git.GetUserEmail()
 	require.NoError(t, err)
 	require.Equal(t, envVarEmail, actual)
-	require.NotEqual(t, "", envVarEmail)
+	require.NotEmpty(t, envVarEmail)
 	require.NoError(t, os.Unsetenv("GIT_COMMITTER_EMAIL"))
 }
 

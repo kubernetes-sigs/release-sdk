@@ -619,7 +619,7 @@ func TestAddLabels(t *testing.T) {
 		if tcErr == nil {
 			require.NoError(t, err)
 			require.NotNil(t, updatedLabel)
-			require.EqualValues(t, labelToAdd, updatedLabel)
+			require.Equal(t, labelToAdd, updatedLabel)
 		} else {
 			require.Error(t, err)
 		}
