@@ -73,7 +73,7 @@ func (o *obsClient) InvokeOBSEndpoint(ctx context.Context, username, password, m
 	req.SetBasicAuth(username, password)
 	req.Header.Set("Accept", "application/xml; charset=utf-8")
 
-	resp, err := o.Client.Do(req)
+	resp, err := o.Do(req)
 	if err != nil {
 		return nil, &APIError{
 			HTTPStatusCode: 0,
