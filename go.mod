@@ -13,7 +13,7 @@ require (
 	github.com/nozzle/throttler v0.0.0-20180817012639-2ea982251481
 	github.com/sigstore/cosign/v2 v2.5.0
 	github.com/sigstore/rekor v1.3.10
-	github.com/sigstore/sigstore v1.9.3
+	github.com/sigstore/sigstore v1.9.4
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
 	github.com/uwu-tools/magex v0.10.1
@@ -87,7 +87,7 @@ require (
 	github.com/cockroachdb/apd/v3 v3.2.1 // indirect
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.16.3 // indirect
-	github.com/coreos/go-oidc/v3 v3.13.0 // indirect
+	github.com/coreos/go-oidc/v3 v3.14.1 // indirect
 	github.com/cyberphone/json-canonicalization v0.0.0-20241213102144-19d51d7fe467 // indirect
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
