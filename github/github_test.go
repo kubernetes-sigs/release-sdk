@@ -17,7 +17,6 @@ limitations under the License.
 package github_test
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -586,7 +585,7 @@ func TestUpdateIssue(t *testing.T) {
 		}
 
 		client.UpdateIssueReturns(updatedIssue, nil, tcErr)
-		updatedIssue, _, err := client.UpdateIssue(context.Background(), "kubernetes-fake-org", "kubernetes-fake-repo", newissue.GetNumber(), issueRequest)
+		updatedIssue, _, err := client.UpdateIssue(t.Context(), "kubernetes-fake-org", "kubernetes-fake-repo", newissue.GetNumber(), issueRequest)
 
 		// Then
 		if tcErr == nil {
@@ -613,7 +612,7 @@ func TestAddLabels(t *testing.T) {
 	for _, tcErr := range []error{errors.New("Test error"), nil} {
 		// When
 		client.AddLabelsReturns(labelToAdd, nil, tcErr)
-		updatedLabel, _, err := client.AddLabels(context.Background(), "kubernetes-fake-org", "kubernetes-fake-repo", 1234, []string{"honk-label"})
+		updatedLabel, _, err := client.AddLabels(t.Context(), "kubernetes-fake-org", "kubernetes-fake-repo", 1234, []string{"honk-label"})
 
 		// Then
 		if tcErr == nil {
@@ -756,7 +755,7 @@ func TestCheckRateLimit(t *testing.T) {
 	client.CheckRateLimitReturns(rt, &gogithub.Response{}, nil)
 
 	// When
-	rt, result, err := sut.CheckRateLimit(context.Background())
+	rt, result, err := sut.CheckRateLimit(t.Context())
 
 	// Then
 	require.NoError(t, err)

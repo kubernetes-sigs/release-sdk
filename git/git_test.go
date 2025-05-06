@@ -112,7 +112,7 @@ func TestGetUserName(t *testing.T) {
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "error reading the current directory")
 
-	defer os.Chdir(currentDir) //nolint: errcheck
+	defer os.Chdir(currentDir) //nolint: errcheck,usetesting
 
 	// Create an empty repo and configure the users name to test
 	repoPath, err := createTestRepository()
@@ -149,7 +149,7 @@ func TestGetUserEmail(t *testing.T) {
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "error reading the current directory")
 
-	defer os.Chdir(currentDir) //nolint: errcheck
+	defer os.Chdir(currentDir) //nolint: errcheck,usetesting
 
 	// Create an empty repo and configure the users name to test
 	repoPath, err := createTestRepository()

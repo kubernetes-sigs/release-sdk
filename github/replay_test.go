@@ -17,7 +17,6 @@ limitations under the License.
 package github_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -29,7 +28,7 @@ const testDataDir = "testdata"
 
 func TestReplayListTags(t *testing.T) {
 	replayer := github.NewReplayer(testDataDir)
-	tags, _, err := replayer.ListTags(context.Background(), "", "", nil)
+	tags, _, err := replayer.ListTags(t.Context(), "", "", nil)
 	require.NoError(t, err)
 	require.Len(t, tags, 19)
 }
