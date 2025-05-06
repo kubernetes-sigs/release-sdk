@@ -20,7 +20,6 @@ limitations under the License.
 package integration
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -198,7 +197,7 @@ func TestImagesSigned(t *testing.T) {
 				refs = append(refs, ref)
 			}
 
-			res, err := signer.ImagesSigned(context.Background(), refs...)
+			res, err := signer.ImagesSigned(t.Context(), refs...)
 			if tc.shouldErr {
 				require.Error(t, err)
 			} else {

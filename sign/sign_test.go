@@ -17,7 +17,6 @@ limitations under the License.
 package sign_test
 
 import (
-	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -705,7 +704,7 @@ func TestImagesSigned(t *testing.T) {
 		sut := sign.New(sign.Default())
 		sut.SetImpl(mock)
 
-		res, err := sut.ImagesSigned(context.TODO(), "")
+		res, err := sut.ImagesSigned(t.Context(), "")
 		tc.assert(res, err)
 	}
 }
