@@ -754,26 +754,6 @@ func (fake *FakeStore) SetOptionsArgsForCall(i int) []object.OptFn {
 func (fake *FakeStore) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.copyBucketToBucketMutex.RLock()
-	defer fake.copyBucketToBucketMutex.RUnlock()
-	fake.copyToLocalMutex.RLock()
-	defer fake.copyToLocalMutex.RUnlock()
-	fake.copyToRemoteMutex.RLock()
-	defer fake.copyToRemoteMutex.RUnlock()
-	fake.getMarkerPathMutex.RLock()
-	defer fake.getMarkerPathMutex.RUnlock()
-	fake.getReleasePathMutex.RLock()
-	defer fake.getReleasePathMutex.RUnlock()
-	fake.isPathNormalizedMutex.RLock()
-	defer fake.isPathNormalizedMutex.RUnlock()
-	fake.normalizePathMutex.RLock()
-	defer fake.normalizePathMutex.RUnlock()
-	fake.pathExistsMutex.RLock()
-	defer fake.pathExistsMutex.RUnlock()
-	fake.rsyncRecursiveMutex.RLock()
-	defer fake.rsyncRecursiveMutex.RUnlock()
-	fake.setOptionsMutex.RLock()
-	defer fake.setOptionsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

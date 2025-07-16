@@ -329,14 +329,6 @@ func (fake *FakeWorktree) StatusReturnsOnCall(i int, result1 gita.Status, result
 func (fake *FakeWorktree) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
-	fake.checkoutMutex.RLock()
-	defer fake.checkoutMutex.RUnlock()
-	fake.commitMutex.RLock()
-	defer fake.commitMutex.RUnlock()
-	fake.statusMutex.RLock()
-	defer fake.statusMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

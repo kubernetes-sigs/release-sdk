@@ -841,28 +841,6 @@ func (fake *FakeRepository) TagsReturnsOnCall(i int, result1 storer.ReferenceIte
 func (fake *FakeRepository) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.branchesMutex.RLock()
-	defer fake.branchesMutex.RUnlock()
-	fake.commitObjectMutex.RLock()
-	defer fake.commitObjectMutex.RUnlock()
-	fake.createRemoteMutex.RLock()
-	defer fake.createRemoteMutex.RUnlock()
-	fake.createTagMutex.RLock()
-	defer fake.createTagMutex.RUnlock()
-	fake.deleteRemoteMutex.RLock()
-	defer fake.deleteRemoteMutex.RUnlock()
-	fake.headMutex.RLock()
-	defer fake.headMutex.RUnlock()
-	fake.pushMutex.RLock()
-	defer fake.pushMutex.RUnlock()
-	fake.remoteMutex.RLock()
-	defer fake.remoteMutex.RUnlock()
-	fake.remotesMutex.RLock()
-	defer fake.remotesMutex.RUnlock()
-	fake.resolveRevisionMutex.RLock()
-	defer fake.resolveRevisionMutex.RUnlock()
-	fake.tagsMutex.RLock()
-	defer fake.tagsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -814,11 +814,11 @@ func (fake *FakeClient) CreatePullRequestCalls(stub func(context.Context, string
 	fake.CreatePullRequestStub = stub
 }
 
-func (fake *FakeClient) CreatePullRequestArgsForCall(i int) (context.Context, string, string, string, string, string, string) {
+func (fake *FakeClient) CreatePullRequestArgsForCall(i int) (context.Context, string, string, string, string, string, string, bool) {
 	fake.createPullRequestMutex.RLock()
 	defer fake.createPullRequestMutex.RUnlock()
 	argsForCall := fake.createPullRequestArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7, argsForCall.arg8
 }
 
 func (fake *FakeClient) CreatePullRequestReturns(result1 *githuba.PullRequest, result2 error) {
@@ -2320,58 +2320,6 @@ func (fake *FakeClient) UploadReleaseAssetReturnsOnCall(i int, result1 *githuba.
 func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.addLabelsMutex.RLock()
-	defer fake.addLabelsMutex.RUnlock()
-	fake.checkRateLimitMutex.RLock()
-	defer fake.checkRateLimitMutex.RUnlock()
-	fake.createCommentMutex.RLock()
-	defer fake.createCommentMutex.RUnlock()
-	fake.createIssueMutex.RLock()
-	defer fake.createIssueMutex.RUnlock()
-	fake.createPullRequestMutex.RLock()
-	defer fake.createPullRequestMutex.RUnlock()
-	fake.deleteReleaseAssetMutex.RLock()
-	defer fake.deleteReleaseAssetMutex.RUnlock()
-	fake.downloadReleaseAssetMutex.RLock()
-	defer fake.downloadReleaseAssetMutex.RUnlock()
-	fake.getCommitMutex.RLock()
-	defer fake.getCommitMutex.RUnlock()
-	fake.getIssueMutex.RLock()
-	defer fake.getIssueMutex.RUnlock()
-	fake.getPullRequestMutex.RLock()
-	defer fake.getPullRequestMutex.RUnlock()
-	fake.getReleaseByTagMutex.RLock()
-	defer fake.getReleaseByTagMutex.RUnlock()
-	fake.getRepoCommitMutex.RLock()
-	defer fake.getRepoCommitMutex.RUnlock()
-	fake.getRepositoryMutex.RLock()
-	defer fake.getRepositoryMutex.RUnlock()
-	fake.listBranchesMutex.RLock()
-	defer fake.listBranchesMutex.RUnlock()
-	fake.listCommentsMutex.RLock()
-	defer fake.listCommentsMutex.RUnlock()
-	fake.listCommitsMutex.RLock()
-	defer fake.listCommitsMutex.RUnlock()
-	fake.listIssuesMutex.RLock()
-	defer fake.listIssuesMutex.RUnlock()
-	fake.listMilestonesMutex.RLock()
-	defer fake.listMilestonesMutex.RUnlock()
-	fake.listPullRequestsWithCommitMutex.RLock()
-	defer fake.listPullRequestsWithCommitMutex.RUnlock()
-	fake.listReleaseAssetsMutex.RLock()
-	defer fake.listReleaseAssetsMutex.RUnlock()
-	fake.listReleasesMutex.RLock()
-	defer fake.listReleasesMutex.RUnlock()
-	fake.listTagsMutex.RLock()
-	defer fake.listTagsMutex.RUnlock()
-	fake.requestPullRequestReviewMutex.RLock()
-	defer fake.requestPullRequestReviewMutex.RUnlock()
-	fake.updateIssueMutex.RLock()
-	defer fake.updateIssueMutex.RUnlock()
-	fake.updateReleasePageMutex.RLock()
-	defer fake.updateReleasePageMutex.RUnlock()
-	fake.uploadReleaseAssetMutex.RLock()
-	defer fake.uploadReleaseAssetMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
