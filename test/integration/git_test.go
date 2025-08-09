@@ -32,7 +32,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"sigs.k8s.io/release-utils/command"
-	"sigs.k8s.io/release-utils/util"
+	"sigs.k8s.io/release-utils/helpers"
 
 	"sigs.k8s.io/release-sdk/git"
 )
@@ -484,7 +484,7 @@ func TestSuccessLatestTagForBranch(t *testing.T) {
 
 	version, err := testRepo.sut.LatestTagForBranch(git.DefaultBranch)
 	require.NoError(t, err)
-	require.Equal(t, testRepo.firstTagName, util.SemverToTagString(version))
+	require.Equal(t, testRepo.firstTagName, helpers.SemverToTagString(version))
 }
 
 func TestSuccessLatestTagForBranchRelease(t *testing.T) {
@@ -493,7 +493,7 @@ func TestSuccessLatestTagForBranchRelease(t *testing.T) {
 
 	version, err := testRepo.sut.LatestTagForBranch("release-1.17")
 	require.NoError(t, err)
-	require.Equal(t, testRepo.thirdTagName, util.SemverToTagString(version))
+	require.Equal(t, testRepo.thirdTagName, helpers.SemverToTagString(version))
 }
 
 func TestFailureLatestTagForBranchInvalidBranch(t *testing.T) {
