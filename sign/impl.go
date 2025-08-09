@@ -39,7 +39,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"sigs.k8s.io/release-utils/env"
-	"sigs.k8s.io/release-utils/util"
+	"sigs.k8s.io/release-utils/helpers"
 )
 
 type defaultImpl struct{}
@@ -152,7 +152,7 @@ func (d *defaultImpl) TokenFromProviders(ctx context.Context, logger *logrus.Log
 
 // FileExists returns true if a file exists.
 func (*defaultImpl) FileExists(path string) bool {
-	return util.Exists(path)
+	return helpers.Exists(path)
 }
 
 // IdentityProvidersEnabled returns true if any of the cosign
