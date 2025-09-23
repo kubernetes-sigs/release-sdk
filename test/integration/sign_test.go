@@ -67,6 +67,7 @@ func TestSuccessSignImage(t *testing.T) {
 	defer deleteRegistryContainer(t)
 
 	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t)
+
 	defer func() {
 		require.NoError(t, cleanup())
 	}()
@@ -100,6 +101,7 @@ func TestSuccessSignFile(t *testing.T) {
 	require.NoError(t, os.WriteFile(testFilePath, []byte(testFile), 0o644))
 
 	privateKeyPath, publicKeyPath, cleanup := generateCosignKeyPair(t)
+
 	defer func() {
 		require.NoError(t, cleanup())
 	}()

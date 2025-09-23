@@ -216,7 +216,6 @@ func (s *Signer) SignImageWithOptions(options *Options, reference string) (objec
 
 		return true, nil
 	})
-
 	if waitErr != nil {
 		return nil, fmt.Errorf("retrying image verification: %w: %w", waitErr, err)
 	}
