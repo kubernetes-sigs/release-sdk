@@ -767,6 +767,7 @@ func TestCurrentBranchDefault(t *testing.T) {
 func TestCurrentBranchMain(t *testing.T) {
 	testRepo := newTestRepo(t)
 	defer testRepo.cleanup(t)
+
 	require.NoError(t, testRepo.sut.Checkout(git.DefaultBranch))
 
 	branch, err := testRepo.sut.CurrentBranch()
@@ -777,6 +778,7 @@ func TestCurrentBranchMain(t *testing.T) {
 func TestRmSuccessForce(t *testing.T) {
 	testRepo := newTestRepo(t)
 	defer testRepo.cleanup(t)
+
 	require.NoError(t, os.WriteFile(testRepo.testFileName,
 		[]byte("test"), os.FileMode(0o755)),
 	)
@@ -828,6 +830,7 @@ func TestHasRemoteFailure(t *testing.T) {
 func TestRmFailureForce(t *testing.T) {
 	testRepo := newTestRepo(t)
 	defer testRepo.cleanup(t)
+
 	require.Error(t, testRepo.sut.Rm(true, "invalid"))
 }
 
@@ -844,6 +847,7 @@ func TestRmSuccess(t *testing.T) {
 func TestRmFailureModified(t *testing.T) {
 	testRepo := newTestRepo(t)
 	defer testRepo.cleanup(t)
+
 	require.NoError(t, os.WriteFile(testRepo.testFileName,
 		[]byte("test"), os.FileMode(0o755)),
 	)

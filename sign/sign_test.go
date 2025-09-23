@@ -374,6 +374,7 @@ func TestVerifyFile(t *testing.T) {
 	uuid := "uuid"
 
 	var logindex int64 = 1
+
 	uuids := []models.LogEntryAnon{
 		{
 			LogID:    &uuid,

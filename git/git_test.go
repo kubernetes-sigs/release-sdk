@@ -17,6 +17,7 @@ limitations under the License.
 package git_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -86,7 +87,7 @@ func TestGetDefaultKubernetesRepoURLSuccess(t *testing.T) {
 }
 
 // createTestRepository creates a test repo, cd into it and returns the path.
-func createTestRepository() (repoPath string, err error) {
+func createTestRepository(ctx context.Context) (repoPath string, err error) {
 	repoPath, err = os.MkdirTemp("", "sigrelease-test-repo-*")
 	if err != nil {
 		return "", fmt.Errorf("creating a directory for test repository: %w", err)
@@ -96,7 +97,7 @@ func createTestRepository() (repoPath string, err error) {
 		return "", fmt.Errorf("cd'ing into test repository: %w", err)
 	}
 
-	out, err := exec.Command("git", "init").Output()
+	out, err := exec.CommandContext(ctx, "git", "init").Output()
 	if err != nil {
 		return "", fmt.Errorf("initializing test repository: %s: %w", out, err)
 	}
@@ -115,15 +116,16 @@ func TestGetUserName(t *testing.T) {
 	defer os.Chdir(currentDir) //nolint: errcheck,usetesting
 
 	// Create an empty repo and configure the users name to test
-	repoPath, err := createTestRepository()
+	repoPath, err := createTestRepository(t.Context())
 	require.NoError(t, err, "getting a test repo")
 
 	// Call git to configure the user's name:
-	_, err = exec.Command("git", "config", "user.name", fakeUserName).Output()
+	_, err = exec.CommandContext(t.Context(), "git", "config", "user.name", fakeUserName).Output()
 	require.NoError(t, err, "configuring fake user email in "+repoPath)
 
 	testRepo, err := git.OpenRepo(repoPath)
 	require.NoError(t, err, errDesc+repoPath)
+
 	defer testRepo.Cleanup() //nolint: errcheck
 
 	actual, err := git.GetUserName()
@@ -152,15 +154,16 @@ func TestGetUserEmail(t *testing.T) {
 	defer os.Chdir(currentDir) //nolint: errcheck,usetesting
 
 	// Create an empty repo and configure the users name to test
-	repoPath, err := createTestRepository()
+	repoPath, err := createTestRepository(t.Context())
 	require.NoError(t, err, "getting a test repo")
 
 	// Call git to configure the user's name:
-	_, err = exec.Command("git", "config", "user.email", fakeUserEmail).Output()
+	_, err = exec.CommandContext(t.Context(), "git", "config", "user.email", fakeUserEmail).Output()
 	require.NoError(t, err, "configuring fake user email in "+repoPath)
 
 	testRepo, err := git.OpenRepo(repoPath)
 	require.NoError(t, err, errDesc+repoPath)
+
 	defer testRepo.Cleanup() //nolint: errcheck
 
 	// Do the actual call
@@ -375,7 +378,7 @@ func TestNetworkError(t *testing.T) {
 
 func TestHasBranch(t *testing.T) {
 	testBranchName := "git-package-test-branch"
-	repoPath, err := createTestRepository()
+	repoPath, err := createTestRepository(t.Context())
 	require.NoError(t, err, "getting a test repo")
 
 	// Create a file and a test commit
@@ -396,6 +399,7 @@ func TestHasBranch(t *testing.T) {
 	// Now, open the repo and test to see if branches are there
 	testRepo, err := git.OpenRepo(repoPath)
 	require.NoError(t, err, errDesc+repoPath)
+
 	defer testRepo.Cleanup() //nolint: errcheck
 
 	actual, err := testRepo.HasBranch(testBranchName)
@@ -420,6 +424,7 @@ func TestStatus(t *testing.T) {
 
 	testRepo, err := git.OpenRepo(rawRepoDir)
 	require.NoError(t, err)
+
 	defer testRepo.Cleanup() //nolint: errcheck
 
 	// Get the status object
@@ -465,6 +470,7 @@ func TestShowLastCommit(t *testing.T) {
 
 	testRepo, err := git.OpenRepo(rawRepoDir)
 	require.NoError(t, err)
+
 	defer testRepo.Cleanup() //nolint: errcheck
 
 	// Create an untracked file
@@ -502,11 +508,13 @@ func TestFetchRemote(t *testing.T) {
 
 	branchName, err := originRepo.CurrentBranch()
 	require.NoError(t, err)
+
 	defer originRepo.Cleanup() //nolint: errcheck
 
 	// Create a new clone of the original repo
 	testRepo, err := git.CloneOrOpenRepo("", rawRepoDir, false, true, nil)
 	require.NoError(t, err)
+
 	defer testRepo.Cleanup() //nolint: errcheck
 
 	// The initial clone must not have any tags
@@ -561,11 +569,13 @@ func TestRebase(t *testing.T) {
 
 	branchName, err := originRepo.CurrentBranch()
 	require.NoError(t, err)
+
 	defer originRepo.Cleanup() //nolint: errcheck
 
 	// Create a new clone of the original repo
 	testRepo, err := git.CloneOrOpenRepo("", rawRepoDir, false, true, nil)
 	require.NoError(t, err)
+
 	defer testRepo.Cleanup() //nolint: errcheck
 
 	// Test 1. Rebase should not fail if both repos are in sync
@@ -625,6 +635,7 @@ func TestLastCommitSha(t *testing.T) {
 	// Create a test repository
 	rawRepoDir := t.TempDir()
 	defer os.RemoveAll(rawRepoDir)
+
 	_, err := gogit.PlainInit(rawRepoDir, false)
 	require.NoError(t, err)
 
