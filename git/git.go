@@ -25,7 +25,6 @@ import (
 	"math"
 	"net/url"
 	"os"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -182,7 +181,7 @@ func GetKubernetesRepoURL(org string, useSSH bool) string {
 // - https://github.com/<org>/<repo>
 // - git@github.com:<org>/<repo>.
 func GetRepoURL(org, repo string, useSSH bool) (repoURL string) {
-	slug := filepath.Join(org, repo)
+	slug := fmt.Sprintf("%s/%s", org, repo)
 
 	if useSSH {
 		repoURL = fmt.Sprintf("%s%s", defaultGithubAuthRoot, slug)
