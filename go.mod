@@ -9,7 +9,7 @@ require (
 	github.com/google/go-github/v75 v75.0.0
 	github.com/jellydator/ttlcache/v3 v3.4.0
 	github.com/magefile/mage v1.15.0
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.0
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.1
 	github.com/nozzle/throttler v0.0.0-20180817012639-2ea982251481
 	github.com/sigstore/cosign/v2 v2.5.0
 	github.com/sigstore/rekor v1.4.3
