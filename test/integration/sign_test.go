@@ -131,8 +131,8 @@ func TestIsImageSigned(t *testing.T) {
 		shouldErr bool
 	}{
 		{
-			// cosign ~1.5.2 signed image
-			"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2", true, false,
+			// cosign signed image
+			"ghcr.io/sigstore/cosign/cosign:v2.4.0", true, false,
 		},
 		{
 			// k8s/pause ~feb 13 2022. not signed
@@ -166,7 +166,7 @@ func TestImagesSigned(t *testing.T) {
 			shouldErr bool
 		}{
 			{ // signed single image
-				map[string]bool{"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true},
+				map[string]bool{"ghcr.io/sigstore/cosign/cosign:v2.4.0": true},
 				false,
 			},
 			{ // nonexistent
@@ -175,8 +175,8 @@ func TestImagesSigned(t *testing.T) {
 			},
 			{ // one valid and one nonexistent
 				map[string]bool{
-					"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true,
-					"kornotios/supermegafakeimage":                                            false,
+					"ghcr.io/sigstore/cosign/cosign:v2.4.0": true,
+					"kornotios/supermegafakeimage":          false,
 				},
 				true,
 			},
@@ -227,9 +227,9 @@ func TestVerifyImages(t *testing.T) {
 			shouldErr      bool
 		}{
 			{ // signed single image
-				map[string]bool{"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true},
-				"https://github.com/sigstore/cosign/.github/workflows/github-oidc.yaml@refs/heads/main",
-				"https://token.actions.githubusercontent.com",
+				map[string]bool{"ghcr.io/sigstore/cosign/cosign:v2.4.0": true},
+				"keyless@projectsigstore.iam.gserviceaccount.com",
+				"https://accounts.google.com",
 				false,
 			},
 			{ // nonexistent
@@ -240,11 +240,11 @@ func TestVerifyImages(t *testing.T) {
 			},
 			{ // one valid and one nonexistent
 				map[string]bool{
-					"ghcr.io/sigstore/cosign/cosign:f436d7637caaa9073522ae65a8416e38cd69c4f2": true,
-					"kornotios/supermegafakeimage":                                            false,
+					"ghcr.io/sigstore/cosign/cosign:v2.4.0": true,
+					"kornotios/supermegafakeimage":          false,
 				},
-				"https://github.com/sigstore/cosign/.github/workflows/github-oidc.yaml@refs/heads/main",
-				"https://token.actions.githubusercontent.com",
+				"keyless@projectsigstore.iam.gserviceaccount.com",
+				"https://accounts.google.com",
 				true,
 			},
 			{ // list of valid images

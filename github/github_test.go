@@ -742,7 +742,7 @@ func TestCheckRateLimit(t *testing.T) {
 	// Given
 	sut, client := newSUT()
 
-	now := gogithub.Timestamp{time.Now().UTC()} //nolint: govet
+	now := gogithub.Timestamp{Time: time.Now().UTC()}
 
 	rt := &gogithub.RateLimits{
 		Core: &gogithub.Rate{

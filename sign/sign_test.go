@@ -83,6 +83,7 @@ func TestSignImage(t *testing.T) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 				mock.SignImageInternalReturns(nil)
 				mock.TokenFromProvidersReturns(token, nil)
+
 				m := &sync.Map{}
 				m.Store("gcr.io/fake/honk:99.99.99", true)
 				mock.ImagesSignedReturns(m, nil)
@@ -303,6 +304,7 @@ func TestVerifyImage(t *testing.T) {
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
+
 				m := &sync.Map{}
 				m.Store("gcr.io/fake/honk:99.99.99", true)
 				mock.ImagesSignedReturns(m, nil)
@@ -322,6 +324,7 @@ func TestVerifyImage(t *testing.T) {
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SetenvReturns(nil)
+
 				m := &sync.Map{}
 				m.Store("gcr.io/fake/honk:99.99.99", true)
 				mock.ImagesSignedReturns(m, nil)
