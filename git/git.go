@@ -804,6 +804,7 @@ func (r *Repo) HasBranch(branch string) (branchExists bool, err error) {
 	if err := branches.ForEach(func(ref *plumbing.Reference) error {
 		if ref.Name().Short() == branch {
 			logrus.Infof("Branch %s found in the repository", branch)
+
 			branchExists = true
 		}
 
