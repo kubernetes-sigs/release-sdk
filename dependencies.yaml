@@ -7,7 +7,7 @@ dependencies:
         match: go-version
 
   - name: Go Mod
-    version: 1.25.6
+    version: 1.25.7
     refPaths:
       - path: go.mod
         match: go
