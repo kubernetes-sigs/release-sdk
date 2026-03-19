@@ -34,18 +34,49 @@ credentials_mgr_class=osc.credentials.PlaintextConfigFileCredentialsManager
 `
 )
 
-// CreateOSCConfigFile creates the osc config file (~/.oscrc) that contains
-// API URL and credentials needed to authenticate with the API.
-func CreateOSCConfigFile(apiURL, username, password string) error {
-	userHome, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("obtaining user's home directory: %w", err)
+// oscConfigFilePath returns the path to the osc config file.
+// It follows the same lookup order as osc itself:
+// 1. $OSC_CONFIG if set
+// 2. ~/.oscrc if it exists (legacy path)
+// 3. $XDG_CONFIG_HOME/osc/oscrc (default for osc >= 1.0).
+func oscConfigFilePath() (string, error) {
+	if p := os.Getenv("OSC_CONFIG"); p != "" {
+		return p, nil
 	}
 
-	oscConfigFilePath := filepath.Join(userHome, ".oscrc")
+	userHome, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("obtaining user's home directory: %w", err)
+	}
+
+	legacy := filepath.Join(userHome, ".oscrc")
+	if _, err := os.Stat(legacy); err == nil {
+		return legacy, nil
+	}
+
+	configHome := os.Getenv("XDG_CONFIG_HOME")
+	if configHome == "" {
+		configHome = filepath.Join(userHome, ".config")
+	}
+
+	return filepath.Join(configHome, "osc", "oscrc"), nil
+}
+
+// CreateOSCConfigFile creates the osc config file that contains
+// API URL and credentials needed to authenticate with the API.
+func CreateOSCConfigFile(apiURL, username, password string) error {
+	configPath, err := oscConfigFilePath()
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(filepath.Dir(configPath), 0o700); err != nil {
+		return fmt.Errorf("creating osc config directory: %w", err)
+	}
+
 	authFile := fmt.Sprintf(authFileFormat, apiURL, apiURL, username, password)
 
-	if err := os.WriteFile(oscConfigFilePath, []byte(authFile), 0o600); err != nil {
+	if err := os.WriteFile(configPath, []byte(authFile), 0o600); err != nil {
 		return fmt.Errorf("writing osc config file: %w", err)
 	}
 
