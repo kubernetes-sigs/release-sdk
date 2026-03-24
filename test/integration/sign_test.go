@@ -194,7 +194,7 @@ func TestImagesSigned(t *testing.T) {
 				false,
 			},
 		} {
-			refs := []string{}
+			refs := make([]string, 0, len(tc.refs))
 			for ref := range tc.refs {
 				refs = append(refs, ref)
 			}
@@ -263,7 +263,7 @@ func TestVerifyImages(t *testing.T) {
 				false,
 			},
 		} {
-			refs := []string{}
+			refs := make([]string, 0, len(tc.refs))
 			for ref := range tc.refs {
 				refs = append(refs, ref)
 			}
