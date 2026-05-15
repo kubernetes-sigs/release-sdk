@@ -13,7 +13,7 @@ require (
 	github.com/nozzle/throttler v0.0.0-20180817012639-2ea982251481
 	github.com/sigstore/cosign/v2 v2.6.3
 	github.com/sigstore/rekor v1.5.1
-	github.com/sigstore/sigstore v1.10.5
+	github.com/sigstore/sigstore v1.10.6
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
 	github.com/uwu-tools/magex v0.10.1
