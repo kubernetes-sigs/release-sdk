@@ -220,8 +220,13 @@ func NewWithToken(token string) (*GitHub, error) {
 
 	logrus.Debugf("Using %s GitHub client", state)
 
+	ghclient, err := github.NewClient(github.WithHTTPClient(client))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create github client: %w", err)
+	}
+
 	return &GitHub{
-		client:  &githubClient{github.NewClient(client)},
+		client:  &githubClient{ghclient},
 		options: DefaultOptions(),
 	}, nil
 }
@@ -251,8 +256,13 @@ func NewWithTokenWithClient(token string, httpClient *http.Client) (*GitHub, err
 
 	logrus.Debugf("Using %s GitHub client", state)
 
+	ghclient, err := github.NewClient(github.WithHTTPClient(client))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create github client: %w", err)
+	}
+
 	return &GitHub{
-		client:  &githubClient{github.NewClient(client)},
+		client:  &githubClient{ghclient},
 		options: DefaultOptions(),
 	}, nil
 }
@@ -277,7 +287,10 @@ func NewEnterpriseWithToken(baseURL, uploadURL, token string) (*GitHub, error) {
 
 	logrus.Debugf("Using %s Enterprise GitHub client", state)
 
-	ghclient, err := github.NewClient(client).WithEnterpriseURLs(baseURL, uploadURL)
+	ghclient, err := github.NewClient(
+		github.WithHTTPClient(client),
+		github.WithEnterpriseURLs(baseURL, uploadURL),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new github client: %w", err)
 	}
