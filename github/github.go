@@ -31,8 +31,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 
-	"k8s.io/utils/ptr"
-
 	"sigs.k8s.io/release-utils/env"
 	"sigs.k8s.io/release-utils/helpers"
 
@@ -450,7 +448,7 @@ func (g *githubClient) CreatePullRequest(
 		Head:                &headBranchName,
 		Base:                &baseBranchName,
 		Body:                &body,
-		MaintainerCanModify: github.Ptr(true),
+		MaintainerCanModify: new(true),
 		Draft:               &draft,
 	}
 
@@ -1152,9 +1150,9 @@ func (u *UpdateReleasePageOptions) toRepositoryRelease() *github.RepositoryRelea
 
 	if u.Latest != nil {
 		if *u.Latest {
-			request.MakeLatest = ptr.To("true")
+			request.MakeLatest = new("true")
 		} else {
-			request.MakeLatest = ptr.To("false")
+			request.MakeLatest = new("false")
 		}
 	}
 
@@ -1367,8 +1365,8 @@ func (g *GitHub) ListComments(
 	since *time.Time,
 ) ([]*github.IssueComment, error) {
 	options := &github.IssueListCommentsOptions{
-		Sort:        github.Ptr(string(sort)),
-		Direction:   github.Ptr(string(direction)),
+		Sort:        new(string(sort)),
+		Direction:   new(string(direction)),
 		ListOptions: github.ListOptions{PerPage: g.Options().GetItemsPerPage()},
 	}
 
