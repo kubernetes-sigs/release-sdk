@@ -11,7 +11,7 @@ require (
 	github.com/magefile/mage v1.17.2
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2
 	github.com/nozzle/throttler v0.0.0-20180817012639-2ea982251481
-	github.com/sigstore/cosign/v2 v2.6.3
+	github.com/sigstore/cosign/v2 v2.6.4
 	github.com/sigstore/rekor v1.5.3
 	github.com/sigstore/sigstore v1.10.8
 	github.com/sirupsen/logrus v1.9.4
