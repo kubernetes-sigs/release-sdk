@@ -5,13 +5,13 @@ go 1.26.0
 require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/go-git/go-git/v5 v5.19.2
-	github.com/google/go-containerregistry v0.21.8
+	github.com/google/go-containerregistry v0.21.9
 	github.com/google/go-github/v88 v88.0.0
 	github.com/jellydator/ttlcache/v3 v3.4.1
 	github.com/magefile/mage v1.17.2
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2
 	github.com/nozzle/throttler v0.0.0-20180817012639-2ea982251481
-	github.com/sigstore/cosign/v2 v2.6.4
+	github.com/sigstore/cosign/v2 v2.6.5
 	github.com/sigstore/rekor v1.5.3
 	github.com/sigstore/sigstore v1.10.9
 	github.com/sirupsen/logrus v1.9.4
