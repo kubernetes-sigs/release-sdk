@@ -19,6 +19,7 @@ package internal_test
 import (
 	"errors"
 	"io"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -60,7 +61,7 @@ func TestGithubRetryer(t *testing.T) {
 		"when the error is a github rate limit error, retry": {
 			maxTries:        1,
 			sleeper:         sleepChecker(t, 1*time.Minute),
-			errs:            []error{&github.RateLimitError{}},
+			errs:            []error{newRateLimitError(github.Rate{})},
 			expectedResults: []bool{true},
 		},
 		"when the error is a github rate limit error with time, retry": {
@@ -70,17 +71,15 @@ func TestGithubRetryer(t *testing.T) {
 					t.Errorf("Expected a time around 30min, got %v", got)
 				}
 			},
-			errs: []error{&github.RateLimitError{
-				Rate: github.Rate{
-					Reset: github.Timestamp{Time: time.Now().Add(30 * time.Minute)},
-				},
-			}},
+			errs: []error{newRateLimitError(github.Rate{
+				Reset: github.Timestamp{Time: time.Now().Add(30 * time.Minute)},
+			})},
 			expectedResults: []bool{true},
 		},
 		"when the error is a github abuse rate limit error, retry": {
 			maxTries:        1,
 			sleeper:         nilSleeper,
-			errs:            []error{&github.AbuseRateLimitError{}},
+			errs:            []error{newAbuseRateLimitError(nil)},
 			expectedResults: []bool{true},
 		},
 		"when hitting the secondary rate limit, sleep for random": {
@@ -93,9 +92,9 @@ func TestGithubRetryer(t *testing.T) {
 			maxTries: 2,
 			sleeper:  nilSleeper,
 			errs: []error{
-				&github.AbuseRateLimitError{},
-				&github.AbuseRateLimitError{},
-				&github.AbuseRateLimitError{},
+				newAbuseRateLimitError(nil),
+				newAbuseRateLimitError(nil),
+				newAbuseRateLimitError(nil),
 			},
 			expectedResults: []bool{
 				true, true, false,
@@ -104,13 +103,13 @@ func TestGithubRetryer(t *testing.T) {
 		"when no RetryAfter is specified on the abuse rate limit error, sleep the default amount of time": {
 			maxTries:        1,
 			sleeper:         sleepChecker(t, 1*time.Minute),
-			errs:            []error{&github.AbuseRateLimitError{}},
+			errs:            []error{newAbuseRateLimitError(nil)},
 			expectedResults: []bool{true},
 		},
 		"when a RetryAfter is specified on the abuse rate limit error, sleep that amount of time": {
 			maxTries:        1,
 			sleeper:         sleepChecker(t, 42*time.Minute),
-			errs:            []error{&github.AbuseRateLimitError{RetryAfter: durPtr(42 * time.Minute)}},
+			errs:            []error{newAbuseRateLimitError(durPtr(42 * time.Minute))},
 			expectedResults: []bool{true},
 		},
 	}
@@ -145,4 +144,25 @@ func nilSleeper(_ time.Duration) {
 
 func durPtr(d time.Duration) *time.Duration {
 	return &d
+}
+
+func dummyResponse() *http.Response {
+	return &http.Response{
+		Request:    &http.Request{},
+		StatusCode: http.StatusForbidden,
+	}
+}
+
+func newRateLimitError(rate github.Rate) *github.RateLimitError {
+	return &github.RateLimitError{
+		Rate:     rate,
+		Response: dummyResponse(), //nolint:bodyclose
+	}
+}
+
+func newAbuseRateLimitError(retryAfter *time.Duration) *github.AbuseRateLimitError {
+	return &github.AbuseRateLimitError{
+		Response:   dummyResponse(), //nolint:bodyclose
+		RetryAfter: retryAfter,
+	}
 }
