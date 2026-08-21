@@ -15,7 +15,7 @@ require (
 	github.com/sigstore/rekor v1.5.3
 	github.com/sigstore/sigstore v1.10.9
 	github.com/sirupsen/logrus v1.10.0
-	github.com/stretchr/testify v1.12.0
+	github.com/stretchr/testify v1.12.1
 	github.com/uwu-tools/magex v0.10.1
 	golang.org/x/oauth2 v0.36.0
 	k8s.io/apimachinery v0.36.3
@@ -252,7 +252,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/mod v0.38.0 // indirect
 	golang.org/x/net v0.57.0 // indirect
