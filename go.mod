@@ -14,7 +14,7 @@ require (
 	github.com/sigstore/cosign/v2 v2.6.5
 	github.com/sigstore/rekor v1.5.4
 	github.com/sigstore/sigstore v1.10.9
-	github.com/sirupsen/logrus v1.10.1
+	github.com/sirupsen/logrus v1.10.2
 	github.com/stretchr/testify v1.12.1
 	github.com/uwu-tools/magex v0.10.1
 	golang.org/x/oauth2 v0.36.0
