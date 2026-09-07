@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/go-git/go-git/v5 v5.19.2
-	github.com/google/go-containerregistry v0.22.0
+	github.com/google/go-containerregistry v0.22.1
 	github.com/google/go-github/v88 v88.0.0
 	github.com/jellydator/ttlcache/v3 v3.4.1
 	github.com/magefile/mage v1.17.2
