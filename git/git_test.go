@@ -46,6 +46,9 @@ var testAuthor = &object.Signature{
 const (
 	errDesc = "opening test repo in "
 	origin  = "origin"
+
+	kubernetesName = "kubernetes"
+	kubernetesURL  = "https://github.com/kubernetes/kubernetes"
 )
 
 func newSUT() (*git.Repo, *gitfakes.FakeWorktree) {
@@ -74,7 +77,7 @@ func TestGetDefaultKubernetesRepoURLSuccess(t *testing.T) {
 	}{
 		{
 			name:     "default HTTPS",
-			expected: "https://github.com/kubernetes/kubernetes",
+			expected: kubernetesURL,
 		},
 	}
 
@@ -191,7 +194,7 @@ func TestGetKubernetesRepoURLSuccess(t *testing.T) {
 	}{
 		{
 			name:     "default HTTPS",
-			expected: "https://github.com/kubernetes/kubernetes",
+			expected: kubernetesURL,
 		},
 		{
 			name:     "ssh with custom org",
@@ -219,9 +222,9 @@ func TestGetRepoURLSuccess(t *testing.T) {
 	}{
 		{
 			name:     "default Kubernetes HTTPS",
-			org:      "kubernetes",
-			repo:     "kubernetes",
-			expected: "https://github.com/kubernetes/kubernetes",
+			org:      kubernetesName,
+			repo:     kubernetesName,
+			expected: kubernetesURL,
 		},
 		{
 			name:     "ssh with custom org",
@@ -292,7 +295,7 @@ func TestParseRepoSlug(t *testing.T) {
 	}{
 		{
 			caseName: "valid slug", repoSlug: "kubernetes/release",
-			orgName: "kubernetes", repoName: "release", isValid: true,
+			orgName: kubernetesName, repoName: "release", isValid: true,
 		},
 
 		{
@@ -321,8 +324,8 @@ func TestParseRepoSlug(t *testing.T) {
 		},
 
 		{
-			caseName: "slug with only org", repoSlug: "kubernetes",
-			orgName: "kubernetes", repoName: "", isValid: true,
+			caseName: "slug with only org", repoSlug: kubernetesName,
+			orgName: kubernetesName, repoName: "", isValid: true,
 		},
 	}
 

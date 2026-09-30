@@ -26,6 +26,13 @@ import (
 
 var testGCS = object.NewGCS()
 
+const (
+	testBucket     = "k8s-release-dev"
+	testCIPath     = "gs://k8s-release-dev/ci"
+	testCIFastPath = "gs://k8s-release-dev/ci/fast"
+	testFooBarPath = "gs://foo/bar"
+)
+
 func TestGCSSetOptions(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
@@ -65,21 +72,21 @@ func TestGetReleasePath(t *testing.T) {
 		shouldError              bool
 	}{
 		{ // default CI build
-			bucket:      "k8s-release-dev",
+			bucket:      testBucket,
 			gcsRoot:     "ci",
-			expected:    "gs://k8s-release-dev/ci",
+			expected:    testCIPath,
 			shouldError: false,
 		},
 		{ // fast CI build
-			bucket:      "k8s-release-dev",
+			bucket:      testBucket,
 			gcsRoot:     "ci",
 			version:     "",
 			fast:        true,
-			expected:    "gs://k8s-release-dev/ci/fast",
+			expected:    testCIFastPath,
 			shouldError: false,
 		},
 		{ // has version
-			bucket:      "k8s-release-dev",
+			bucket:      testBucket,
 			gcsRoot:     "ci",
 			version:     "42",
 			fast:        true,
@@ -113,23 +120,23 @@ func TestGetMarkerPath(t *testing.T) {
 		fast            bool
 	}{
 		{ // default CI build
-			bucket:      "k8s-release-dev",
+			bucket:      testBucket,
 			gcsRoot:     "ci",
-			expected:    "gs://k8s-release-dev/ci",
+			expected:    testCIPath,
 			shouldError: false,
 			fast:        false,
 		},
 		{ // default fast CI build
-			bucket:      "k8s-release-dev",
+			bucket:      testBucket,
 			gcsRoot:     "ci",
-			expected:    "gs://k8s-release-dev/ci/fast",
+			expected:    testCIFastPath,
 			shouldError: false,
 			fast:        true,
 		},
 		{ // current problematic behaviour
-			bucket:      "k8s-release-dev",
+			bucket:      testBucket,
 			gcsRoot:     "ci",
-			expected:    "gs://k8s-release-dev/ci",
+			expected:    testCIPath,
 			shouldError: true,
 			fast:        true,
 		},
@@ -184,16 +191,16 @@ func TestNormalizePath(t *testing.T) {
 		},
 		{ // strip `gs:/` properly
 			gcsPathParts: []string{
-				"gs://foo/bar",
+				testFooBarPath,
 			},
-			expected:    "gs://foo/bar",
+			expected:    testFooBarPath,
 			shouldError: false,
 		},
 		{ // strip `/` properly
 			gcsPathParts: []string{
 				"/foo/bar",
 			},
-			expected:    "gs://foo/bar",
+			expected:    testFooBarPath,
 			shouldError: false,
 		},
 		{ // multiple parts
@@ -201,12 +208,12 @@ func TestNormalizePath(t *testing.T) {
 				"foo",
 				"bar",
 			},
-			expected:    "gs://foo/bar",
+			expected:    testFooBarPath,
 			shouldError: false,
 		},
 		{ // one of the non-zero parts already contains the `gs://` prefix
 			gcsPathParts: []string{
-				"k8s-release-dev",
+				testBucket,
 				"gs://k8s-release-dev/ci-no-bootstrap/fast/v1.20.0-beta.1.655+d20e3246bade17",
 			},
 			expected:    "",
@@ -239,7 +246,7 @@ func TestIsPathNormalized(t *testing.T) {
 			expected: false,
 		},
 		{ // fast CI build
-			gcsPath:  "gs://k8s-release-dev/ci/fast",
+			gcsPath:  testCIFastPath,
 			expected: true,
 		},
 	} {

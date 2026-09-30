@@ -33,6 +33,10 @@ import (
 
 const (
 	testFile = "hello kubefolx!"
+
+	cosignImage  = "ghcr.io/sigstore/cosign/cosign:v2.4.0"
+	testImage    = "kornotios/supermegafakeimage"
+	googleIssuer = "https://accounts.google.com"
 )
 
 type cleanupFn func() error
@@ -131,7 +135,7 @@ func TestIsImageSigned(t *testing.T) {
 	}{
 		{
 			// cosign signed image
-			"ghcr.io/sigstore/cosign/cosign:v2.4.0", true, false,
+			cosignImage, true, false,
 		},
 		{
 			// k8s/pause ~feb 13 2022. not signed
@@ -139,7 +143,7 @@ func TestIsImageSigned(t *testing.T) {
 		},
 		{
 			// nonexistent image, must fail
-			"kornotios/supermegafakeimage", false, true,
+			testImage, false, true,
 		},
 	} {
 		res, err := signer.IsImageSigned(tc.imageRef)
@@ -165,17 +169,17 @@ func TestImagesSigned(t *testing.T) {
 			shouldErr bool
 		}{
 			{ // signed single image
-				map[string]bool{"ghcr.io/sigstore/cosign/cosign:v2.4.0": true},
+				map[string]bool{cosignImage: true},
 				false,
 			},
 			{ // nonexistent
-				map[string]bool{"kornotios/supermegafakeimage": false},
+				map[string]bool{testImage: false},
 				true,
 			},
 			{ // one valid and one nonexistent
 				map[string]bool{
-					"ghcr.io/sigstore/cosign/cosign:v2.4.0": true,
-					"kornotios/supermegafakeimage":          false,
+					cosignImage: true,
+					testImage:   false,
 				},
 				true,
 			},
@@ -226,24 +230,24 @@ func TestVerifyImages(t *testing.T) {
 			shouldErr      bool
 		}{
 			{ // signed single image
-				map[string]bool{"ghcr.io/sigstore/cosign/cosign:v2.4.0": true},
+				map[string]bool{cosignImage: true},
 				"keyless@projectsigstore.iam.gserviceaccount.com",
-				"https://accounts.google.com",
+				googleIssuer,
 				false,
 			},
 			{ // nonexistent
-				map[string]bool{"kornotios/supermegafakeimage": false},
+				map[string]bool{testImage: false},
 				"",
 				"",
 				true,
 			},
 			{ // one valid and one nonexistent
 				map[string]bool{
-					"ghcr.io/sigstore/cosign/cosign:v2.4.0": true,
-					"kornotios/supermegafakeimage":          false,
+					cosignImage: true,
+					testImage:   false,
 				},
 				"keyless@projectsigstore.iam.gserviceaccount.com",
-				"https://accounts.google.com",
+				googleIssuer,
 				true,
 			},
 			{ // list of valid images
@@ -258,7 +262,7 @@ func TestVerifyImages(t *testing.T) {
 					repo + "@sha256:9da6d7f148b19154fd6df4cc052e6cd52787962369f34c7b0411f77b843f3d4c": true,
 				},
 				"krel-trust@k8s-releng-prod.iam.gserviceaccount.com",
-				"https://accounts.google.com",
+				googleIssuer,
 				false,
 			},
 		} {

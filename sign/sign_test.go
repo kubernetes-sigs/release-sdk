@@ -37,6 +37,12 @@ import (
 
 var errTest = errors.New("error")
 
+const (
+	testImage      = "gcr.io/fake/honk:99.99.99"
+	testRegistry   = "gcr.io"
+	testRepository = "fake/honk"
+)
+
 func TestUploadBlob(t *testing.T) {
 	t.Parallel()
 
@@ -75,9 +81,9 @@ func TestSignImage(t *testing.T) {
 	}{
 		{ // Success
 			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
+				image:      testImage,
+				registry:   testRegistry,
+				repository: testRepository,
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
@@ -85,7 +91,7 @@ func TestSignImage(t *testing.T) {
 				mock.TokenFromProvidersReturns(token, nil)
 
 				m := &sync.Map{}
-				m.Store("gcr.io/fake/honk:99.99.99", true)
+				m.Store(testImage, true)
 				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 				mock.NewWithContextReturns(&testRoundTripper{}, nil)
@@ -96,20 +102,20 @@ func TestSignImage(t *testing.T) {
 				require.NotEmpty(t, obj.Image().Reference())
 				require.NotEmpty(t, obj.Image().Digest())
 				require.NotEmpty(t, obj.Image().Signature())
-				require.Equal(t, "gcr.io/fake/honk:99.99.99", obj.Image().Reference())
+				require.Equal(t, testImage, obj.Image().Reference())
 				require.Equal(t, "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", obj.Image().Digest())
 				require.Equal(t, "gcr.io/fake/honk:sha256-honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a.sig", obj.Image().Signature())
 			},
 		},
 		{ // Failure on Verify
 			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
+				image:      testImage,
+				registry:   testRegistry,
+				repository: testRepository,
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				m := &sync.Map{}
-				m.Store("gcr.io/fake/honk:99.99.99", true)
+				m.Store(testImage, true)
 				mock.ImagesSignedReturns(m, nil)
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SignImageInternalReturns(nil)
@@ -122,9 +128,9 @@ func TestSignImage(t *testing.T) {
 		},
 		{ // Failure on Sign
 			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
+				image:      testImage,
+				registry:   testRegistry,
+				repository: testRepository,
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
@@ -138,9 +144,9 @@ func TestSignImage(t *testing.T) {
 		},
 		{ // Failure getting identity token
 			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
+				image:      testImage,
+				registry:   testRegistry,
+				repository: testRepository,
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.TokenFromProvidersReturns(token, errTest)
@@ -298,15 +304,15 @@ func TestVerifyImage(t *testing.T) {
 	}{
 		{ // Success
 			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
+				image:      testImage,
+				registry:   testRegistry,
+				repository: testRepository,
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
 
 				m := &sync.Map{}
-				m.Store("gcr.io/fake/honk:99.99.99", true)
+				m.Store(testImage, true)
 				mock.ImagesSignedReturns(m, nil)
 				mock.DigestReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 				mock.NewWithContextReturns(&testRoundTripper{}, nil)
@@ -317,16 +323,16 @@ func TestVerifyImage(t *testing.T) {
 		},
 		{ // Failure on Verify
 			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
+				image:      testImage,
+				registry:   testRegistry,
+				repository: testRepository,
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				mock.VerifyImageInternalReturns(nil, errTest)
 				mock.SetenvReturns(nil)
 
 				m := &sync.Map{}
-				m.Store("gcr.io/fake/honk:99.99.99", true)
+				m.Store(testImage, true)
 				mock.ImagesSignedReturns(m, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -336,13 +342,13 @@ func TestVerifyImage(t *testing.T) {
 		},
 		{ // Skip on no signatures listed
 			fakeReference: &FakeReferenceStub{
-				image:      "gcr.io/fake/honk:99.99.99",
-				registry:   "gcr.io",
-				repository: "fake/honk",
+				image:      testImage,
+				registry:   testRegistry,
+				repository: testRepository,
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
 				m := &sync.Map{}
-				m.Store("gcr.io/fake/honk:99.99.99", false)
+				m.Store(testImage, false)
 				mock.ImagesSignedReturns(m, nil)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
@@ -620,9 +626,9 @@ func TestImagesSigned(t *testing.T) {
 	t.Parallel()
 
 	fakeRef := &FakeReferenceStub{
-		image:      "gcr.io/fake/honk:99.99.99",
-		registry:   "gcr.io",
-		repository: "fake/honk",
+		image:      testImage,
+		registry:   testRegistry,
+		repository: testRepository,
 	}
 
 	for _, tc := range []struct {
