@@ -28,10 +28,8 @@ import (
 type FakeWorktree struct {
 	AddStub        func(string) (plumbing.Hash, error)
 	addMutex       sync.RWMutex
-	addArgsForCall []struct {
-		arg1 string
-	}
-	addReturns struct {
+	addArgsForCall []FakeWorktreeAddArgs
+	addReturns     struct {
 		result1 plumbing.Hash
 		result2 error
 	}
@@ -41,10 +39,8 @@ type FakeWorktree struct {
 	}
 	CheckoutStub        func(*gita.CheckoutOptions) error
 	checkoutMutex       sync.RWMutex
-	checkoutArgsForCall []struct {
-		arg1 *gita.CheckoutOptions
-	}
-	checkoutReturns struct {
+	checkoutArgsForCall []FakeWorktreeCheckoutArgs
+	checkoutReturns     struct {
 		result1 error
 	}
 	checkoutReturnsOnCall map[int]struct {
@@ -52,11 +48,8 @@ type FakeWorktree struct {
 	}
 	CommitStub        func(string, *gita.CommitOptions) (plumbing.Hash, error)
 	commitMutex       sync.RWMutex
-	commitArgsForCall []struct {
-		arg1 string
-		arg2 *gita.CommitOptions
-	}
-	commitReturns struct {
+	commitArgsForCall []FakeWorktreeCommitArgs
+	commitReturns     struct {
 		result1 plumbing.Hash
 		result2 error
 	}
@@ -66,9 +59,8 @@ type FakeWorktree struct {
 	}
 	StatusStub        func() (gita.Status, error)
 	statusMutex       sync.RWMutex
-	statusArgsForCall []struct {
-	}
-	statusReturns struct {
+	statusArgsForCall []struct{}
+	statusReturns     struct {
 		result1 gita.Status
 		result2 error
 	}
@@ -77,15 +69,30 @@ type FakeWorktree struct {
 		result2 error
 	}
 	invocations      map[string][][]interface{}
+	callOrder        []string
 	invocationsMutex sync.RWMutex
+}
+
+// FakeWorktreeAddArgs holds the arguments of one call to Add.
+type FakeWorktreeAddArgs struct {
+	Arg1 string
+}
+
+// FakeWorktreeCheckoutArgs holds the arguments of one call to Checkout.
+type FakeWorktreeCheckoutArgs struct {
+	Arg1 *gita.CheckoutOptions
+}
+
+// FakeWorktreeCommitArgs holds the arguments of one call to Commit.
+type FakeWorktreeCommitArgs struct {
+	Arg1 string
+	Arg2 *gita.CommitOptions
 }
 
 func (fake *FakeWorktree) Add(arg1 string) (plumbing.Hash, error) {
 	fake.addMutex.Lock()
 	ret, specificReturn := fake.addReturnsOnCall[len(fake.addArgsForCall)]
-	fake.addArgsForCall = append(fake.addArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.addArgsForCall = append(fake.addArgsForCall, FakeWorktreeAddArgs{arg1})
 	stub := fake.AddStub
 	fakeReturns := fake.addReturns
 	fake.recordInvocation("Add", []interface{}{arg1})
@@ -115,7 +122,15 @@ func (fake *FakeWorktree) AddArgsForCall(i int) string {
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
 	argsForCall := fake.addArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeWorktree) AddArgs() []FakeWorktreeAddArgs {
+	fake.addMutex.RLock()
+	defer fake.addMutex.RUnlock()
+	args := make([]FakeWorktreeAddArgs, len(fake.addArgsForCall))
+	copy(args, fake.addArgsForCall)
+	return args
 }
 
 func (fake *FakeWorktree) AddReturns(result1 plumbing.Hash, result2 error) {
@@ -147,9 +162,7 @@ func (fake *FakeWorktree) AddReturnsOnCall(i int, result1 plumbing.Hash, result2
 func (fake *FakeWorktree) Checkout(arg1 *gita.CheckoutOptions) error {
 	fake.checkoutMutex.Lock()
 	ret, specificReturn := fake.checkoutReturnsOnCall[len(fake.checkoutArgsForCall)]
-	fake.checkoutArgsForCall = append(fake.checkoutArgsForCall, struct {
-		arg1 *gita.CheckoutOptions
-	}{arg1})
+	fake.checkoutArgsForCall = append(fake.checkoutArgsForCall, FakeWorktreeCheckoutArgs{arg1})
 	stub := fake.CheckoutStub
 	fakeReturns := fake.checkoutReturns
 	fake.recordInvocation("Checkout", []interface{}{arg1})
@@ -179,7 +192,15 @@ func (fake *FakeWorktree) CheckoutArgsForCall(i int) *gita.CheckoutOptions {
 	fake.checkoutMutex.RLock()
 	defer fake.checkoutMutex.RUnlock()
 	argsForCall := fake.checkoutArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeWorktree) CheckoutArgs() []FakeWorktreeCheckoutArgs {
+	fake.checkoutMutex.RLock()
+	defer fake.checkoutMutex.RUnlock()
+	args := make([]FakeWorktreeCheckoutArgs, len(fake.checkoutArgsForCall))
+	copy(args, fake.checkoutArgsForCall)
+	return args
 }
 
 func (fake *FakeWorktree) CheckoutReturns(result1 error) {
@@ -208,10 +229,7 @@ func (fake *FakeWorktree) CheckoutReturnsOnCall(i int, result1 error) {
 func (fake *FakeWorktree) Commit(arg1 string, arg2 *gita.CommitOptions) (plumbing.Hash, error) {
 	fake.commitMutex.Lock()
 	ret, specificReturn := fake.commitReturnsOnCall[len(fake.commitArgsForCall)]
-	fake.commitArgsForCall = append(fake.commitArgsForCall, struct {
-		arg1 string
-		arg2 *gita.CommitOptions
-	}{arg1, arg2})
+	fake.commitArgsForCall = append(fake.commitArgsForCall, FakeWorktreeCommitArgs{arg1, arg2})
 	stub := fake.CommitStub
 	fakeReturns := fake.commitReturns
 	fake.recordInvocation("Commit", []interface{}{arg1, arg2})
@@ -241,7 +259,15 @@ func (fake *FakeWorktree) CommitArgsForCall(i int) (string, *gita.CommitOptions)
 	fake.commitMutex.RLock()
 	defer fake.commitMutex.RUnlock()
 	argsForCall := fake.commitArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeWorktree) CommitArgs() []FakeWorktreeCommitArgs {
+	fake.commitMutex.RLock()
+	defer fake.commitMutex.RUnlock()
+	args := make([]FakeWorktreeCommitArgs, len(fake.commitArgsForCall))
+	copy(args, fake.commitArgsForCall)
+	return args
 }
 
 func (fake *FakeWorktree) CommitReturns(result1 plumbing.Hash, result2 error) {
@@ -273,8 +299,7 @@ func (fake *FakeWorktree) CommitReturnsOnCall(i int, result1 plumbing.Hash, resu
 func (fake *FakeWorktree) Status() (gita.Status, error) {
 	fake.statusMutex.Lock()
 	ret, specificReturn := fake.statusReturnsOnCall[len(fake.statusArgsForCall)]
-	fake.statusArgsForCall = append(fake.statusArgsForCall, struct {
-	}{})
+	fake.statusArgsForCall = append(fake.statusArgsForCall, struct{}{})
 	stub := fake.StatusStub
 	fakeReturns := fake.statusReturns
 	fake.recordInvocation("Status", []interface{}{})
@@ -329,14 +354,6 @@ func (fake *FakeWorktree) StatusReturnsOnCall(i int, result1 gita.Status, result
 func (fake *FakeWorktree) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
-	fake.checkoutMutex.RLock()
-	defer fake.checkoutMutex.RUnlock()
-	fake.commitMutex.RLock()
-	defer fake.commitMutex.RUnlock()
-	fake.statusMutex.RLock()
-	defer fake.statusMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
@@ -344,9 +361,18 @@ func (fake *FakeWorktree) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
+func (fake *FakeWorktree) CallOrder() []string {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	order := make([]string, len(fake.callOrder))
+	copy(order, fake.callOrder)
+	return order
+}
+
 func (fake *FakeWorktree) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
+	fake.callOrder = append(fake.callOrder, key)
 	if fake.invocations == nil {
 		fake.invocations = map[string][][]interface{}{}
 	}

@@ -26,11 +26,8 @@ import (
 type FakeStore struct {
 	CopyBucketToBucketStub        func(string, string) error
 	copyBucketToBucketMutex       sync.RWMutex
-	copyBucketToBucketArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	copyBucketToBucketReturns struct {
+	copyBucketToBucketArgsForCall []FakeStoreCopyBucketToBucketArgs
+	copyBucketToBucketReturns     struct {
 		result1 error
 	}
 	copyBucketToBucketReturnsOnCall map[int]struct {
@@ -38,11 +35,8 @@ type FakeStore struct {
 	}
 	CopyToLocalStub        func(string, string) error
 	copyToLocalMutex       sync.RWMutex
-	copyToLocalArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	copyToLocalReturns struct {
+	copyToLocalArgsForCall []FakeStoreCopyToLocalArgs
+	copyToLocalReturns     struct {
 		result1 error
 	}
 	copyToLocalReturnsOnCall map[int]struct {
@@ -50,11 +44,8 @@ type FakeStore struct {
 	}
 	CopyToRemoteStub        func(string, string) error
 	copyToRemoteMutex       sync.RWMutex
-	copyToRemoteArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	copyToRemoteReturns struct {
+	copyToRemoteArgsForCall []FakeStoreCopyToRemoteArgs
+	copyToRemoteReturns     struct {
 		result1 error
 	}
 	copyToRemoteReturnsOnCall map[int]struct {
@@ -62,12 +53,8 @@ type FakeStore struct {
 	}
 	GetMarkerPathStub        func(string, string, bool) (string, error)
 	getMarkerPathMutex       sync.RWMutex
-	getMarkerPathArgsForCall []struct {
-		arg1 string
-		arg2 string
-		arg3 bool
-	}
-	getMarkerPathReturns struct {
+	getMarkerPathArgsForCall []FakeStoreGetMarkerPathArgs
+	getMarkerPathReturns     struct {
 		result1 string
 		result2 error
 	}
@@ -77,13 +64,8 @@ type FakeStore struct {
 	}
 	GetReleasePathStub        func(string, string, string, bool) (string, error)
 	getReleasePathMutex       sync.RWMutex
-	getReleasePathArgsForCall []struct {
-		arg1 string
-		arg2 string
-		arg3 string
-		arg4 bool
-	}
-	getReleasePathReturns struct {
+	getReleasePathArgsForCall []FakeStoreGetReleasePathArgs
+	getReleasePathReturns     struct {
 		result1 string
 		result2 error
 	}
@@ -93,10 +75,8 @@ type FakeStore struct {
 	}
 	IsPathNormalizedStub        func(string) bool
 	isPathNormalizedMutex       sync.RWMutex
-	isPathNormalizedArgsForCall []struct {
-		arg1 string
-	}
-	isPathNormalizedReturns struct {
+	isPathNormalizedArgsForCall []FakeStoreIsPathNormalizedArgs
+	isPathNormalizedReturns     struct {
 		result1 bool
 	}
 	isPathNormalizedReturnsOnCall map[int]struct {
@@ -104,10 +84,8 @@ type FakeStore struct {
 	}
 	NormalizePathStub        func(...string) (string, error)
 	normalizePathMutex       sync.RWMutex
-	normalizePathArgsForCall []struct {
-		arg1 []string
-	}
-	normalizePathReturns struct {
+	normalizePathArgsForCall []FakeStoreNormalizePathArgs
+	normalizePathReturns     struct {
 		result1 string
 		result2 error
 	}
@@ -117,10 +95,8 @@ type FakeStore struct {
 	}
 	PathExistsStub        func(string) (bool, error)
 	pathExistsMutex       sync.RWMutex
-	pathExistsArgsForCall []struct {
-		arg1 string
-	}
-	pathExistsReturns struct {
+	pathExistsArgsForCall []FakeStorePathExistsArgs
+	pathExistsReturns     struct {
 		result1 bool
 		result2 error
 	}
@@ -130,11 +106,8 @@ type FakeStore struct {
 	}
 	RsyncRecursiveStub        func(string, string) error
 	rsyncRecursiveMutex       sync.RWMutex
-	rsyncRecursiveArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	rsyncRecursiveReturns struct {
+	rsyncRecursiveArgsForCall []FakeStoreRsyncRecursiveArgs
+	rsyncRecursiveReturns     struct {
 		result1 error
 	}
 	rsyncRecursiveReturnsOnCall map[int]struct {
@@ -142,20 +115,75 @@ type FakeStore struct {
 	}
 	SetOptionsStub        func(...object.OptFn)
 	setOptionsMutex       sync.RWMutex
-	setOptionsArgsForCall []struct {
-		arg1 []object.OptFn
-	}
-	invocations      map[string][][]interface{}
-	invocationsMutex sync.RWMutex
+	setOptionsArgsForCall []FakeStoreSetOptionsArgs
+	invocations           map[string][][]interface{}
+	callOrder             []string
+	invocationsMutex      sync.RWMutex
+}
+
+// FakeStoreCopyBucketToBucketArgs holds the arguments of one call to CopyBucketToBucket.
+type FakeStoreCopyBucketToBucketArgs struct {
+	Arg1 string
+	Arg2 string
+}
+
+// FakeStoreCopyToLocalArgs holds the arguments of one call to CopyToLocal.
+type FakeStoreCopyToLocalArgs struct {
+	Arg1 string
+	Arg2 string
+}
+
+// FakeStoreCopyToRemoteArgs holds the arguments of one call to CopyToRemote.
+type FakeStoreCopyToRemoteArgs struct {
+	Arg1 string
+	Arg2 string
+}
+
+// FakeStoreGetMarkerPathArgs holds the arguments of one call to GetMarkerPath.
+type FakeStoreGetMarkerPathArgs struct {
+	Arg1 string
+	Arg2 string
+	Arg3 bool
+}
+
+// FakeStoreGetReleasePathArgs holds the arguments of one call to GetReleasePath.
+type FakeStoreGetReleasePathArgs struct {
+	Arg1 string
+	Arg2 string
+	Arg3 string
+	Arg4 bool
+}
+
+// FakeStoreIsPathNormalizedArgs holds the arguments of one call to IsPathNormalized.
+type FakeStoreIsPathNormalizedArgs struct {
+	Arg1 string
+}
+
+// FakeStoreNormalizePathArgs holds the arguments of one call to NormalizePath.
+type FakeStoreNormalizePathArgs struct {
+	Arg1 []string
+}
+
+// FakeStorePathExistsArgs holds the arguments of one call to PathExists.
+type FakeStorePathExistsArgs struct {
+	Arg1 string
+}
+
+// FakeStoreRsyncRecursiveArgs holds the arguments of one call to RsyncRecursive.
+type FakeStoreRsyncRecursiveArgs struct {
+	Arg1 string
+	Arg2 string
+}
+
+// FakeStoreSetOptionsArgs holds the arguments of one call to SetOptions.
+type FakeStoreSetOptionsArgs struct {
+	Arg1 []object.OptFn
 }
 
 func (fake *FakeStore) CopyBucketToBucket(arg1 string, arg2 string) error {
 	fake.copyBucketToBucketMutex.Lock()
 	ret, specificReturn := fake.copyBucketToBucketReturnsOnCall[len(fake.copyBucketToBucketArgsForCall)]
-	fake.copyBucketToBucketArgsForCall = append(fake.copyBucketToBucketArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
+	fake.copyBucketToBucketArgsForCall = append(fake.copyBucketToBucketArgsForCall, FakeStoreCopyBucketToBucketArgs{arg1, arg2})
 	stub := fake.CopyBucketToBucketStub
 	fakeReturns := fake.copyBucketToBucketReturns
 	fake.recordInvocation("CopyBucketToBucket", []interface{}{arg1, arg2})
@@ -185,7 +213,15 @@ func (fake *FakeStore) CopyBucketToBucketArgsForCall(i int) (string, string) {
 	fake.copyBucketToBucketMutex.RLock()
 	defer fake.copyBucketToBucketMutex.RUnlock()
 	argsForCall := fake.copyBucketToBucketArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeStore) CopyBucketToBucketArgs() []FakeStoreCopyBucketToBucketArgs {
+	fake.copyBucketToBucketMutex.RLock()
+	defer fake.copyBucketToBucketMutex.RUnlock()
+	args := make([]FakeStoreCopyBucketToBucketArgs, len(fake.copyBucketToBucketArgsForCall))
+	copy(args, fake.copyBucketToBucketArgsForCall)
+	return args
 }
 
 func (fake *FakeStore) CopyBucketToBucketReturns(result1 error) {
@@ -214,10 +250,7 @@ func (fake *FakeStore) CopyBucketToBucketReturnsOnCall(i int, result1 error) {
 func (fake *FakeStore) CopyToLocal(arg1 string, arg2 string) error {
 	fake.copyToLocalMutex.Lock()
 	ret, specificReturn := fake.copyToLocalReturnsOnCall[len(fake.copyToLocalArgsForCall)]
-	fake.copyToLocalArgsForCall = append(fake.copyToLocalArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
+	fake.copyToLocalArgsForCall = append(fake.copyToLocalArgsForCall, FakeStoreCopyToLocalArgs{arg1, arg2})
 	stub := fake.CopyToLocalStub
 	fakeReturns := fake.copyToLocalReturns
 	fake.recordInvocation("CopyToLocal", []interface{}{arg1, arg2})
@@ -247,7 +280,15 @@ func (fake *FakeStore) CopyToLocalArgsForCall(i int) (string, string) {
 	fake.copyToLocalMutex.RLock()
 	defer fake.copyToLocalMutex.RUnlock()
 	argsForCall := fake.copyToLocalArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeStore) CopyToLocalArgs() []FakeStoreCopyToLocalArgs {
+	fake.copyToLocalMutex.RLock()
+	defer fake.copyToLocalMutex.RUnlock()
+	args := make([]FakeStoreCopyToLocalArgs, len(fake.copyToLocalArgsForCall))
+	copy(args, fake.copyToLocalArgsForCall)
+	return args
 }
 
 func (fake *FakeStore) CopyToLocalReturns(result1 error) {
@@ -276,10 +317,7 @@ func (fake *FakeStore) CopyToLocalReturnsOnCall(i int, result1 error) {
 func (fake *FakeStore) CopyToRemote(arg1 string, arg2 string) error {
 	fake.copyToRemoteMutex.Lock()
 	ret, specificReturn := fake.copyToRemoteReturnsOnCall[len(fake.copyToRemoteArgsForCall)]
-	fake.copyToRemoteArgsForCall = append(fake.copyToRemoteArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
+	fake.copyToRemoteArgsForCall = append(fake.copyToRemoteArgsForCall, FakeStoreCopyToRemoteArgs{arg1, arg2})
 	stub := fake.CopyToRemoteStub
 	fakeReturns := fake.copyToRemoteReturns
 	fake.recordInvocation("CopyToRemote", []interface{}{arg1, arg2})
@@ -309,7 +347,15 @@ func (fake *FakeStore) CopyToRemoteArgsForCall(i int) (string, string) {
 	fake.copyToRemoteMutex.RLock()
 	defer fake.copyToRemoteMutex.RUnlock()
 	argsForCall := fake.copyToRemoteArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeStore) CopyToRemoteArgs() []FakeStoreCopyToRemoteArgs {
+	fake.copyToRemoteMutex.RLock()
+	defer fake.copyToRemoteMutex.RUnlock()
+	args := make([]FakeStoreCopyToRemoteArgs, len(fake.copyToRemoteArgsForCall))
+	copy(args, fake.copyToRemoteArgsForCall)
+	return args
 }
 
 func (fake *FakeStore) CopyToRemoteReturns(result1 error) {
@@ -338,11 +384,7 @@ func (fake *FakeStore) CopyToRemoteReturnsOnCall(i int, result1 error) {
 func (fake *FakeStore) GetMarkerPath(arg1 string, arg2 string, arg3 bool) (string, error) {
 	fake.getMarkerPathMutex.Lock()
 	ret, specificReturn := fake.getMarkerPathReturnsOnCall[len(fake.getMarkerPathArgsForCall)]
-	fake.getMarkerPathArgsForCall = append(fake.getMarkerPathArgsForCall, struct {
-		arg1 string
-		arg2 string
-		arg3 bool
-	}{arg1, arg2, arg3})
+	fake.getMarkerPathArgsForCall = append(fake.getMarkerPathArgsForCall, FakeStoreGetMarkerPathArgs{arg1, arg2, arg3})
 	stub := fake.GetMarkerPathStub
 	fakeReturns := fake.getMarkerPathReturns
 	fake.recordInvocation("GetMarkerPath", []interface{}{arg1, arg2, arg3})
@@ -372,7 +414,15 @@ func (fake *FakeStore) GetMarkerPathArgsForCall(i int) (string, string, bool) {
 	fake.getMarkerPathMutex.RLock()
 	defer fake.getMarkerPathMutex.RUnlock()
 	argsForCall := fake.getMarkerPathArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3
+}
+
+func (fake *FakeStore) GetMarkerPathArgs() []FakeStoreGetMarkerPathArgs {
+	fake.getMarkerPathMutex.RLock()
+	defer fake.getMarkerPathMutex.RUnlock()
+	args := make([]FakeStoreGetMarkerPathArgs, len(fake.getMarkerPathArgsForCall))
+	copy(args, fake.getMarkerPathArgsForCall)
+	return args
 }
 
 func (fake *FakeStore) GetMarkerPathReturns(result1 string, result2 error) {
@@ -404,12 +454,7 @@ func (fake *FakeStore) GetMarkerPathReturnsOnCall(i int, result1 string, result2
 func (fake *FakeStore) GetReleasePath(arg1 string, arg2 string, arg3 string, arg4 bool) (string, error) {
 	fake.getReleasePathMutex.Lock()
 	ret, specificReturn := fake.getReleasePathReturnsOnCall[len(fake.getReleasePathArgsForCall)]
-	fake.getReleasePathArgsForCall = append(fake.getReleasePathArgsForCall, struct {
-		arg1 string
-		arg2 string
-		arg3 string
-		arg4 bool
-	}{arg1, arg2, arg3, arg4})
+	fake.getReleasePathArgsForCall = append(fake.getReleasePathArgsForCall, FakeStoreGetReleasePathArgs{arg1, arg2, arg3, arg4})
 	stub := fake.GetReleasePathStub
 	fakeReturns := fake.getReleasePathReturns
 	fake.recordInvocation("GetReleasePath", []interface{}{arg1, arg2, arg3, arg4})
@@ -439,7 +484,15 @@ func (fake *FakeStore) GetReleasePathArgsForCall(i int) (string, string, string,
 	fake.getReleasePathMutex.RLock()
 	defer fake.getReleasePathMutex.RUnlock()
 	argsForCall := fake.getReleasePathArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3, argsForCall.Arg4
+}
+
+func (fake *FakeStore) GetReleasePathArgs() []FakeStoreGetReleasePathArgs {
+	fake.getReleasePathMutex.RLock()
+	defer fake.getReleasePathMutex.RUnlock()
+	args := make([]FakeStoreGetReleasePathArgs, len(fake.getReleasePathArgsForCall))
+	copy(args, fake.getReleasePathArgsForCall)
+	return args
 }
 
 func (fake *FakeStore) GetReleasePathReturns(result1 string, result2 error) {
@@ -471,9 +524,7 @@ func (fake *FakeStore) GetReleasePathReturnsOnCall(i int, result1 string, result
 func (fake *FakeStore) IsPathNormalized(arg1 string) bool {
 	fake.isPathNormalizedMutex.Lock()
 	ret, specificReturn := fake.isPathNormalizedReturnsOnCall[len(fake.isPathNormalizedArgsForCall)]
-	fake.isPathNormalizedArgsForCall = append(fake.isPathNormalizedArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.isPathNormalizedArgsForCall = append(fake.isPathNormalizedArgsForCall, FakeStoreIsPathNormalizedArgs{arg1})
 	stub := fake.IsPathNormalizedStub
 	fakeReturns := fake.isPathNormalizedReturns
 	fake.recordInvocation("IsPathNormalized", []interface{}{arg1})
@@ -503,7 +554,15 @@ func (fake *FakeStore) IsPathNormalizedArgsForCall(i int) string {
 	fake.isPathNormalizedMutex.RLock()
 	defer fake.isPathNormalizedMutex.RUnlock()
 	argsForCall := fake.isPathNormalizedArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeStore) IsPathNormalizedArgs() []FakeStoreIsPathNormalizedArgs {
+	fake.isPathNormalizedMutex.RLock()
+	defer fake.isPathNormalizedMutex.RUnlock()
+	args := make([]FakeStoreIsPathNormalizedArgs, len(fake.isPathNormalizedArgsForCall))
+	copy(args, fake.isPathNormalizedArgsForCall)
+	return args
 }
 
 func (fake *FakeStore) IsPathNormalizedReturns(result1 bool) {
@@ -530,14 +589,17 @@ func (fake *FakeStore) IsPathNormalizedReturnsOnCall(i int, result1 bool) {
 }
 
 func (fake *FakeStore) NormalizePath(arg1 ...string) (string, error) {
+	var arg1Copy []string
+	if arg1 != nil {
+		arg1Copy = make([]string, len(arg1))
+		copy(arg1Copy, arg1)
+	}
 	fake.normalizePathMutex.Lock()
 	ret, specificReturn := fake.normalizePathReturnsOnCall[len(fake.normalizePathArgsForCall)]
-	fake.normalizePathArgsForCall = append(fake.normalizePathArgsForCall, struct {
-		arg1 []string
-	}{arg1})
+	fake.normalizePathArgsForCall = append(fake.normalizePathArgsForCall, FakeStoreNormalizePathArgs{arg1Copy})
 	stub := fake.NormalizePathStub
 	fakeReturns := fake.normalizePathReturns
-	fake.recordInvocation("NormalizePath", []interface{}{arg1})
+	fake.recordInvocation("NormalizePath", []interface{}{arg1Copy})
 	fake.normalizePathMutex.Unlock()
 	if stub != nil {
 		return stub(arg1...)
@@ -564,7 +626,15 @@ func (fake *FakeStore) NormalizePathArgsForCall(i int) []string {
 	fake.normalizePathMutex.RLock()
 	defer fake.normalizePathMutex.RUnlock()
 	argsForCall := fake.normalizePathArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeStore) NormalizePathArgs() []FakeStoreNormalizePathArgs {
+	fake.normalizePathMutex.RLock()
+	defer fake.normalizePathMutex.RUnlock()
+	args := make([]FakeStoreNormalizePathArgs, len(fake.normalizePathArgsForCall))
+	copy(args, fake.normalizePathArgsForCall)
+	return args
 }
 
 func (fake *FakeStore) NormalizePathReturns(result1 string, result2 error) {
@@ -596,9 +666,7 @@ func (fake *FakeStore) NormalizePathReturnsOnCall(i int, result1 string, result2
 func (fake *FakeStore) PathExists(arg1 string) (bool, error) {
 	fake.pathExistsMutex.Lock()
 	ret, specificReturn := fake.pathExistsReturnsOnCall[len(fake.pathExistsArgsForCall)]
-	fake.pathExistsArgsForCall = append(fake.pathExistsArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.pathExistsArgsForCall = append(fake.pathExistsArgsForCall, FakeStorePathExistsArgs{arg1})
 	stub := fake.PathExistsStub
 	fakeReturns := fake.pathExistsReturns
 	fake.recordInvocation("PathExists", []interface{}{arg1})
@@ -628,7 +696,15 @@ func (fake *FakeStore) PathExistsArgsForCall(i int) string {
 	fake.pathExistsMutex.RLock()
 	defer fake.pathExistsMutex.RUnlock()
 	argsForCall := fake.pathExistsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeStore) PathExistsArgs() []FakeStorePathExistsArgs {
+	fake.pathExistsMutex.RLock()
+	defer fake.pathExistsMutex.RUnlock()
+	args := make([]FakeStorePathExistsArgs, len(fake.pathExistsArgsForCall))
+	copy(args, fake.pathExistsArgsForCall)
+	return args
 }
 
 func (fake *FakeStore) PathExistsReturns(result1 bool, result2 error) {
@@ -660,10 +736,7 @@ func (fake *FakeStore) PathExistsReturnsOnCall(i int, result1 bool, result2 erro
 func (fake *FakeStore) RsyncRecursive(arg1 string, arg2 string) error {
 	fake.rsyncRecursiveMutex.Lock()
 	ret, specificReturn := fake.rsyncRecursiveReturnsOnCall[len(fake.rsyncRecursiveArgsForCall)]
-	fake.rsyncRecursiveArgsForCall = append(fake.rsyncRecursiveArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
+	fake.rsyncRecursiveArgsForCall = append(fake.rsyncRecursiveArgsForCall, FakeStoreRsyncRecursiveArgs{arg1, arg2})
 	stub := fake.RsyncRecursiveStub
 	fakeReturns := fake.rsyncRecursiveReturns
 	fake.recordInvocation("RsyncRecursive", []interface{}{arg1, arg2})
@@ -693,7 +766,15 @@ func (fake *FakeStore) RsyncRecursiveArgsForCall(i int) (string, string) {
 	fake.rsyncRecursiveMutex.RLock()
 	defer fake.rsyncRecursiveMutex.RUnlock()
 	argsForCall := fake.rsyncRecursiveArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeStore) RsyncRecursiveArgs() []FakeStoreRsyncRecursiveArgs {
+	fake.rsyncRecursiveMutex.RLock()
+	defer fake.rsyncRecursiveMutex.RUnlock()
+	args := make([]FakeStoreRsyncRecursiveArgs, len(fake.rsyncRecursiveArgsForCall))
+	copy(args, fake.rsyncRecursiveArgsForCall)
+	return args
 }
 
 func (fake *FakeStore) RsyncRecursiveReturns(result1 error) {
@@ -720,15 +801,18 @@ func (fake *FakeStore) RsyncRecursiveReturnsOnCall(i int, result1 error) {
 }
 
 func (fake *FakeStore) SetOptions(arg1 ...object.OptFn) {
+	var arg1Copy []object.OptFn
+	if arg1 != nil {
+		arg1Copy = make([]object.OptFn, len(arg1))
+		copy(arg1Copy, arg1)
+	}
 	fake.setOptionsMutex.Lock()
-	fake.setOptionsArgsForCall = append(fake.setOptionsArgsForCall, struct {
-		arg1 []object.OptFn
-	}{arg1})
+	fake.setOptionsArgsForCall = append(fake.setOptionsArgsForCall, FakeStoreSetOptionsArgs{arg1Copy})
 	stub := fake.SetOptionsStub
-	fake.recordInvocation("SetOptions", []interface{}{arg1})
+	fake.recordInvocation("SetOptions", []interface{}{arg1Copy})
 	fake.setOptionsMutex.Unlock()
 	if stub != nil {
-		fake.SetOptionsStub(arg1...)
+		stub(arg1...)
 	}
 }
 
@@ -748,32 +832,20 @@ func (fake *FakeStore) SetOptionsArgsForCall(i int) []object.OptFn {
 	fake.setOptionsMutex.RLock()
 	defer fake.setOptionsMutex.RUnlock()
 	argsForCall := fake.setOptionsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeStore) SetOptionsArgs() []FakeStoreSetOptionsArgs {
+	fake.setOptionsMutex.RLock()
+	defer fake.setOptionsMutex.RUnlock()
+	args := make([]FakeStoreSetOptionsArgs, len(fake.setOptionsArgsForCall))
+	copy(args, fake.setOptionsArgsForCall)
+	return args
 }
 
 func (fake *FakeStore) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.copyBucketToBucketMutex.RLock()
-	defer fake.copyBucketToBucketMutex.RUnlock()
-	fake.copyToLocalMutex.RLock()
-	defer fake.copyToLocalMutex.RUnlock()
-	fake.copyToRemoteMutex.RLock()
-	defer fake.copyToRemoteMutex.RUnlock()
-	fake.getMarkerPathMutex.RLock()
-	defer fake.getMarkerPathMutex.RUnlock()
-	fake.getReleasePathMutex.RLock()
-	defer fake.getReleasePathMutex.RUnlock()
-	fake.isPathNormalizedMutex.RLock()
-	defer fake.isPathNormalizedMutex.RUnlock()
-	fake.normalizePathMutex.RLock()
-	defer fake.normalizePathMutex.RUnlock()
-	fake.pathExistsMutex.RLock()
-	defer fake.pathExistsMutex.RUnlock()
-	fake.rsyncRecursiveMutex.RLock()
-	defer fake.rsyncRecursiveMutex.RUnlock()
-	fake.setOptionsMutex.RLock()
-	defer fake.setOptionsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
@@ -781,9 +853,18 @@ func (fake *FakeStore) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
+func (fake *FakeStore) CallOrder() []string {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	order := make([]string, len(fake.callOrder))
+	copy(order, fake.callOrder)
+	return order
+}
+
 func (fake *FakeStore) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
+	fake.callOrder = append(fake.callOrder, key)
 	if fake.invocations == nil {
 		fake.invocations = map[string][][]interface{}{}
 	}
