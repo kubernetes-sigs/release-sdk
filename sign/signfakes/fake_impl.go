@@ -35,11 +35,8 @@ import (
 type FakeImpl struct {
 	DigestStub        func(string, ...crane.Option) (string, error)
 	digestMutex       sync.RWMutex
-	digestArgsForCall []struct {
-		arg1 string
-		arg2 []crane.Option
-	}
-	digestReturns struct {
+	digestArgsForCall []FakeImplDigestArgs
+	digestReturns     struct {
 		result1 string
 		result2 error
 	}
@@ -49,11 +46,8 @@ type FakeImpl struct {
 	}
 	EnvDefaultStub        func(string, string) string
 	envDefaultMutex       sync.RWMutex
-	envDefaultArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	envDefaultReturns struct {
+	envDefaultArgsForCall []FakeImplEnvDefaultArgs
+	envDefaultReturns     struct {
 		result1 string
 	}
 	envDefaultReturnsOnCall map[int]struct {
@@ -61,10 +55,8 @@ type FakeImpl struct {
 	}
 	FileExistsStub        func(string) bool
 	fileExistsMutex       sync.RWMutex
-	fileExistsArgsForCall []struct {
-		arg1 string
-	}
-	fileExistsReturns struct {
+	fileExistsArgsForCall []FakeImplFileExistsArgs
+	fileExistsReturns     struct {
 		result1 bool
 	}
 	fileExistsReturnsOnCall map[int]struct {
@@ -72,14 +64,8 @@ type FakeImpl struct {
 	}
 	FindTlogEntryStub        func(context.Context, *client.Rekor, string, []byte, []byte) ([]models.LogEntryAnon, error)
 	findTlogEntryMutex       sync.RWMutex
-	findTlogEntryArgsForCall []struct {
-		arg1 context.Context
-		arg2 *client.Rekor
-		arg3 string
-		arg4 []byte
-		arg5 []byte
-	}
-	findTlogEntryReturns struct {
+	findTlogEntryArgsForCall []FakeImplFindTlogEntryArgs
+	findTlogEntryReturns     struct {
 		result1 []models.LogEntryAnon
 		result2 error
 	}
@@ -89,12 +75,8 @@ type FakeImpl struct {
 	}
 	ImagesSignedStub        func(context.Context, *sign.Signer, ...string) (*sync.Map, error)
 	imagesSignedMutex       sync.RWMutex
-	imagesSignedArgsForCall []struct {
-		arg1 context.Context
-		arg2 *sign.Signer
-		arg3 []string
-	}
-	imagesSignedReturns struct {
+	imagesSignedArgsForCall []FakeImplImagesSignedArgs
+	imagesSignedReturns     struct {
 		result1 *sync.Map
 		result2 error
 	}
@@ -104,10 +86,8 @@ type FakeImpl struct {
 	}
 	NewRekorClientStub        func(string) (*client.Rekor, error)
 	newRekorClientMutex       sync.RWMutex
-	newRekorClientArgsForCall []struct {
-		arg1 string
-	}
-	newRekorClientReturns struct {
+	newRekorClientArgsForCall []FakeImplNewRekorClientArgs
+	newRekorClientReturns     struct {
 		result1 *client.Rekor
 		result2 error
 	}
@@ -117,14 +97,8 @@ type FakeImpl struct {
 	}
 	NewWithContextStub        func(context.Context, name.Registry, authn.Authenticator, http.RoundTripper, []string) (http.RoundTripper, error)
 	newWithContextMutex       sync.RWMutex
-	newWithContextArgsForCall []struct {
-		arg1 context.Context
-		arg2 name.Registry
-		arg3 authn.Authenticator
-		arg4 http.RoundTripper
-		arg5 []string
-	}
-	newWithContextReturns struct {
+	newWithContextArgsForCall []FakeImplNewWithContextArgs
+	newWithContextReturns     struct {
 		result1 http.RoundTripper
 		result2 error
 	}
@@ -134,11 +108,8 @@ type FakeImpl struct {
 	}
 	ParseReferenceStub        func(string, ...name.Option) (name.Reference, error)
 	parseReferenceMutex       sync.RWMutex
-	parseReferenceArgsForCall []struct {
-		arg1 string
-		arg2 []name.Option
-	}
-	parseReferenceReturns struct {
+	parseReferenceArgsForCall []FakeImplParseReferenceArgs
+	parseReferenceReturns     struct {
 		result1 name.Reference
 		result2 error
 	}
@@ -148,10 +119,8 @@ type FakeImpl struct {
 	}
 	PayloadBytesStub        func(string) ([]byte, error)
 	payloadBytesMutex       sync.RWMutex
-	payloadBytesArgsForCall []struct {
-		arg1 string
-	}
-	payloadBytesReturns struct {
+	payloadBytesArgsForCall []FakeImplPayloadBytesArgs
+	payloadBytesReturns     struct {
 		result1 []byte
 		result2 error
 	}
@@ -161,11 +130,8 @@ type FakeImpl struct {
 	}
 	SetenvStub        func(string, string) error
 	setenvMutex       sync.RWMutex
-	setenvArgsForCall []struct {
-		arg1 string
-		arg2 string
-	}
-	setenvReturns struct {
+	setenvArgsForCall []FakeImplSetenvArgs
+	setenvReturns     struct {
 		result1 error
 	}
 	setenvReturnsOnCall map[int]struct {
@@ -173,16 +139,8 @@ type FakeImpl struct {
 	}
 	SignFileInternalStub        func(options.RootOptions, options.KeyOpts, string, bool, string, string, bool) error
 	signFileInternalMutex       sync.RWMutex
-	signFileInternalArgsForCall []struct {
-		arg1 options.RootOptions
-		arg2 options.KeyOpts
-		arg3 string
-		arg4 bool
-		arg5 string
-		arg6 string
-		arg7 bool
-	}
-	signFileInternalReturns struct {
+	signFileInternalArgsForCall []FakeImplSignFileInternalArgs
+	signFileInternalReturns     struct {
 		result1 error
 	}
 	signFileInternalReturnsOnCall map[int]struct {
@@ -190,13 +148,8 @@ type FakeImpl struct {
 	}
 	SignImageInternalStub        func(options.RootOptions, options.KeyOpts, options.SignOptions, []string) error
 	signImageInternalMutex       sync.RWMutex
-	signImageInternalArgsForCall []struct {
-		arg1 options.RootOptions
-		arg2 options.KeyOpts
-		arg3 options.SignOptions
-		arg4 []string
-	}
-	signImageInternalReturns struct {
+	signImageInternalArgsForCall []FakeImplSignImageInternalArgs
+	signImageInternalReturns     struct {
 		result1 error
 	}
 	signImageInternalReturnsOnCall map[int]struct {
@@ -204,11 +157,8 @@ type FakeImpl struct {
 	}
 	TokenFromProvidersStub        func(context.Context, *logrus.Logger) (string, error)
 	tokenFromProvidersMutex       sync.RWMutex
-	tokenFromProvidersArgsForCall []struct {
-		arg1 context.Context
-		arg2 *logrus.Logger
-	}
-	tokenFromProvidersReturns struct {
+	tokenFromProvidersArgsForCall []FakeImplTokenFromProvidersArgs
+	tokenFromProvidersReturns     struct {
 		result1 string
 		result2 error
 	}
@@ -218,14 +168,8 @@ type FakeImpl struct {
 	}
 	VerifyFileInternalStub        func(context.Context, options.KeyOpts, options.CertVerifyOptions, string, string) error
 	verifyFileInternalMutex       sync.RWMutex
-	verifyFileInternalArgsForCall []struct {
-		arg1 context.Context
-		arg2 options.KeyOpts
-		arg3 options.CertVerifyOptions
-		arg4 string
-		arg5 string
-	}
-	verifyFileInternalReturns struct {
+	verifyFileInternalArgsForCall []FakeImplVerifyFileInternalArgs
+	verifyFileInternalReturns     struct {
 		result1 error
 	}
 	verifyFileInternalReturnsOnCall map[int]struct {
@@ -233,14 +177,8 @@ type FakeImpl struct {
 	}
 	VerifyImageInternalStub        func(context.Context, options.CertVerifyOptions, string, []string, bool) (*sign.SignedObject, error)
 	verifyImageInternalMutex       sync.RWMutex
-	verifyImageInternalArgsForCall []struct {
-		arg1 context.Context
-		arg2 options.CertVerifyOptions
-		arg3 string
-		arg4 []string
-		arg5 bool
-	}
-	verifyImageInternalReturns struct {
+	verifyImageInternalArgsForCall []FakeImplVerifyImageInternalArgs
+	verifyImageInternalReturns     struct {
 		result1 *sign.SignedObject
 		result2 error
 	}
@@ -249,19 +187,129 @@ type FakeImpl struct {
 		result2 error
 	}
 	invocations      map[string][][]interface{}
+	callOrder        []string
 	invocationsMutex sync.RWMutex
 }
 
+// FakeImplDigestArgs holds the arguments of one call to Digest.
+type FakeImplDigestArgs struct {
+	Arg1 string
+	Arg2 []crane.Option
+}
+
+// FakeImplEnvDefaultArgs holds the arguments of one call to EnvDefault.
+type FakeImplEnvDefaultArgs struct {
+	Arg1 string
+	Arg2 string
+}
+
+// FakeImplFileExistsArgs holds the arguments of one call to FileExists.
+type FakeImplFileExistsArgs struct {
+	Arg1 string
+}
+
+// FakeImplFindTlogEntryArgs holds the arguments of one call to FindTlogEntry.
+type FakeImplFindTlogEntryArgs struct {
+	Arg1 context.Context
+	Arg2 *client.Rekor
+	Arg3 string
+	Arg4 []byte
+	Arg5 []byte
+}
+
+// FakeImplImagesSignedArgs holds the arguments of one call to ImagesSigned.
+type FakeImplImagesSignedArgs struct {
+	Arg1 context.Context
+	Arg2 *sign.Signer
+	Arg3 []string
+}
+
+// FakeImplNewRekorClientArgs holds the arguments of one call to NewRekorClient.
+type FakeImplNewRekorClientArgs struct {
+	Arg1 string
+}
+
+// FakeImplNewWithContextArgs holds the arguments of one call to NewWithContext.
+type FakeImplNewWithContextArgs struct {
+	Arg1 context.Context
+	Arg2 name.Registry
+	Arg3 authn.Authenticator
+	Arg4 http.RoundTripper
+	Arg5 []string
+}
+
+// FakeImplParseReferenceArgs holds the arguments of one call to ParseReference.
+type FakeImplParseReferenceArgs struct {
+	Arg1 string
+	Arg2 []name.Option
+}
+
+// FakeImplPayloadBytesArgs holds the arguments of one call to PayloadBytes.
+type FakeImplPayloadBytesArgs struct {
+	Arg1 string
+}
+
+// FakeImplSetenvArgs holds the arguments of one call to Setenv.
+type FakeImplSetenvArgs struct {
+	Arg1 string
+	Arg2 string
+}
+
+// FakeImplSignFileInternalArgs holds the arguments of one call to SignFileInternal.
+type FakeImplSignFileInternalArgs struct {
+	Arg1 options.RootOptions
+	Arg2 options.KeyOpts
+	Arg3 string
+	Arg4 bool
+	Arg5 string
+	Arg6 string
+	Arg7 bool
+}
+
+// FakeImplSignImageInternalArgs holds the arguments of one call to SignImageInternal.
+type FakeImplSignImageInternalArgs struct {
+	Arg1 options.RootOptions
+	Arg2 options.KeyOpts
+	Arg3 options.SignOptions
+	Arg4 []string
+}
+
+// FakeImplTokenFromProvidersArgs holds the arguments of one call to TokenFromProviders.
+type FakeImplTokenFromProvidersArgs struct {
+	Arg1 context.Context
+	Arg2 *logrus.Logger
+}
+
+// FakeImplVerifyFileInternalArgs holds the arguments of one call to VerifyFileInternal.
+type FakeImplVerifyFileInternalArgs struct {
+	Arg1 context.Context
+	Arg2 options.KeyOpts
+	Arg3 options.CertVerifyOptions
+	Arg4 string
+	Arg5 string
+}
+
+// FakeImplVerifyImageInternalArgs holds the arguments of one call to VerifyImageInternal.
+type FakeImplVerifyImageInternalArgs struct {
+	Arg1 context.Context
+	Arg2 options.CertVerifyOptions
+	Arg3 string
+	Arg4 []string
+	Arg5 bool
+}
+
 func (fake *FakeImpl) Digest(arg1 string, arg2 ...crane.Option) (string, error) {
+	var arg2Copy []crane.Option
+	if arg2 != nil {
+		arg2Copy = make([]crane.Option, len(arg2))
+		copy(arg2Copy, arg2)
+	}
 	fake.digestMutex.Lock()
 	ret, specificReturn := fake.digestReturnsOnCall[len(fake.digestArgsForCall)]
-	fake.digestArgsForCall = append(fake.digestArgsForCall, struct {
-		arg1 string
-		arg2 []crane.Option
-	}{arg1, arg2})
+	fake.digestArgsForCall = append(fake.digestArgsForCall, FakeImplDigestArgs{arg1, arg2Copy})
 	stub := fake.DigestStub
 	fakeReturns := fake.digestReturns
-	fake.recordInvocation("Digest", []interface{}{arg1, arg2})
+	fake.recordInvocation("Digest", []interface{}{arg1, arg2Copy})
 	fake.digestMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2...)
@@ -288,7 +336,15 @@ func (fake *FakeImpl) DigestArgsForCall(i int) (string, []crane.Option) {
 	fake.digestMutex.RLock()
 	defer fake.digestMutex.RUnlock()
 	argsForCall := fake.digestArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeImpl) DigestArgs() []FakeImplDigestArgs {
+	fake.digestMutex.RLock()
+	defer fake.digestMutex.RUnlock()
+	args := make([]FakeImplDigestArgs, len(fake.digestArgsForCall))
+	copy(args, fake.digestArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) DigestReturns(result1 string, result2 error) {
@@ -320,10 +376,7 @@ func (fake *FakeImpl) DigestReturnsOnCall(i int, result1 string, result2 error) 
 func (fake *FakeImpl) EnvDefault(arg1 string, arg2 string) string {
 	fake.envDefaultMutex.Lock()
 	ret, specificReturn := fake.envDefaultReturnsOnCall[len(fake.envDefaultArgsForCall)]
-	fake.envDefaultArgsForCall = append(fake.envDefaultArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
+	fake.envDefaultArgsForCall = append(fake.envDefaultArgsForCall, FakeImplEnvDefaultArgs{arg1, arg2})
 	stub := fake.EnvDefaultStub
 	fakeReturns := fake.envDefaultReturns
 	fake.recordInvocation("EnvDefault", []interface{}{arg1, arg2})
@@ -353,7 +406,15 @@ func (fake *FakeImpl) EnvDefaultArgsForCall(i int) (string, string) {
 	fake.envDefaultMutex.RLock()
 	defer fake.envDefaultMutex.RUnlock()
 	argsForCall := fake.envDefaultArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeImpl) EnvDefaultArgs() []FakeImplEnvDefaultArgs {
+	fake.envDefaultMutex.RLock()
+	defer fake.envDefaultMutex.RUnlock()
+	args := make([]FakeImplEnvDefaultArgs, len(fake.envDefaultArgsForCall))
+	copy(args, fake.envDefaultArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) EnvDefaultReturns(result1 string) {
@@ -382,9 +443,7 @@ func (fake *FakeImpl) EnvDefaultReturnsOnCall(i int, result1 string) {
 func (fake *FakeImpl) FileExists(arg1 string) bool {
 	fake.fileExistsMutex.Lock()
 	ret, specificReturn := fake.fileExistsReturnsOnCall[len(fake.fileExistsArgsForCall)]
-	fake.fileExistsArgsForCall = append(fake.fileExistsArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.fileExistsArgsForCall = append(fake.fileExistsArgsForCall, FakeImplFileExistsArgs{arg1})
 	stub := fake.FileExistsStub
 	fakeReturns := fake.fileExistsReturns
 	fake.recordInvocation("FileExists", []interface{}{arg1})
@@ -414,7 +473,15 @@ func (fake *FakeImpl) FileExistsArgsForCall(i int) string {
 	fake.fileExistsMutex.RLock()
 	defer fake.fileExistsMutex.RUnlock()
 	argsForCall := fake.fileExistsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeImpl) FileExistsArgs() []FakeImplFileExistsArgs {
+	fake.fileExistsMutex.RLock()
+	defer fake.fileExistsMutex.RUnlock()
+	args := make([]FakeImplFileExistsArgs, len(fake.fileExistsArgsForCall))
+	copy(args, fake.fileExistsArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) FileExistsReturns(result1 bool) {
@@ -453,13 +520,7 @@ func (fake *FakeImpl) FindTlogEntry(arg1 context.Context, arg2 *client.Rekor, ar
 	}
 	fake.findTlogEntryMutex.Lock()
 	ret, specificReturn := fake.findTlogEntryReturnsOnCall[len(fake.findTlogEntryArgsForCall)]
-	fake.findTlogEntryArgsForCall = append(fake.findTlogEntryArgsForCall, struct {
-		arg1 context.Context
-		arg2 *client.Rekor
-		arg3 string
-		arg4 []byte
-		arg5 []byte
-	}{arg1, arg2, arg3, arg4Copy, arg5Copy})
+	fake.findTlogEntryArgsForCall = append(fake.findTlogEntryArgsForCall, FakeImplFindTlogEntryArgs{arg1, arg2, arg3, arg4Copy, arg5Copy})
 	stub := fake.FindTlogEntryStub
 	fakeReturns := fake.findTlogEntryReturns
 	fake.recordInvocation("FindTlogEntry", []interface{}{arg1, arg2, arg3, arg4Copy, arg5Copy})
@@ -489,7 +550,15 @@ func (fake *FakeImpl) FindTlogEntryArgsForCall(i int) (context.Context, *client.
 	fake.findTlogEntryMutex.RLock()
 	defer fake.findTlogEntryMutex.RUnlock()
 	argsForCall := fake.findTlogEntryArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3, argsForCall.Arg4, argsForCall.Arg5
+}
+
+func (fake *FakeImpl) FindTlogEntryArgs() []FakeImplFindTlogEntryArgs {
+	fake.findTlogEntryMutex.RLock()
+	defer fake.findTlogEntryMutex.RUnlock()
+	args := make([]FakeImplFindTlogEntryArgs, len(fake.findTlogEntryArgsForCall))
+	copy(args, fake.findTlogEntryArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) FindTlogEntryReturns(result1 []models.LogEntryAnon, result2 error) {
@@ -519,16 +588,17 @@ func (fake *FakeImpl) FindTlogEntryReturnsOnCall(i int, result1 []models.LogEntr
 }
 
 func (fake *FakeImpl) ImagesSigned(arg1 context.Context, arg2 *sign.Signer, arg3 ...string) (*sync.Map, error) {
+	var arg3Copy []string
+	if arg3 != nil {
+		arg3Copy = make([]string, len(arg3))
+		copy(arg3Copy, arg3)
+	}
 	fake.imagesSignedMutex.Lock()
 	ret, specificReturn := fake.imagesSignedReturnsOnCall[len(fake.imagesSignedArgsForCall)]
-	fake.imagesSignedArgsForCall = append(fake.imagesSignedArgsForCall, struct {
-		arg1 context.Context
-		arg2 *sign.Signer
-		arg3 []string
-	}{arg1, arg2, arg3})
+	fake.imagesSignedArgsForCall = append(fake.imagesSignedArgsForCall, FakeImplImagesSignedArgs{arg1, arg2, arg3Copy})
 	stub := fake.ImagesSignedStub
 	fakeReturns := fake.imagesSignedReturns
-	fake.recordInvocation("ImagesSigned", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("ImagesSigned", []interface{}{arg1, arg2, arg3Copy})
 	fake.imagesSignedMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2, arg3...)
@@ -555,7 +625,15 @@ func (fake *FakeImpl) ImagesSignedArgsForCall(i int) (context.Context, *sign.Sig
 	fake.imagesSignedMutex.RLock()
 	defer fake.imagesSignedMutex.RUnlock()
 	argsForCall := fake.imagesSignedArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3
+}
+
+func (fake *FakeImpl) ImagesSignedArgs() []FakeImplImagesSignedArgs {
+	fake.imagesSignedMutex.RLock()
+	defer fake.imagesSignedMutex.RUnlock()
+	args := make([]FakeImplImagesSignedArgs, len(fake.imagesSignedArgsForCall))
+	copy(args, fake.imagesSignedArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) ImagesSignedReturns(result1 *sync.Map, result2 error) {
@@ -587,9 +665,7 @@ func (fake *FakeImpl) ImagesSignedReturnsOnCall(i int, result1 *sync.Map, result
 func (fake *FakeImpl) NewRekorClient(arg1 string) (*client.Rekor, error) {
 	fake.newRekorClientMutex.Lock()
 	ret, specificReturn := fake.newRekorClientReturnsOnCall[len(fake.newRekorClientArgsForCall)]
-	fake.newRekorClientArgsForCall = append(fake.newRekorClientArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.newRekorClientArgsForCall = append(fake.newRekorClientArgsForCall, FakeImplNewRekorClientArgs{arg1})
 	stub := fake.NewRekorClientStub
 	fakeReturns := fake.newRekorClientReturns
 	fake.recordInvocation("NewRekorClient", []interface{}{arg1})
@@ -619,7 +695,15 @@ func (fake *FakeImpl) NewRekorClientArgsForCall(i int) string {
 	fake.newRekorClientMutex.RLock()
 	defer fake.newRekorClientMutex.RUnlock()
 	argsForCall := fake.newRekorClientArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeImpl) NewRekorClientArgs() []FakeImplNewRekorClientArgs {
+	fake.newRekorClientMutex.RLock()
+	defer fake.newRekorClientMutex.RUnlock()
+	args := make([]FakeImplNewRekorClientArgs, len(fake.newRekorClientArgsForCall))
+	copy(args, fake.newRekorClientArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) NewRekorClientReturns(result1 *client.Rekor, result2 error) {
@@ -656,13 +740,7 @@ func (fake *FakeImpl) NewWithContext(arg1 context.Context, arg2 name.Registry, a
 	}
 	fake.newWithContextMutex.Lock()
 	ret, specificReturn := fake.newWithContextReturnsOnCall[len(fake.newWithContextArgsForCall)]
-	fake.newWithContextArgsForCall = append(fake.newWithContextArgsForCall, struct {
-		arg1 context.Context
-		arg2 name.Registry
-		arg3 authn.Authenticator
-		arg4 http.RoundTripper
-		arg5 []string
-	}{arg1, arg2, arg3, arg4, arg5Copy})
+	fake.newWithContextArgsForCall = append(fake.newWithContextArgsForCall, FakeImplNewWithContextArgs{arg1, arg2, arg3, arg4, arg5Copy})
 	stub := fake.NewWithContextStub
 	fakeReturns := fake.newWithContextReturns
 	fake.recordInvocation("NewWithContext", []interface{}{arg1, arg2, arg3, arg4, arg5Copy})
@@ -692,7 +770,15 @@ func (fake *FakeImpl) NewWithContextArgsForCall(i int) (context.Context, name.Re
 	fake.newWithContextMutex.RLock()
 	defer fake.newWithContextMutex.RUnlock()
 	argsForCall := fake.newWithContextArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3, argsForCall.Arg4, argsForCall.Arg5
+}
+
+func (fake *FakeImpl) NewWithContextArgs() []FakeImplNewWithContextArgs {
+	fake.newWithContextMutex.RLock()
+	defer fake.newWithContextMutex.RUnlock()
+	args := make([]FakeImplNewWithContextArgs, len(fake.newWithContextArgsForCall))
+	copy(args, fake.newWithContextArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) NewWithContextReturns(result1 http.RoundTripper, result2 error) {
@@ -722,15 +808,17 @@ func (fake *FakeImpl) NewWithContextReturnsOnCall(i int, result1 http.RoundTripp
 }
 
 func (fake *FakeImpl) ParseReference(arg1 string, arg2 ...name.Option) (name.Reference, error) {
+	var arg2Copy []name.Option
+	if arg2 != nil {
+		arg2Copy = make([]name.Option, len(arg2))
+		copy(arg2Copy, arg2)
+	}
 	fake.parseReferenceMutex.Lock()
 	ret, specificReturn := fake.parseReferenceReturnsOnCall[len(fake.parseReferenceArgsForCall)]
-	fake.parseReferenceArgsForCall = append(fake.parseReferenceArgsForCall, struct {
-		arg1 string
-		arg2 []name.Option
-	}{arg1, arg2})
+	fake.parseReferenceArgsForCall = append(fake.parseReferenceArgsForCall, FakeImplParseReferenceArgs{arg1, arg2Copy})
 	stub := fake.ParseReferenceStub
 	fakeReturns := fake.parseReferenceReturns
-	fake.recordInvocation("ParseReference", []interface{}{arg1, arg2})
+	fake.recordInvocation("ParseReference", []interface{}{arg1, arg2Copy})
 	fake.parseReferenceMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2...)
@@ -757,7 +845,15 @@ func (fake *FakeImpl) ParseReferenceArgsForCall(i int) (string, []name.Option) {
 	fake.parseReferenceMutex.RLock()
 	defer fake.parseReferenceMutex.RUnlock()
 	argsForCall := fake.parseReferenceArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeImpl) ParseReferenceArgs() []FakeImplParseReferenceArgs {
+	fake.parseReferenceMutex.RLock()
+	defer fake.parseReferenceMutex.RUnlock()
+	args := make([]FakeImplParseReferenceArgs, len(fake.parseReferenceArgsForCall))
+	copy(args, fake.parseReferenceArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) ParseReferenceReturns(result1 name.Reference, result2 error) {
@@ -789,9 +885,7 @@ func (fake *FakeImpl) ParseReferenceReturnsOnCall(i int, result1 name.Reference,
 func (fake *FakeImpl) PayloadBytes(arg1 string) ([]byte, error) {
 	fake.payloadBytesMutex.Lock()
 	ret, specificReturn := fake.payloadBytesReturnsOnCall[len(fake.payloadBytesArgsForCall)]
-	fake.payloadBytesArgsForCall = append(fake.payloadBytesArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.payloadBytesArgsForCall = append(fake.payloadBytesArgsForCall, FakeImplPayloadBytesArgs{arg1})
 	stub := fake.PayloadBytesStub
 	fakeReturns := fake.payloadBytesReturns
 	fake.recordInvocation("PayloadBytes", []interface{}{arg1})
@@ -821,7 +915,15 @@ func (fake *FakeImpl) PayloadBytesArgsForCall(i int) string {
 	fake.payloadBytesMutex.RLock()
 	defer fake.payloadBytesMutex.RUnlock()
 	argsForCall := fake.payloadBytesArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeImpl) PayloadBytesArgs() []FakeImplPayloadBytesArgs {
+	fake.payloadBytesMutex.RLock()
+	defer fake.payloadBytesMutex.RUnlock()
+	args := make([]FakeImplPayloadBytesArgs, len(fake.payloadBytesArgsForCall))
+	copy(args, fake.payloadBytesArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) PayloadBytesReturns(result1 []byte, result2 error) {
@@ -853,10 +955,7 @@ func (fake *FakeImpl) PayloadBytesReturnsOnCall(i int, result1 []byte, result2 e
 func (fake *FakeImpl) Setenv(arg1 string, arg2 string) error {
 	fake.setenvMutex.Lock()
 	ret, specificReturn := fake.setenvReturnsOnCall[len(fake.setenvArgsForCall)]
-	fake.setenvArgsForCall = append(fake.setenvArgsForCall, struct {
-		arg1 string
-		arg2 string
-	}{arg1, arg2})
+	fake.setenvArgsForCall = append(fake.setenvArgsForCall, FakeImplSetenvArgs{arg1, arg2})
 	stub := fake.SetenvStub
 	fakeReturns := fake.setenvReturns
 	fake.recordInvocation("Setenv", []interface{}{arg1, arg2})
@@ -886,7 +985,15 @@ func (fake *FakeImpl) SetenvArgsForCall(i int) (string, string) {
 	fake.setenvMutex.RLock()
 	defer fake.setenvMutex.RUnlock()
 	argsForCall := fake.setenvArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeImpl) SetenvArgs() []FakeImplSetenvArgs {
+	fake.setenvMutex.RLock()
+	defer fake.setenvMutex.RUnlock()
+	args := make([]FakeImplSetenvArgs, len(fake.setenvArgsForCall))
+	copy(args, fake.setenvArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) SetenvReturns(result1 error) {
@@ -915,15 +1022,7 @@ func (fake *FakeImpl) SetenvReturnsOnCall(i int, result1 error) {
 func (fake *FakeImpl) SignFileInternal(arg1 options.RootOptions, arg2 options.KeyOpts, arg3 string, arg4 bool, arg5 string, arg6 string, arg7 bool) error {
 	fake.signFileInternalMutex.Lock()
 	ret, specificReturn := fake.signFileInternalReturnsOnCall[len(fake.signFileInternalArgsForCall)]
-	fake.signFileInternalArgsForCall = append(fake.signFileInternalArgsForCall, struct {
-		arg1 options.RootOptions
-		arg2 options.KeyOpts
-		arg3 string
-		arg4 bool
-		arg5 string
-		arg6 string
-		arg7 bool
-	}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+	fake.signFileInternalArgsForCall = append(fake.signFileInternalArgsForCall, FakeImplSignFileInternalArgs{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
 	stub := fake.SignFileInternalStub
 	fakeReturns := fake.signFileInternalReturns
 	fake.recordInvocation("SignFileInternal", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
@@ -953,7 +1052,15 @@ func (fake *FakeImpl) SignFileInternalArgsForCall(i int) (options.RootOptions, o
 	fake.signFileInternalMutex.RLock()
 	defer fake.signFileInternalMutex.RUnlock()
 	argsForCall := fake.signFileInternalArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3, argsForCall.Arg4, argsForCall.Arg5, argsForCall.Arg6, argsForCall.Arg7
+}
+
+func (fake *FakeImpl) SignFileInternalArgs() []FakeImplSignFileInternalArgs {
+	fake.signFileInternalMutex.RLock()
+	defer fake.signFileInternalMutex.RUnlock()
+	args := make([]FakeImplSignFileInternalArgs, len(fake.signFileInternalArgsForCall))
+	copy(args, fake.signFileInternalArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) SignFileInternalReturns(result1 error) {
@@ -987,12 +1094,7 @@ func (fake *FakeImpl) SignImageInternal(arg1 options.RootOptions, arg2 options.K
 	}
 	fake.signImageInternalMutex.Lock()
 	ret, specificReturn := fake.signImageInternalReturnsOnCall[len(fake.signImageInternalArgsForCall)]
-	fake.signImageInternalArgsForCall = append(fake.signImageInternalArgsForCall, struct {
-		arg1 options.RootOptions
-		arg2 options.KeyOpts
-		arg3 options.SignOptions
-		arg4 []string
-	}{arg1, arg2, arg3, arg4Copy})
+	fake.signImageInternalArgsForCall = append(fake.signImageInternalArgsForCall, FakeImplSignImageInternalArgs{arg1, arg2, arg3, arg4Copy})
 	stub := fake.SignImageInternalStub
 	fakeReturns := fake.signImageInternalReturns
 	fake.recordInvocation("SignImageInternal", []interface{}{arg1, arg2, arg3, arg4Copy})
@@ -1022,7 +1124,15 @@ func (fake *FakeImpl) SignImageInternalArgsForCall(i int) (options.RootOptions, 
 	fake.signImageInternalMutex.RLock()
 	defer fake.signImageInternalMutex.RUnlock()
 	argsForCall := fake.signImageInternalArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3, argsForCall.Arg4
+}
+
+func (fake *FakeImpl) SignImageInternalArgs() []FakeImplSignImageInternalArgs {
+	fake.signImageInternalMutex.RLock()
+	defer fake.signImageInternalMutex.RUnlock()
+	args := make([]FakeImplSignImageInternalArgs, len(fake.signImageInternalArgsForCall))
+	copy(args, fake.signImageInternalArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) SignImageInternalReturns(result1 error) {
@@ -1051,10 +1161,7 @@ func (fake *FakeImpl) SignImageInternalReturnsOnCall(i int, result1 error) {
 func (fake *FakeImpl) TokenFromProviders(arg1 context.Context, arg2 *logrus.Logger) (string, error) {
 	fake.tokenFromProvidersMutex.Lock()
 	ret, specificReturn := fake.tokenFromProvidersReturnsOnCall[len(fake.tokenFromProvidersArgsForCall)]
-	fake.tokenFromProvidersArgsForCall = append(fake.tokenFromProvidersArgsForCall, struct {
-		arg1 context.Context
-		arg2 *logrus.Logger
-	}{arg1, arg2})
+	fake.tokenFromProvidersArgsForCall = append(fake.tokenFromProvidersArgsForCall, FakeImplTokenFromProvidersArgs{arg1, arg2})
 	stub := fake.TokenFromProvidersStub
 	fakeReturns := fake.tokenFromProvidersReturns
 	fake.recordInvocation("TokenFromProviders", []interface{}{arg1, arg2})
@@ -1084,7 +1191,15 @@ func (fake *FakeImpl) TokenFromProvidersArgsForCall(i int) (context.Context, *lo
 	fake.tokenFromProvidersMutex.RLock()
 	defer fake.tokenFromProvidersMutex.RUnlock()
 	argsForCall := fake.tokenFromProvidersArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.Arg1, argsForCall.Arg2
+}
+
+func (fake *FakeImpl) TokenFromProvidersArgs() []FakeImplTokenFromProvidersArgs {
+	fake.tokenFromProvidersMutex.RLock()
+	defer fake.tokenFromProvidersMutex.RUnlock()
+	args := make([]FakeImplTokenFromProvidersArgs, len(fake.tokenFromProvidersArgsForCall))
+	copy(args, fake.tokenFromProvidersArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) TokenFromProvidersReturns(result1 string, result2 error) {
@@ -1116,13 +1231,7 @@ func (fake *FakeImpl) TokenFromProvidersReturnsOnCall(i int, result1 string, res
 func (fake *FakeImpl) VerifyFileInternal(arg1 context.Context, arg2 options.KeyOpts, arg3 options.CertVerifyOptions, arg4 string, arg5 string) error {
 	fake.verifyFileInternalMutex.Lock()
 	ret, specificReturn := fake.verifyFileInternalReturnsOnCall[len(fake.verifyFileInternalArgsForCall)]
-	fake.verifyFileInternalArgsForCall = append(fake.verifyFileInternalArgsForCall, struct {
-		arg1 context.Context
-		arg2 options.KeyOpts
-		arg3 options.CertVerifyOptions
-		arg4 string
-		arg5 string
-	}{arg1, arg2, arg3, arg4, arg5})
+	fake.verifyFileInternalArgsForCall = append(fake.verifyFileInternalArgsForCall, FakeImplVerifyFileInternalArgs{arg1, arg2, arg3, arg4, arg5})
 	stub := fake.VerifyFileInternalStub
 	fakeReturns := fake.verifyFileInternalReturns
 	fake.recordInvocation("VerifyFileInternal", []interface{}{arg1, arg2, arg3, arg4, arg5})
@@ -1152,7 +1261,15 @@ func (fake *FakeImpl) VerifyFileInternalArgsForCall(i int) (context.Context, opt
 	fake.verifyFileInternalMutex.RLock()
 	defer fake.verifyFileInternalMutex.RUnlock()
 	argsForCall := fake.verifyFileInternalArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3, argsForCall.Arg4, argsForCall.Arg5
+}
+
+func (fake *FakeImpl) VerifyFileInternalArgs() []FakeImplVerifyFileInternalArgs {
+	fake.verifyFileInternalMutex.RLock()
+	defer fake.verifyFileInternalMutex.RUnlock()
+	args := make([]FakeImplVerifyFileInternalArgs, len(fake.verifyFileInternalArgsForCall))
+	copy(args, fake.verifyFileInternalArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) VerifyFileInternalReturns(result1 error) {
@@ -1186,13 +1303,7 @@ func (fake *FakeImpl) VerifyImageInternal(arg1 context.Context, arg2 options.Cer
 	}
 	fake.verifyImageInternalMutex.Lock()
 	ret, specificReturn := fake.verifyImageInternalReturnsOnCall[len(fake.verifyImageInternalArgsForCall)]
-	fake.verifyImageInternalArgsForCall = append(fake.verifyImageInternalArgsForCall, struct {
-		arg1 context.Context
-		arg2 options.CertVerifyOptions
-		arg3 string
-		arg4 []string
-		arg5 bool
-	}{arg1, arg2, arg3, arg4Copy, arg5})
+	fake.verifyImageInternalArgsForCall = append(fake.verifyImageInternalArgsForCall, FakeImplVerifyImageInternalArgs{arg1, arg2, arg3, arg4Copy, arg5})
 	stub := fake.VerifyImageInternalStub
 	fakeReturns := fake.verifyImageInternalReturns
 	fake.recordInvocation("VerifyImageInternal", []interface{}{arg1, arg2, arg3, arg4Copy, arg5})
@@ -1222,7 +1333,15 @@ func (fake *FakeImpl) VerifyImageInternalArgsForCall(i int) (context.Context, op
 	fake.verifyImageInternalMutex.RLock()
 	defer fake.verifyImageInternalMutex.RUnlock()
 	argsForCall := fake.verifyImageInternalArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3, argsForCall.Arg4, argsForCall.Arg5
+}
+
+func (fake *FakeImpl) VerifyImageInternalArgs() []FakeImplVerifyImageInternalArgs {
+	fake.verifyImageInternalMutex.RLock()
+	defer fake.verifyImageInternalMutex.RUnlock()
+	args := make([]FakeImplVerifyImageInternalArgs, len(fake.verifyImageInternalArgsForCall))
+	copy(args, fake.verifyImageInternalArgsForCall)
+	return args
 }
 
 func (fake *FakeImpl) VerifyImageInternalReturns(result1 *sign.SignedObject, result2 error) {
@@ -1254,36 +1373,6 @@ func (fake *FakeImpl) VerifyImageInternalReturnsOnCall(i int, result1 *sign.Sign
 func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.digestMutex.RLock()
-	defer fake.digestMutex.RUnlock()
-	fake.envDefaultMutex.RLock()
-	defer fake.envDefaultMutex.RUnlock()
-	fake.fileExistsMutex.RLock()
-	defer fake.fileExistsMutex.RUnlock()
-	fake.findTlogEntryMutex.RLock()
-	defer fake.findTlogEntryMutex.RUnlock()
-	fake.imagesSignedMutex.RLock()
-	defer fake.imagesSignedMutex.RUnlock()
-	fake.newRekorClientMutex.RLock()
-	defer fake.newRekorClientMutex.RUnlock()
-	fake.newWithContextMutex.RLock()
-	defer fake.newWithContextMutex.RUnlock()
-	fake.parseReferenceMutex.RLock()
-	defer fake.parseReferenceMutex.RUnlock()
-	fake.payloadBytesMutex.RLock()
-	defer fake.payloadBytesMutex.RUnlock()
-	fake.setenvMutex.RLock()
-	defer fake.setenvMutex.RUnlock()
-	fake.signFileInternalMutex.RLock()
-	defer fake.signFileInternalMutex.RUnlock()
-	fake.signImageInternalMutex.RLock()
-	defer fake.signImageInternalMutex.RUnlock()
-	fake.tokenFromProvidersMutex.RLock()
-	defer fake.tokenFromProvidersMutex.RUnlock()
-	fake.verifyFileInternalMutex.RLock()
-	defer fake.verifyFileInternalMutex.RUnlock()
-	fake.verifyImageInternalMutex.RLock()
-	defer fake.verifyImageInternalMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
@@ -1291,9 +1380,18 @@ func (fake *FakeImpl) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
+func (fake *FakeImpl) CallOrder() []string {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	order := make([]string, len(fake.callOrder))
+	copy(order, fake.callOrder)
+	return order
+}
+
 func (fake *FakeImpl) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
+	fake.callOrder = append(fake.callOrder, key)
 	if fake.invocations == nil {
 		fake.invocations = map[string][][]interface{}{}
 	}

@@ -31,9 +31,8 @@ import (
 type FakeRepository struct {
 	BranchesStub        func() (storer.ReferenceIter, error)
 	branchesMutex       sync.RWMutex
-	branchesArgsForCall []struct {
-	}
-	branchesReturns struct {
+	branchesArgsForCall []struct{}
+	branchesReturns     struct {
 		result1 storer.ReferenceIter
 		result2 error
 	}
@@ -43,10 +42,8 @@ type FakeRepository struct {
 	}
 	CommitObjectStub        func(plumbing.Hash) (*object.Commit, error)
 	commitObjectMutex       sync.RWMutex
-	commitObjectArgsForCall []struct {
-		arg1 plumbing.Hash
-	}
-	commitObjectReturns struct {
+	commitObjectArgsForCall []FakeRepositoryCommitObjectArgs
+	commitObjectReturns     struct {
 		result1 *object.Commit
 		result2 error
 	}
@@ -56,10 +53,8 @@ type FakeRepository struct {
 	}
 	CreateRemoteStub        func(*config.RemoteConfig) (*gita.Remote, error)
 	createRemoteMutex       sync.RWMutex
-	createRemoteArgsForCall []struct {
-		arg1 *config.RemoteConfig
-	}
-	createRemoteReturns struct {
+	createRemoteArgsForCall []FakeRepositoryCreateRemoteArgs
+	createRemoteReturns     struct {
 		result1 *gita.Remote
 		result2 error
 	}
@@ -69,12 +64,8 @@ type FakeRepository struct {
 	}
 	CreateTagStub        func(string, plumbing.Hash, *gita.CreateTagOptions) (*plumbing.Reference, error)
 	createTagMutex       sync.RWMutex
-	createTagArgsForCall []struct {
-		arg1 string
-		arg2 plumbing.Hash
-		arg3 *gita.CreateTagOptions
-	}
-	createTagReturns struct {
+	createTagArgsForCall []FakeRepositoryCreateTagArgs
+	createTagReturns     struct {
 		result1 *plumbing.Reference
 		result2 error
 	}
@@ -84,10 +75,8 @@ type FakeRepository struct {
 	}
 	DeleteRemoteStub        func(string) error
 	deleteRemoteMutex       sync.RWMutex
-	deleteRemoteArgsForCall []struct {
-		arg1 string
-	}
-	deleteRemoteReturns struct {
+	deleteRemoteArgsForCall []FakeRepositoryDeleteRemoteArgs
+	deleteRemoteReturns     struct {
 		result1 error
 	}
 	deleteRemoteReturnsOnCall map[int]struct {
@@ -95,9 +84,8 @@ type FakeRepository struct {
 	}
 	HeadStub        func() (*plumbing.Reference, error)
 	headMutex       sync.RWMutex
-	headArgsForCall []struct {
-	}
-	headReturns struct {
+	headArgsForCall []struct{}
+	headReturns     struct {
 		result1 *plumbing.Reference
 		result2 error
 	}
@@ -107,10 +95,8 @@ type FakeRepository struct {
 	}
 	PushStub        func(*gita.PushOptions) error
 	pushMutex       sync.RWMutex
-	pushArgsForCall []struct {
-		arg1 *gita.PushOptions
-	}
-	pushReturns struct {
+	pushArgsForCall []FakeRepositoryPushArgs
+	pushReturns     struct {
 		result1 error
 	}
 	pushReturnsOnCall map[int]struct {
@@ -118,10 +104,8 @@ type FakeRepository struct {
 	}
 	RemoteStub        func(string) (*gita.Remote, error)
 	remoteMutex       sync.RWMutex
-	remoteArgsForCall []struct {
-		arg1 string
-	}
-	remoteReturns struct {
+	remoteArgsForCall []FakeRepositoryRemoteArgs
+	remoteReturns     struct {
 		result1 *gita.Remote
 		result2 error
 	}
@@ -131,9 +115,8 @@ type FakeRepository struct {
 	}
 	RemotesStub        func() ([]*gita.Remote, error)
 	remotesMutex       sync.RWMutex
-	remotesArgsForCall []struct {
-	}
-	remotesReturns struct {
+	remotesArgsForCall []struct{}
+	remotesReturns     struct {
 		result1 []*gita.Remote
 		result2 error
 	}
@@ -143,10 +126,8 @@ type FakeRepository struct {
 	}
 	ResolveRevisionStub        func(plumbing.Revision) (*plumbing.Hash, error)
 	resolveRevisionMutex       sync.RWMutex
-	resolveRevisionArgsForCall []struct {
-		arg1 plumbing.Revision
-	}
-	resolveRevisionReturns struct {
+	resolveRevisionArgsForCall []FakeRepositoryResolveRevisionArgs
+	resolveRevisionReturns     struct {
 		result1 *plumbing.Hash
 		result2 error
 	}
@@ -156,9 +137,8 @@ type FakeRepository struct {
 	}
 	TagsStub        func() (storer.ReferenceIter, error)
 	tagsMutex       sync.RWMutex
-	tagsArgsForCall []struct {
-	}
-	tagsReturns struct {
+	tagsArgsForCall []struct{}
+	tagsReturns     struct {
 		result1 storer.ReferenceIter
 		result2 error
 	}
@@ -167,14 +147,51 @@ type FakeRepository struct {
 		result2 error
 	}
 	invocations      map[string][][]interface{}
+	callOrder        []string
 	invocationsMutex sync.RWMutex
+}
+
+// FakeRepositoryCommitObjectArgs holds the arguments of one call to CommitObject.
+type FakeRepositoryCommitObjectArgs struct {
+	Arg1 plumbing.Hash
+}
+
+// FakeRepositoryCreateRemoteArgs holds the arguments of one call to CreateRemote.
+type FakeRepositoryCreateRemoteArgs struct {
+	Arg1 *config.RemoteConfig
+}
+
+// FakeRepositoryCreateTagArgs holds the arguments of one call to CreateTag.
+type FakeRepositoryCreateTagArgs struct {
+	Arg1 string
+	Arg2 plumbing.Hash
+	Arg3 *gita.CreateTagOptions
+}
+
+// FakeRepositoryDeleteRemoteArgs holds the arguments of one call to DeleteRemote.
+type FakeRepositoryDeleteRemoteArgs struct {
+	Arg1 string
+}
+
+// FakeRepositoryPushArgs holds the arguments of one call to Push.
+type FakeRepositoryPushArgs struct {
+	Arg1 *gita.PushOptions
+}
+
+// FakeRepositoryRemoteArgs holds the arguments of one call to Remote.
+type FakeRepositoryRemoteArgs struct {
+	Arg1 string
+}
+
+// FakeRepositoryResolveRevisionArgs holds the arguments of one call to ResolveRevision.
+type FakeRepositoryResolveRevisionArgs struct {
+	Arg1 plumbing.Revision
 }
 
 func (fake *FakeRepository) Branches() (storer.ReferenceIter, error) {
 	fake.branchesMutex.Lock()
 	ret, specificReturn := fake.branchesReturnsOnCall[len(fake.branchesArgsForCall)]
-	fake.branchesArgsForCall = append(fake.branchesArgsForCall, struct {
-	}{})
+	fake.branchesArgsForCall = append(fake.branchesArgsForCall, struct{}{})
 	stub := fake.BranchesStub
 	fakeReturns := fake.branchesReturns
 	fake.recordInvocation("Branches", []interface{}{})
@@ -229,9 +246,7 @@ func (fake *FakeRepository) BranchesReturnsOnCall(i int, result1 storer.Referenc
 func (fake *FakeRepository) CommitObject(arg1 plumbing.Hash) (*object.Commit, error) {
 	fake.commitObjectMutex.Lock()
 	ret, specificReturn := fake.commitObjectReturnsOnCall[len(fake.commitObjectArgsForCall)]
-	fake.commitObjectArgsForCall = append(fake.commitObjectArgsForCall, struct {
-		arg1 plumbing.Hash
-	}{arg1})
+	fake.commitObjectArgsForCall = append(fake.commitObjectArgsForCall, FakeRepositoryCommitObjectArgs{arg1})
 	stub := fake.CommitObjectStub
 	fakeReturns := fake.commitObjectReturns
 	fake.recordInvocation("CommitObject", []interface{}{arg1})
@@ -261,7 +276,15 @@ func (fake *FakeRepository) CommitObjectArgsForCall(i int) plumbing.Hash {
 	fake.commitObjectMutex.RLock()
 	defer fake.commitObjectMutex.RUnlock()
 	argsForCall := fake.commitObjectArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeRepository) CommitObjectArgs() []FakeRepositoryCommitObjectArgs {
+	fake.commitObjectMutex.RLock()
+	defer fake.commitObjectMutex.RUnlock()
+	args := make([]FakeRepositoryCommitObjectArgs, len(fake.commitObjectArgsForCall))
+	copy(args, fake.commitObjectArgsForCall)
+	return args
 }
 
 func (fake *FakeRepository) CommitObjectReturns(result1 *object.Commit, result2 error) {
@@ -293,9 +316,7 @@ func (fake *FakeRepository) CommitObjectReturnsOnCall(i int, result1 *object.Com
 func (fake *FakeRepository) CreateRemote(arg1 *config.RemoteConfig) (*gita.Remote, error) {
 	fake.createRemoteMutex.Lock()
 	ret, specificReturn := fake.createRemoteReturnsOnCall[len(fake.createRemoteArgsForCall)]
-	fake.createRemoteArgsForCall = append(fake.createRemoteArgsForCall, struct {
-		arg1 *config.RemoteConfig
-	}{arg1})
+	fake.createRemoteArgsForCall = append(fake.createRemoteArgsForCall, FakeRepositoryCreateRemoteArgs{arg1})
 	stub := fake.CreateRemoteStub
 	fakeReturns := fake.createRemoteReturns
 	fake.recordInvocation("CreateRemote", []interface{}{arg1})
@@ -325,7 +346,15 @@ func (fake *FakeRepository) CreateRemoteArgsForCall(i int) *config.RemoteConfig 
 	fake.createRemoteMutex.RLock()
 	defer fake.createRemoteMutex.RUnlock()
 	argsForCall := fake.createRemoteArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeRepository) CreateRemoteArgs() []FakeRepositoryCreateRemoteArgs {
+	fake.createRemoteMutex.RLock()
+	defer fake.createRemoteMutex.RUnlock()
+	args := make([]FakeRepositoryCreateRemoteArgs, len(fake.createRemoteArgsForCall))
+	copy(args, fake.createRemoteArgsForCall)
+	return args
 }
 
 func (fake *FakeRepository) CreateRemoteReturns(result1 *gita.Remote, result2 error) {
@@ -357,11 +386,7 @@ func (fake *FakeRepository) CreateRemoteReturnsOnCall(i int, result1 *gita.Remot
 func (fake *FakeRepository) CreateTag(arg1 string, arg2 plumbing.Hash, arg3 *gita.CreateTagOptions) (*plumbing.Reference, error) {
 	fake.createTagMutex.Lock()
 	ret, specificReturn := fake.createTagReturnsOnCall[len(fake.createTagArgsForCall)]
-	fake.createTagArgsForCall = append(fake.createTagArgsForCall, struct {
-		arg1 string
-		arg2 plumbing.Hash
-		arg3 *gita.CreateTagOptions
-	}{arg1, arg2, arg3})
+	fake.createTagArgsForCall = append(fake.createTagArgsForCall, FakeRepositoryCreateTagArgs{arg1, arg2, arg3})
 	stub := fake.CreateTagStub
 	fakeReturns := fake.createTagReturns
 	fake.recordInvocation("CreateTag", []interface{}{arg1, arg2, arg3})
@@ -391,7 +416,15 @@ func (fake *FakeRepository) CreateTagArgsForCall(i int) (string, plumbing.Hash, 
 	fake.createTagMutex.RLock()
 	defer fake.createTagMutex.RUnlock()
 	argsForCall := fake.createTagArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.Arg1, argsForCall.Arg2, argsForCall.Arg3
+}
+
+func (fake *FakeRepository) CreateTagArgs() []FakeRepositoryCreateTagArgs {
+	fake.createTagMutex.RLock()
+	defer fake.createTagMutex.RUnlock()
+	args := make([]FakeRepositoryCreateTagArgs, len(fake.createTagArgsForCall))
+	copy(args, fake.createTagArgsForCall)
+	return args
 }
 
 func (fake *FakeRepository) CreateTagReturns(result1 *plumbing.Reference, result2 error) {
@@ -423,9 +456,7 @@ func (fake *FakeRepository) CreateTagReturnsOnCall(i int, result1 *plumbing.Refe
 func (fake *FakeRepository) DeleteRemote(arg1 string) error {
 	fake.deleteRemoteMutex.Lock()
 	ret, specificReturn := fake.deleteRemoteReturnsOnCall[len(fake.deleteRemoteArgsForCall)]
-	fake.deleteRemoteArgsForCall = append(fake.deleteRemoteArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.deleteRemoteArgsForCall = append(fake.deleteRemoteArgsForCall, FakeRepositoryDeleteRemoteArgs{arg1})
 	stub := fake.DeleteRemoteStub
 	fakeReturns := fake.deleteRemoteReturns
 	fake.recordInvocation("DeleteRemote", []interface{}{arg1})
@@ -455,7 +486,15 @@ func (fake *FakeRepository) DeleteRemoteArgsForCall(i int) string {
 	fake.deleteRemoteMutex.RLock()
 	defer fake.deleteRemoteMutex.RUnlock()
 	argsForCall := fake.deleteRemoteArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeRepository) DeleteRemoteArgs() []FakeRepositoryDeleteRemoteArgs {
+	fake.deleteRemoteMutex.RLock()
+	defer fake.deleteRemoteMutex.RUnlock()
+	args := make([]FakeRepositoryDeleteRemoteArgs, len(fake.deleteRemoteArgsForCall))
+	copy(args, fake.deleteRemoteArgsForCall)
+	return args
 }
 
 func (fake *FakeRepository) DeleteRemoteReturns(result1 error) {
@@ -484,8 +523,7 @@ func (fake *FakeRepository) DeleteRemoteReturnsOnCall(i int, result1 error) {
 func (fake *FakeRepository) Head() (*plumbing.Reference, error) {
 	fake.headMutex.Lock()
 	ret, specificReturn := fake.headReturnsOnCall[len(fake.headArgsForCall)]
-	fake.headArgsForCall = append(fake.headArgsForCall, struct {
-	}{})
+	fake.headArgsForCall = append(fake.headArgsForCall, struct{}{})
 	stub := fake.HeadStub
 	fakeReturns := fake.headReturns
 	fake.recordInvocation("Head", []interface{}{})
@@ -540,9 +578,7 @@ func (fake *FakeRepository) HeadReturnsOnCall(i int, result1 *plumbing.Reference
 func (fake *FakeRepository) Push(arg1 *gita.PushOptions) error {
 	fake.pushMutex.Lock()
 	ret, specificReturn := fake.pushReturnsOnCall[len(fake.pushArgsForCall)]
-	fake.pushArgsForCall = append(fake.pushArgsForCall, struct {
-		arg1 *gita.PushOptions
-	}{arg1})
+	fake.pushArgsForCall = append(fake.pushArgsForCall, FakeRepositoryPushArgs{arg1})
 	stub := fake.PushStub
 	fakeReturns := fake.pushReturns
 	fake.recordInvocation("Push", []interface{}{arg1})
@@ -572,7 +608,15 @@ func (fake *FakeRepository) PushArgsForCall(i int) *gita.PushOptions {
 	fake.pushMutex.RLock()
 	defer fake.pushMutex.RUnlock()
 	argsForCall := fake.pushArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeRepository) PushArgs() []FakeRepositoryPushArgs {
+	fake.pushMutex.RLock()
+	defer fake.pushMutex.RUnlock()
+	args := make([]FakeRepositoryPushArgs, len(fake.pushArgsForCall))
+	copy(args, fake.pushArgsForCall)
+	return args
 }
 
 func (fake *FakeRepository) PushReturns(result1 error) {
@@ -601,9 +645,7 @@ func (fake *FakeRepository) PushReturnsOnCall(i int, result1 error) {
 func (fake *FakeRepository) Remote(arg1 string) (*gita.Remote, error) {
 	fake.remoteMutex.Lock()
 	ret, specificReturn := fake.remoteReturnsOnCall[len(fake.remoteArgsForCall)]
-	fake.remoteArgsForCall = append(fake.remoteArgsForCall, struct {
-		arg1 string
-	}{arg1})
+	fake.remoteArgsForCall = append(fake.remoteArgsForCall, FakeRepositoryRemoteArgs{arg1})
 	stub := fake.RemoteStub
 	fakeReturns := fake.remoteReturns
 	fake.recordInvocation("Remote", []interface{}{arg1})
@@ -633,7 +675,15 @@ func (fake *FakeRepository) RemoteArgsForCall(i int) string {
 	fake.remoteMutex.RLock()
 	defer fake.remoteMutex.RUnlock()
 	argsForCall := fake.remoteArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeRepository) RemoteArgs() []FakeRepositoryRemoteArgs {
+	fake.remoteMutex.RLock()
+	defer fake.remoteMutex.RUnlock()
+	args := make([]FakeRepositoryRemoteArgs, len(fake.remoteArgsForCall))
+	copy(args, fake.remoteArgsForCall)
+	return args
 }
 
 func (fake *FakeRepository) RemoteReturns(result1 *gita.Remote, result2 error) {
@@ -665,8 +715,7 @@ func (fake *FakeRepository) RemoteReturnsOnCall(i int, result1 *gita.Remote, res
 func (fake *FakeRepository) Remotes() ([]*gita.Remote, error) {
 	fake.remotesMutex.Lock()
 	ret, specificReturn := fake.remotesReturnsOnCall[len(fake.remotesArgsForCall)]
-	fake.remotesArgsForCall = append(fake.remotesArgsForCall, struct {
-	}{})
+	fake.remotesArgsForCall = append(fake.remotesArgsForCall, struct{}{})
 	stub := fake.RemotesStub
 	fakeReturns := fake.remotesReturns
 	fake.recordInvocation("Remotes", []interface{}{})
@@ -721,9 +770,7 @@ func (fake *FakeRepository) RemotesReturnsOnCall(i int, result1 []*gita.Remote, 
 func (fake *FakeRepository) ResolveRevision(arg1 plumbing.Revision) (*plumbing.Hash, error) {
 	fake.resolveRevisionMutex.Lock()
 	ret, specificReturn := fake.resolveRevisionReturnsOnCall[len(fake.resolveRevisionArgsForCall)]
-	fake.resolveRevisionArgsForCall = append(fake.resolveRevisionArgsForCall, struct {
-		arg1 plumbing.Revision
-	}{arg1})
+	fake.resolveRevisionArgsForCall = append(fake.resolveRevisionArgsForCall, FakeRepositoryResolveRevisionArgs{arg1})
 	stub := fake.ResolveRevisionStub
 	fakeReturns := fake.resolveRevisionReturns
 	fake.recordInvocation("ResolveRevision", []interface{}{arg1})
@@ -753,7 +800,15 @@ func (fake *FakeRepository) ResolveRevisionArgsForCall(i int) plumbing.Revision 
 	fake.resolveRevisionMutex.RLock()
 	defer fake.resolveRevisionMutex.RUnlock()
 	argsForCall := fake.resolveRevisionArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.Arg1
+}
+
+func (fake *FakeRepository) ResolveRevisionArgs() []FakeRepositoryResolveRevisionArgs {
+	fake.resolveRevisionMutex.RLock()
+	defer fake.resolveRevisionMutex.RUnlock()
+	args := make([]FakeRepositoryResolveRevisionArgs, len(fake.resolveRevisionArgsForCall))
+	copy(args, fake.resolveRevisionArgsForCall)
+	return args
 }
 
 func (fake *FakeRepository) ResolveRevisionReturns(result1 *plumbing.Hash, result2 error) {
@@ -785,8 +840,7 @@ func (fake *FakeRepository) ResolveRevisionReturnsOnCall(i int, result1 *plumbin
 func (fake *FakeRepository) Tags() (storer.ReferenceIter, error) {
 	fake.tagsMutex.Lock()
 	ret, specificReturn := fake.tagsReturnsOnCall[len(fake.tagsArgsForCall)]
-	fake.tagsArgsForCall = append(fake.tagsArgsForCall, struct {
-	}{})
+	fake.tagsArgsForCall = append(fake.tagsArgsForCall, struct{}{})
 	stub := fake.TagsStub
 	fakeReturns := fake.tagsReturns
 	fake.recordInvocation("Tags", []interface{}{})
@@ -841,28 +895,6 @@ func (fake *FakeRepository) TagsReturnsOnCall(i int, result1 storer.ReferenceIte
 func (fake *FakeRepository) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.branchesMutex.RLock()
-	defer fake.branchesMutex.RUnlock()
-	fake.commitObjectMutex.RLock()
-	defer fake.commitObjectMutex.RUnlock()
-	fake.createRemoteMutex.RLock()
-	defer fake.createRemoteMutex.RUnlock()
-	fake.createTagMutex.RLock()
-	defer fake.createTagMutex.RUnlock()
-	fake.deleteRemoteMutex.RLock()
-	defer fake.deleteRemoteMutex.RUnlock()
-	fake.headMutex.RLock()
-	defer fake.headMutex.RUnlock()
-	fake.pushMutex.RLock()
-	defer fake.pushMutex.RUnlock()
-	fake.remoteMutex.RLock()
-	defer fake.remoteMutex.RUnlock()
-	fake.remotesMutex.RLock()
-	defer fake.remotesMutex.RUnlock()
-	fake.resolveRevisionMutex.RLock()
-	defer fake.resolveRevisionMutex.RUnlock()
-	fake.tagsMutex.RLock()
-	defer fake.tagsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
@@ -870,9 +902,18 @@ func (fake *FakeRepository) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
+func (fake *FakeRepository) CallOrder() []string {
+	fake.invocationsMutex.RLock()
+	defer fake.invocationsMutex.RUnlock()
+	order := make([]string, len(fake.callOrder))
+	copy(order, fake.callOrder)
+	return order
+}
+
 func (fake *FakeRepository) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
+	fake.callOrder = append(fake.callOrder, key)
 	if fake.invocations == nil {
 		fake.invocations = map[string][][]interface{}{}
 	}
