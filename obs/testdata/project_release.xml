@@ -1,0 +1,25 @@
+<project name="isv:kubernetes:core:stable:v1.34" kind="maintenance_release">
+  <title>Kubernetes v1.34 (Stable)</title>
+  <description>Project/repository hosting packages for stable versions of Kubernetes v1.34</description>
+  <url>https://kubernetes.io</url>
+  <person userid="k8s-release-bot" role="maintainer"/>
+  <person userid="xmudrii" role="maintainer"/>
+  <build>
+    <disable/>
+  </build>
+  <repository name="rpm">
+    <path project="SUSE:SLE-15-SP5:GA" repository="standard"/>
+    <arch>x86_64</arch>
+    <arch>aarch64</arch>
+    <arch>ppc64le</arch>
+    <arch>s390x</arch>
+  </repository>
+  <repository name="deb">
+    <path project="Ubuntu:20.04" repository="universe"/>
+    <path project="Ubuntu:debbuild" repository="Ubuntu_20.04"/>
+    <arch>x86_64</arch>
+    <arch>aarch64</arch>
+    <arch>s390x</arch>
+    <arch>ppc64le</arch>
+  </repository>
+</project>

@@ -1,0 +1,4 @@
+<package name="kubelet" project="isv:kubernetes:core:stable:v1.34:build">
+  <title></title>
+  <description></description>
+</package>

@@ -1,0 +1,33 @@
+<project name="isv:kubernetes">
+  <title>Kubernetes</title>
+  <description>Official Kubernetes package repositories sponsored by OpenBuildService</description>
+  <url>https://kubernetes.io</url>
+  <person userid="cpanato" role="bugowner"/>
+  <person userid="jrrickard" role="bugowner"/>
+  <person userid="justaugustus" role="bugowner"/>
+  <person userid="k8s-release-bot" role="bugowner"/>
+  <person userid="puerco" role="bugowner"/>
+  <person userid="sagrunert" role="bugowner"/>
+  <person userid="verolop" role="bugowner"/>
+  <person userid="xmudrii" role="bugowner"/>
+  <person userid="cpanato" role="maintainer"/>
+  <person userid="jrrickard" role="maintainer"/>
+  <person userid="justaugustus" role="maintainer"/>
+  <person userid="k8s-release-bot" role="maintainer"/>
+  <person userid="puerco" role="maintainer"/>
+  <person userid="sagrunert" role="maintainer"/>
+  <person userid="verolop" role="maintainer"/>
+  <person userid="xmudrii" role="maintainer"/>
+  <build>
+    <disable/>
+  </build>
+  <publish>
+    <disable/>
+  </publish>
+  <debuginfo>
+    <disable/>
+  </debuginfo>
+  <useforbuild>
+    <disable/>
+  </useforbuild>
+</project>

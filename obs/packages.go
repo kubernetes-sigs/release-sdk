@@ -17,134 +17,92 @@ limitations under the License.
 package obs
 
 import (
-	"bytes"
 	"context"
 	"encoding/xml"
+	"errors"
 	"fmt"
-	"net/http"
-	"net/url"
 )
 
-// Package contains information about an OBS Package.
+// Package is the meta document of an OBS package, limited to the elements
+// modeled here.
 type Package struct {
-	XMLName     xml.Name `json:"package"               xml:"package"`
-	Name        string   `json:"name"                  xml:"name,attr"`
-	Project     string   `json:"project"               xml:"project,attr"`
-	Title       string   `json:"title,omitempty"       xml:"title,omitempty"`
-	Description string   `json:"description,omitempty" xml:"description,omitempty"`
-	Devel       *Devel   `json:"devel,omitempty"       xml:"devel,omitempty"`
+	XMLName        xml.Name `json:"-"                        xml:"package"`
+	Name           string   `json:"name"                     xml:"name,attr"`
+	Project        string   `json:"project,omitempty"        xml:"project,attr,omitempty"`
+	Title          string   `json:"title"                    xml:"title"`
+	Description    string   `json:"description"              xml:"description"`
+	URL            string   `json:"url,omitempty"            xml:"url,omitempty"`
+	Devel          *Devel   `json:"devel,omitempty"          xml:"devel,omitempty"`
+	ReleaseName    string   `json:"releaseName,omitempty"    xml:"releasename,omitempty"`
+	Persons        []Person `json:"persons,omitempty"        xml:"person,omitempty"`
+	Groups         []Group  `json:"groups,omitempty"         xml:"group,omitempty"`
+	Build          Flag     `json:"build,omitempty"          xml:"build,omitempty"`
+	Publish        Flag     `json:"publish,omitempty"        xml:"publish,omitempty"`
+	UseForBuild    Flag     `json:"useForBuild,omitempty"    xml:"useforbuild,omitempty"`
+	DebugInfo      Flag     `json:"debugInfo,omitempty"      xml:"debuginfo,omitempty"`
+	BinaryDownload Flag     `json:"binaryDownload,omitempty" xml:"binarydownload,omitempty"`
+	BcntSyncTag    string   `json:"bcntSyncTag,omitempty"    xml:"bcntsynctag,omitempty"`
 }
 
-// Devel represents the development information.
+// Devel points at the project and package where the package is developed.
 type Devel struct {
-	Project string `json:"project" xml:"project,attr"`
-	Package string `json:"package" xml:"package,attr"`
+	Project string `json:"project"           xml:"project,attr"`
+	Package string `json:"package,omitempty" xml:"package,attr,omitempty"`
 }
 
-// CreateUpdatePackage creates a new OBS package or updates an existing OBS package of a project.
-func (o *OBS) CreateUpdatePackage(ctx context.Context, projectName string, pkg *Package) error {
-	xmlData, err := xml.MarshalIndent(pkg, "", " ")
-	if err != nil {
-		return fmt.Errorf("creating obs package: marshalling package meta: %w", err)
+// GetPackageMeta returns the meta of the given package. Use IsNotFound on the
+// returned error to check whether the package exists.
+func (o *OBS) GetPackageMeta(ctx context.Context, projectName, packageName string) (*Package, error) {
+	if err := validateProjectName(projectName); err != nil {
+		return nil, err
 	}
 
-	urlPath, err := url.JoinPath(o.options.APIURL, "source", projectName, pkg.Name, "_meta")
-	if err != nil {
-		return fmt.Errorf("creating obs package: joining url: %w", err)
-	}
-
-	resp, err := o.client.InvokeOBSEndpoint(ctx, o.options.Username, o.options.Password, http.MethodPut, urlPath, bytes.NewBuffer(xmlData))
-	if err != nil {
-		return fmt.Errorf("creating obs package: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		var status Status
-		if err := xml.NewDecoder(resp.Body).Decode(&status); err != nil {
-			return &APIError{
-				HTTPStatusCode: resp.StatusCode,
-				OBSStatusCode:  "",
-				Message:        fmt.Sprintf("creating obs package: decoding error response: %v", err),
-			}
-		}
-
-		return &APIError{
-			HTTPStatusCode: resp.StatusCode,
-			OBSStatusCode:  status.Code,
-			Message:        status.Summary,
-		}
-	}
-
-	return nil
-}
-
-// GetPackageMetaFile returns package's meta for a given OBS project.
-func (o *OBS) GetPackageMetaFile(ctx context.Context, projectName, packageName string) (*Package, error) {
-	urlPath, err := url.JoinPath(o.options.APIURL, "source", projectName, packageName, "_meta")
-	if err != nil {
-		return nil, fmt.Errorf("getting obs package: joining url: %w", err)
-	}
-
-	resp, err := o.client.InvokeOBSEndpoint(ctx, o.options.Username, o.options.Password, http.MethodGet, urlPath, nil)
-	if err != nil {
-		return nil, fmt.Errorf("getting obs package: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		var status Status
-		if err := xml.NewDecoder(resp.Body).Decode(&status); err != nil {
-			return nil, &APIError{
-				HTTPStatusCode: resp.StatusCode,
-				OBSStatusCode:  "",
-				Message:        fmt.Sprintf("getting obs package: decoding error response: %v", err),
-			}
-		}
-
-		return nil, &APIError{
-			HTTPStatusCode: resp.StatusCode,
-			OBSStatusCode:  status.Code,
-			Message:        status.Summary,
-		}
+	if err := validatePackageName(packageName); err != nil {
+		return nil, err
 	}
 
 	pkg := &Package{}
-	if err = xml.NewDecoder(resp.Body).Decode(&pkg); err != nil {
-		return nil, fmt.Errorf("getting obs package: decoding response: %w", err)
+	if err := o.get(ctx, pkg, nil, "source", projectName, packageName, "_meta"); err != nil {
+		return nil, fmt.Errorf("getting meta of package %s/%s: %w", projectName, packageName, err)
 	}
 
 	return pkg, nil
 }
 
-// DeletePackage deletes an existing OBS package.
+// PutPackageMeta creates the package in its project or updates its meta. OBS
+// replaces the whole document, so elements Package does not model are dropped.
+func (o *OBS) PutPackageMeta(ctx context.Context, pkg *Package) error {
+	if pkg == nil {
+		return errors.New("package must not be nil")
+	}
+
+	if err := validateProjectName(pkg.Project); err != nil {
+		return err
+	}
+
+	if err := validatePackageName(pkg.Name); err != nil {
+		return err
+	}
+
+	if err := o.put(ctx, pkg, "source", pkg.Project, pkg.Name, "_meta"); err != nil {
+		return fmt.Errorf("putting meta of package %s/%s: %w", pkg.Project, pkg.Name, err)
+	}
+
+	return nil
+}
+
+// DeletePackage deletes the given package from the given project.
 func (o *OBS) DeletePackage(ctx context.Context, projectName, packageName string) error {
-	urlPath, err := url.JoinPath(o.options.APIURL, "source", projectName, packageName)
-	if err != nil {
-		return fmt.Errorf("deleting obs package: joining url: %w", err)
+	if err := validateProjectName(projectName); err != nil {
+		return err
 	}
 
-	resp, err := o.client.InvokeOBSEndpoint(ctx, o.options.Username, o.options.Password, http.MethodDelete, urlPath, nil)
-	if err != nil {
-		return fmt.Errorf("deleting obs package: invoking obs endpoint: %w", err)
+	if err := validatePackageName(packageName); err != nil {
+		return err
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		var status Status
-		if err := xml.NewDecoder(resp.Body).Decode(&status); err != nil {
-			return &APIError{
-				HTTPStatusCode: resp.StatusCode,
-				OBSStatusCode:  "",
-				Message:        fmt.Sprintf("deleting obs package: decoding error response %v", err),
-			}
-		}
-
-		return &APIError{
-			HTTPStatusCode: resp.StatusCode,
-			OBSStatusCode:  status.Code,
-			Message:        status.Summary,
-		}
+	if err := o.delete(ctx, "source", projectName, packageName); err != nil {
+		return fmt.Errorf("deleting package %s/%s: %w", projectName, packageName, err)
 	}
 
 	return nil

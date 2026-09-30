@@ -1,0 +1,23 @@
+<project name="isv:kubernetes:core:stable:v1.34:build">
+  <title>Kubernetes v1.34 (Stable Builder)</title>
+  <description>This is a project used to build packages for Kubernetes v1.34. Don't use this project/repository directly, instead use &quot;isv:kubernetes:core:stable:v1.34&quot; project.</description>
+  <person userid="k8s-release-bot" role="maintainer"/>
+  <person userid="xmudrii" role="maintainer"/>
+  <repository name="rpm">
+    <releasetarget project="isv:kubernetes:core:stable:v1.34" repository="rpm" trigger="manual"/>
+    <path project="SUSE:SLE-15-SP5:GA" repository="standard"/>
+    <arch>x86_64</arch>
+    <arch>aarch64</arch>
+    <arch>ppc64le</arch>
+    <arch>s390x</arch>
+  </repository>
+  <repository name="deb">
+    <releasetarget project="isv:kubernetes:core:stable:v1.34" repository="deb" trigger="manual"/>
+    <path project="Ubuntu:20.04" repository="universe"/>
+    <path project="Ubuntu:debbuild" repository="Ubuntu_20.04"/>
+    <arch>x86_64</arch>
+    <arch>aarch64</arch>
+    <arch>ppc64le</arch>
+    <arch>s390x</arch>
+  </repository>
+</project>
