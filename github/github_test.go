@@ -25,8 +25,6 @@ import (
 	gogithub "github.com/google/go-github/v88/github"
 	"github.com/stretchr/testify/require"
 
-	"k8s.io/utils/ptr"
-
 	"sigs.k8s.io/release-sdk/git"
 	"sigs.k8s.io/release-sdk/github"
 	"sigs.k8s.io/release-sdk/github/githubfakes"
@@ -699,9 +697,9 @@ func TestUpdateReleasePageWithOptions(t *testing.T) {
 	opts := &github.UpdateReleasePageOptions{
 		Name:       &name,
 		Body:       &body,
-		Draft:      ptr.To(false),
-		Prerelease: ptr.To(false),
-		Latest:     ptr.To(true),
+		Draft:      new(false),
+		Prerelease: new(false),
+		Latest:     new(true),
 	}
 	release := &gogithub.RepositoryRelease{
 		ID:              &fakeID,
@@ -710,9 +708,9 @@ func TestUpdateReleasePageWithOptions(t *testing.T) {
 		TagName:         &tagName,
 		TargetCommitish: &commitish,
 
-		Draft:      ptr.To(false),
-		Prerelease: ptr.To(false),
-		MakeLatest: ptr.To("true"),
+		Draft:      new(false),
+		Prerelease: new(false),
+		MakeLatest: new("true"),
 	}
 
 	for _, tcErr := range []error{errors.New("Test error"), nil} {

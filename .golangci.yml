@@ -7,11 +7,13 @@ run:
 linters:
   default: none
   enable:
+    - arangolint
     - asasalint
     - asciicheck
     - bidichk
     - bodyclose
     - canonicalheader
+    - clickhouselint
     - containedctx
     - contextcheck
     - copyloopvar
@@ -20,6 +22,7 @@ linters:
     - dupl
     - dupword
     - durationcheck
+    - embeddedstructfieldcheck
     - errcheck
     - errchkjson
     - errname
@@ -30,6 +33,7 @@ linters:
     - forbidigo
     - ginkgolinter
     - gocheckcompilerdirectives
+    - gochecknoinits
     - gochecksumtype
     - gocognit
     - goconst
@@ -39,7 +43,7 @@ linters:
     - godox
     - goheader
     - gomoddirectives
-    - gomodguard
+    - gomodguard_v2
     - goprintffuncname
     - gosmopolitan
     - govet
@@ -48,11 +52,13 @@ linters:
     - importas
     - ineffassign
     - intrange
+    - iotamixing
     - loggercheck
     - maintidx
     - makezero
     - mirror
     - misspell
+    - modernize
     - nakedret
     - nestif
     - nilnesserr
@@ -79,6 +85,7 @@ linters:
     - testifylint
     - unconvert
     - unparam
+    - unqueryvet
     - unused
     - usestdlibvars
     - usetesting
@@ -89,11 +96,12 @@ linters:
     # - cyclop
     # - depguard
     # - err113
-    # - exhaustruct
+    # - exhaustruct_v5
     # - forcetypeassert
+    # - funcorder
     # - funlen
     # - gochecknoglobals
-    # - gochecknoinits
+    # - godoclint
     # - gosec
     # - inamedparam
     # - interfacebloat
@@ -103,6 +111,7 @@ linters:
     # - musttag
     # - nilerr
     # - nilnil
+    # - noinlineerr
     # - nonamedreturns
     # - paralleltest
     # - testpackage
@@ -202,6 +211,10 @@ linters:
       - common-false-positives
       - legacy
       - std-error-handling
+    rules:
+      - linters:
+          - goconst
+        path: _test\.go
     paths:
       - third_party$
       - builtin$
