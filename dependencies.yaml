@@ -1,13 +1,13 @@
 ---
 dependencies:
-  - name: go (GitHub Actions)
-    version: 1.26
-    refPaths:
-      - path: .github/workflows/e2e.yml
-        match: go-version
-
   - name: Go Mod
-    version: 1.26.0
+    version: 1.27.0
     refPaths:
       - path: go.mod
         match: go
+
+  - name: golangci-lint
+    version: 2.14.0
+    refPaths:
+      - path: magefile.go
+        match: golangciLintVersion\s+=\s+"v

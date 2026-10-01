@@ -34,8 +34,9 @@ import (
 var Default = Verify
 
 const (
-	binDir    = "bin"
-	scriptDir = "scripts"
+	binDir              = "bin"
+	scriptDir           = "scripts"
+	golangciLintVersion = "v2.14.0"
 )
 
 var boilerplateDir = filepath.Join(scriptDir, "boilerplate")
@@ -111,7 +112,7 @@ func Verify() error {
 	}
 
 	fmt.Println("Running golangci-lint...")
-	if err := mage.RunGolangCILint("", false); err != nil {
+	if err := mage.RunGolangCILint(golangciLintVersion, false); err != nil {
 		return err
 	}
 
