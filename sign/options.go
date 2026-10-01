@@ -21,9 +21,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/sigstore/cosign/v2/cmd/cosign/cli/options"
-	"github.com/sigstore/cosign/v2/pkg/cosign"
+	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/sirupsen/logrus"
+
+	"sigs.k8s.io/release-utils/helpers"
 )
 
 // Options can be used to modify the behavior of the signer.
@@ -66,8 +67,8 @@ type Options struct {
 	// PassFunc is a function that returns a slice of bytes that will be used
 	// as a password for decrypting the cosign key. It is used only if PrivateKeyPath
 	// is provided (i.e. it's not used for keyless signing).
-	// Defaults to nil, which acts as having no password provided at all.
-	PassFunc cosign.PassFunc
+	// Defaults to nil, which acts as having an empty password.
+	PassFunc cryptoutils.PassFunc
 
 	// MaxRetries indicates the number of times to retry operations
 	// when transient failures occur
@@ -112,12 +113,6 @@ func Default() *Options {
 	}
 }
 
-func (o *Options) ToCosignRootOptions() options.RootOptions {
-	return options.RootOptions{
-		Timeout: o.Timeout,
-	}
-}
-
 // verifySignOptions checks that options have the minimum settings
 // for signing files or images:.
 func (o *Options) verifySignOptions() error {
@@ -129,8 +124,7 @@ func (o *Options) verifySignOptions() error {
 	}
 
 	// Ensure that the private key file exists
-	i := defaultImpl{}
-	if o.PrivateKeyPath != "" && !i.FileExists(o.PrivateKeyPath) {
+	if o.PrivateKeyPath != "" && !helpers.Exists(o.PrivateKeyPath) {
 		return errors.New("specified private key file not found")
 	}
 

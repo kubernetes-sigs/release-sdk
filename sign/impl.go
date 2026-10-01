@@ -20,117 +20,75 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"sync"
+	"time"
 
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
-	"github.com/sigstore/cosign/v2/cmd/cosign/cli/options"
-	"github.com/sigstore/cosign/v2/cmd/cosign/cli/rekor"
-	"github.com/sigstore/cosign/v2/cmd/cosign/cli/sign"
-	"github.com/sigstore/cosign/v2/cmd/cosign/cli/verify"
-	"github.com/sigstore/cosign/v2/pkg/blob"
-	"github.com/sigstore/cosign/v2/pkg/cosign"
-	"github.com/sigstore/cosign/v2/pkg/providers"
-	"github.com/sigstore/rekor/pkg/generated/client"
-	"github.com/sigstore/rekor/pkg/generated/models"
+	"github.com/sigstore/cosign/v3/pkg/providers"
+	_ "github.com/sigstore/cosign/v3/pkg/providers/buildkite"  // register provider
+	_ "github.com/sigstore/cosign/v3/pkg/providers/envvar"     // register provider
+	_ "github.com/sigstore/cosign/v3/pkg/providers/filesystem" // register provider
+	_ "github.com/sigstore/cosign/v3/pkg/providers/github"     // register provider
+	_ "github.com/sigstore/cosign/v3/pkg/providers/google"     // register provider
+	_ "github.com/sigstore/cosign/v3/pkg/providers/spiffe"     // register provider
+	rekorgenerated "github.com/sigstore/rekor/pkg/generated/client"
+	"github.com/sigstore/sigstore-go/pkg/root"
+	"github.com/sigstore/sigstore-go/pkg/tuf"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/singleflight"
 
-	"sigs.k8s.io/release-utils/env"
 	"sigs.k8s.io/release-utils/helpers"
 )
 
-type defaultImpl struct{}
+type defaultImpl struct {
+	mu             sync.Mutex
+	tufGroup       singleflight.Group
+	tufClient      *tuf.Client
+	tufFetched     time.Time
+	trustedRoot    *root.TrustedRoot
+	signingConf    *root.SigningConfig
+	rekorClientURL string
+	rekor          *rekorgenerated.Rekor
+}
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 //counterfeiter:generate . impl
 //go:generate /usr/bin/env bash -c "cat ../scripts/boilerplate/boilerplate.generatego.txt signfakes/fake_impl.go > signfakes/_fake_impl.go && mv signfakes/_fake_impl.go signfakes/fake_impl.go"
 type impl interface {
-	VerifyFileInternal(ctx context.Context, ko options.KeyOpts, certOpts options.CertVerifyOptions, outputSignature, path string) error
-	VerifyImageInternal(ctx context.Context, certOpts options.CertVerifyOptions, keyPath string, images []string, ignoreTLog bool) (*SignedObject, error)
-	SignImageInternal(ro options.RootOptions, ko options.KeyOpts, signOpts options.SignOptions, imgs []string) error
-	SignFileInternal(ro options.RootOptions, ko options.KeyOpts, payloadPath string,
-		b64 bool, outputSignature string, outputCertificate string, tlogUpload bool) error
-	Setenv(string, string) error
-	EnvDefault(string, string) string
+	VerifyFileInternal(ctx context.Context, opts *Options, fileSHA256 string, useTlog bool) error
+	VerifyImageInternal(ctx context.Context, opts *Options, reference string) (digest string, err error)
+	SignImageInternal(ctx context.Context, opts *Options, identityToken, reference string) error
+	SignFileInternal(ctx context.Context, opts *Options, identityToken, path string) error
+	TlogEntryUUIDs(ctx context.Context, opts *Options, sha256 string) ([]string, error)
 	TokenFromProviders(context.Context, *logrus.Logger) (string, error)
 	FileExists(string) bool
 	ParseReference(string, ...name.Option) (name.Reference, error)
-	FindTlogEntry(ctx context.Context, rClient *client.Rekor, b64Sig string, blobBytes []byte, pubKey []byte) ([]models.LogEntryAnon, error)
 	Digest(ref string, opt ...crane.Option) (string, error)
-	PayloadBytes(blobRef string) ([]byte, error)
-	NewRekorClient(string) (*client.Rekor, error)
 	NewWithContext(context.Context, name.Registry, authn.Authenticator, http.RoundTripper, []string) (http.RoundTripper, error)
 	ImagesSigned(context.Context, *Signer, ...string) (*sync.Map, error)
 }
 
-func (*defaultImpl) VerifyFileInternal(ctx context.Context, ko options.KeyOpts, certOpts options.CertVerifyOptions, outputSignature, //nolint: gocritic
-	path string,
-) error {
-	verifyBlob := verify.VerifyBlobCmd{
-		KeyOpts:                      ko,
-		CertVerifyOptions:            certOpts,
-		CertRef:                      certOpts.Cert,
-		CertChain:                    certOpts.CertChain,
-		SigRef:                       outputSignature,
-		CertGithubWorkflowTrigger:    certOpts.CertGithubWorkflowTrigger,
-		CertGithubWorkflowSHA:        certOpts.CertGithubWorkflowSha,
-		CertGithubWorkflowName:       certOpts.CertGithubWorkflowName,
-		CertGithubWorkflowRepository: certOpts.CertGithubWorkflowRepository,
-		CertGithubWorkflowRef:        certOpts.CertGithubWorkflowRef,
-		IgnoreSCT:                    certOpts.IgnoreSCT,
-		SCTRef:                       "",
-		Offline:                      false,
-		IgnoreTlog:                   true,
-	}
-
-	return verifyBlob.Exec(ctx, path)
+func (d *defaultImpl) VerifyFileInternal(ctx context.Context, opts *Options, fileSHA256 string, useTlog bool) error {
+	return d.verifyFile(ctx, opts, fileSHA256, useTlog)
 }
 
-func (*defaultImpl) VerifyImageInternal(ctx context.Context, certOpts options.CertVerifyOptions, //nolint: gocritic
-	publickeyPath string, images []string, ignoreTLog bool,
-) (*SignedObject, error) {
-	v := verify.VerifyCommand{
-		IgnoreTlog: ignoreTLog,
-		KeyRef:     publickeyPath,
-		CertVerifyOptions: options.CertVerifyOptions{
-			CertIdentity:         certOpts.CertIdentity,
-			CertIdentityRegexp:   certOpts.CertIdentityRegexp,
-			CertOidcIssuer:       certOpts.CertOidcIssuer,
-			CertOidcIssuerRegexp: certOpts.CertOidcIssuerRegexp,
-			IgnoreSCT:            certOpts.IgnoreSCT,
-		},
-		IgnoreSCT: certOpts.IgnoreSCT,
-	}
-
-	return &SignedObject{}, v.Exec(ctx, images)
+func (d *defaultImpl) VerifyImageInternal(ctx context.Context, opts *Options, reference string) (string, error) {
+	return d.verifyImage(ctx, opts, reference)
 }
 
-func (*defaultImpl) SignImageInternal(ro options.RootOptions, ko options.KeyOpts, //nolint: gocritic
-	signOpts options.SignOptions, imgs []string, //nolint: gocritic
-) error {
-	return sign.SignCmd(
-		&ro, ko, signOpts, imgs)
+func (d *defaultImpl) SignImageInternal(ctx context.Context, opts *Options, identityToken, reference string) error {
+	return d.signImage(ctx, opts, identityToken, reference)
 }
 
-func (*defaultImpl) SignFileInternal(ro options.RootOptions, ko options.KeyOpts, //nolint: gocritic
-	payloadPath string, b64 bool, outputSignature string, outputCertificate string, tlogUpload bool,
-) error {
-	// Ignoring the signature return value for now as we are setting the outputSignature path and to keep an consistent impl API
-	// Setting timeout as 0 is acceptable here because SignBlobCmd uses the passed context
-	_, err := sign.SignBlobCmd(&ro, ko, payloadPath, b64, outputSignature, outputCertificate, tlogUpload)
-
-	return err
+func (d *defaultImpl) SignFileInternal(ctx context.Context, opts *Options, identityToken, path string) error {
+	return d.signFile(ctx, opts, identityToken, path)
 }
 
-func (*defaultImpl) Setenv(key, value string) error {
-	return os.Setenv(key, value)
-}
-
-func (*defaultImpl) EnvDefault(key, def string) string {
-	return env.Default(key, def)
+func (d *defaultImpl) TlogEntryUUIDs(ctx context.Context, opts *Options, sha256 string) ([]string, error) {
+	return d.tlogEntryUUIDs(ctx, opts, sha256)
 }
 
 // TokenFromProviders will try the cosign OIDC providers to get an
@@ -168,29 +126,10 @@ func (*defaultImpl) ParseReference(
 	return name.ParseReference(s, opts...)
 }
 
-func (d *defaultImpl) FindTlogEntry(
-	ctx context.Context, rClient *client.Rekor, b64Sig string, blobBytes []byte, pubKey []byte,
-) ([]models.LogEntryAnon, error) {
-	return cosign.FindTlogEntry(ctx, rClient, b64Sig, blobBytes, pubKey)
-}
-
 func (*defaultImpl) Digest(
 	ref string, opts ...crane.Option,
 ) (string, error) {
 	return crane.Digest(ref, opts...)
-}
-
-func (*defaultImpl) PayloadBytes(blobRef string) (blobBytes []byte, err error) {
-	blobBytes, err = blob.LoadFileOrURL(blobRef)
-	if err != nil {
-		return nil, fmt.Errorf("load file or url of sign payload: %w", err)
-	}
-
-	return blobBytes, nil
-}
-
-func (*defaultImpl) NewRekorClient(rekorURL string) (*client.Rekor, error) {
-	return rekor.NewClient(rekorURL)
 }
 
 func (*defaultImpl) NewWithContext(

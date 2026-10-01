@@ -18,12 +18,10 @@ package sign
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -35,9 +33,6 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 	"github.com/jellydator/ttlcache/v3"
 	"github.com/nozzle/throttler"
-	cliOpts "github.com/sigstore/cosign/v2/cmd/cosign/cli/options"
-	sigs "github.com/sigstore/cosign/v2/pkg/signature"
-	signatureoptions "github.com/sigstore/sigstore/pkg/signature/options"
 	"github.com/sirupsen/logrus"
 
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -162,40 +157,14 @@ func (s *Signer) SignImageWithOptions(options *Options, reference string) (objec
 		}
 	}
 
-	ko := cliOpts.KeyOpts{
-		KeyRef:           options.PrivateKeyPath,
-		IDToken:          identityToken,
-		PassFunc:         options.PassFunc,
-		FulcioURL:        cliOpts.DefaultFulcioURL,
-		RekorURL:         cliOpts.DefaultRekorURL,
-		OIDCIssuer:       cliOpts.DefaultOIDCIssuerURL,
-		SkipConfirmation: true,
-
-		InsecureSkipFulcioVerify: false,
-	}
-
-	signOpts := cliOpts.SignOptions{
-		OutputSignature:   options.OutputSignaturePath,
-		OutputCertificate: options.OutputCertificatePath,
-		Upload:            true,
-		Recursive:         options.Recursive,
-		TlogUpload:        true,
-		SkipConfirmation:  true,
-		Annotations:       options.Annotations,
-		Registry: cliOpts.RegistryOptions{
-			AllowInsecure: options.AllowInsecure,
-		},
-		SignContainerIdentity: options.SignContainerIdentity,
-	}
-
-	images := []string{reference}
-
-	if err := s.impl.SignImageInternal(options.ToCosignRootOptions(), ko, signOpts, images); err != nil {
+	if err := s.impl.SignImageInternal(ctx, options, identityToken, reference); err != nil {
 		return nil, fmt.Errorf("sign reference: %s: %w", reference, err)
 	}
 
-	// remove the reference from the cache in case we called IsImageSigned before signing.
+	// Remove the reference from the caches in case it got checked or verified
+	// before signing, because a new signature has been added.
 	s.signedRefs.Delete(reference)
+	s.signedObjs.Delete(reference)
 
 	// After signing, registry consistency may not be there right
 	// away. Retry the image verification if it fails
@@ -205,9 +174,19 @@ func (s *Signer) SignImageWithOptions(options *Options, reference string) (objec
 		Factor:   1.5,
 		Steps:    int(options.MaxRetries),
 	}, func() (bool, error) {
-		object, err = s.VerifyImage(images[0])
+		// Verify with the same options used for signing.
+		object, err = s.verifyImage(options, reference)
 		if err != nil {
-			err = fmt.Errorf("verifying reference %s: %w", images[0], err)
+			err = fmt.Errorf("verifying reference %s: %w", reference, err)
+
+			return false, nil
+		}
+
+		// The signature may not be visible yet, so drop the cached
+		// unsigned state and retry.
+		if object == nil {
+			s.signedRefs.Delete(reference)
+			err = fmt.Errorf("verifying reference %s: no signature found", reference)
 
 			return false, nil
 		}
@@ -247,55 +226,18 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 		}
 	}
 
-	ko := cliOpts.KeyOpts{
-		KeyRef:           s.options.PrivateKeyPath,
-		IDToken:          identityToken,
-		PassFunc:         s.options.PassFunc,
-		FulcioURL:        cliOpts.DefaultFulcioURL,
-		RekorURL:         cliOpts.DefaultRekorURL,
-		OIDCIssuer:       cliOpts.DefaultOIDCIssuerURL,
-		SkipConfirmation: true,
-
-		InsecureSkipFulcioVerify: false,
-	}
-
-	if s.options.OutputCertificatePath == "" {
-		s.options.OutputCertificatePath = path + certExt
-	}
-
-	if s.options.OutputSignaturePath == "" {
-		s.options.OutputSignaturePath = path + sigExt
-	}
+	opts := s.fileOptions(path)
 
 	fileSHA, err := hash.SHA256ForFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("file retrieve sha256: %s: %w", path, err)
 	}
 
-	if err := s.impl.SignFileInternal(
-		s.options.ToCosignRootOptions(), ko, path, true,
-		s.options.OutputSignaturePath, s.options.OutputCertificatePath, true,
-	); err != nil {
+	if err := s.impl.SignFileInternal(ctx, opts, identityToken, path); err != nil {
 		return nil, fmt.Errorf("sign file: %s: %w", path, err)
 	}
 
-	verifyKo := ko
-	verifyKo.KeyRef = s.options.PublicKeyPath
-
-	certOpts := cliOpts.CertVerifyOptions{
-		CertIdentity:         s.options.CertIdentity,
-		CertIdentityRegexp:   s.options.CertIdentityRegexp,
-		CertOidcIssuer:       s.options.CertOidcIssuer,
-		CertOidcIssuerRegexp: s.options.CertOidcIssuerRegexp,
-		IgnoreSCT:            s.options.IgnoreSCT,
-	}
-
-	if s.options.PublicKeyPath == "" {
-		certOpts.Cert = s.options.OutputCertificatePath
-	}
-
-	err = s.impl.VerifyFileInternal(ctx, verifyKo, certOpts, s.options.OutputSignaturePath, path)
-	if err != nil {
+	if err := s.impl.VerifyFileInternal(ctx, opts, fileSHA, false); err != nil {
 		return nil, fmt.Errorf("verifying signed file: %s: %w", path, err)
 	}
 
@@ -303,15 +245,36 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 		file: &SignedFile{
 			path:            path,
 			sha256:          fileSHA,
-			signaturePath:   s.options.OutputSignaturePath,
-			certificatePath: s.options.OutputCertificatePath,
+			signaturePath:   opts.OutputSignaturePath,
+			certificatePath: opts.OutputCertificatePath,
 		},
 	}, nil
+}
+
+// fileOptions returns a copy of the options with the signature and
+// certificate paths defaulting to the provided file path. The shared options
+// are not modified to avoid reusing the paths for other files.
+func (s *Signer) fileOptions(path string) *Options {
+	opts := *s.options
+
+	if opts.OutputCertificatePath == "" {
+		opts.OutputCertificatePath = path + certExt
+	}
+
+	if opts.OutputSignaturePath == "" {
+		opts.OutputSignaturePath = path + sigExt
+	}
+
+	return &opts
 }
 
 // VerifyImage can be used to validate any provided container image reference by
 // using keyless signing. It ignores unsigned images.
 func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
+	return s.verifyImage(s.options, reference)
+}
+
+func (s *Signer) verifyImage(options *Options, reference string) (*SignedObject, error) {
 	s.log().Infof("Verifying reference: %s", reference)
 
 	item := s.signedObjs.Get(reference)
@@ -319,7 +282,7 @@ func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 		return item.Value(), nil
 	}
 
-	res, err := s.VerifyImages(reference)
+	res, err := s.verifyImages(options, reference)
 	if err != nil {
 		return nil, fmt.Errorf("verify image: %w", err)
 	}
@@ -344,6 +307,10 @@ func (s *Signer) VerifyImage(reference string) (*SignedObject, error) {
 // list by using keyless signing. It ignores unsigned images. Returns a sync map
 // where the key is the ref (string) and the value is the *SignedObject.
 func (s *Signer) VerifyImages(refs ...string) (*sync.Map, error) {
+	return s.verifyImages(s.options, refs...)
+}
+
+func (s *Signer) verifyImages(options *Options, refs ...string) (*sync.Map, error) {
 	s.log().Debug("Checking cache")
 
 	res := &sync.Map{}
@@ -371,7 +338,7 @@ func (s *Signer) VerifyImages(refs ...string) (*sync.Map, error) {
 	// checking whether the image being verified has a signature
 	// if there is no signature, we should skip
 	// ref: https://kubernetes.slack.com/archives/CJH2GBF7Y/p1647459428848859?thread_ts=1647428695.280269&cid=CJH2GBF7Y
-	ctx, cancel := s.options.context()
+	ctx, cancel := options.context()
 	defer cancel()
 
 	imagesSigned, err := s.impl.ImagesSigned(ctx, s, unknownRefs...)
@@ -403,22 +370,14 @@ func (s *Signer) VerifyImages(refs ...string) (*sync.Map, error) {
 		return true
 	})
 
-	t := throttler.New(int(s.options.MaxWorkers), len(unknownRefs))
+	t := throttler.New(int(options.MaxWorkers), len(unknownRefs))
 
 	for _, ref := range unknownRefs {
 		go func(ref string) {
-			ctx, cancel := s.options.context()
+			ctx, cancel := options.context()
 			defer cancel()
 
-			certOpts := cliOpts.CertVerifyOptions{
-				CertIdentity:         s.options.CertIdentity,
-				CertIdentityRegexp:   s.options.CertIdentityRegexp,
-				CertOidcIssuer:       s.options.CertOidcIssuer,
-				CertOidcIssuerRegexp: s.options.CertOidcIssuerRegexp,
-				IgnoreSCT:            s.options.IgnoreSCT,
-			}
-
-			_, err = s.impl.VerifyImageInternal(ctx, certOpts, s.options.PublicKeyPath, []string{ref}, s.options.IgnoreTlog)
+			digest, err := s.impl.VerifyImageInternal(ctx, options, ref)
 			if err != nil {
 				t.Done(fmt.Errorf("verify image reference: %s: %w", ref, err))
 
@@ -437,13 +396,6 @@ func (s *Signer) VerifyImages(refs ...string) (*sync.Map, error) {
 
 					return
 				}
-			}
-
-			digest, err := s.impl.Digest(parsedRef.String())
-			if err != nil {
-				t.Done(fmt.Errorf("getting the reference digest for %s: %w", ref, err))
-
-				return
 			}
 
 			obj := &SignedObject{
@@ -479,58 +431,34 @@ func (s *Signer) VerifyImages(refs ...string) (*sync.Map, error) {
 func (s *Signer) VerifyFile(path string, ignoreTLog bool) (*SignedObject, error) {
 	s.log().Infof("Verifying file path: %s", path)
 
-	ko := cliOpts.KeyOpts{
-		KeyRef:   s.options.PublicKeyPath,
-		RekorURL: cliOpts.DefaultRekorURL,
-	}
-
-	if s.options.OutputCertificatePath == "" {
-		s.options.OutputCertificatePath = path + certExt
-	}
-
-	if s.options.OutputSignaturePath == "" {
-		s.options.OutputSignaturePath = path + sigExt
-	}
-
-	certOpts := cliOpts.CertVerifyOptions{
-		CertIdentity:         s.options.CertIdentity,
-		CertIdentityRegexp:   s.options.CertIdentityRegexp,
-		CertOidcIssuer:       s.options.CertOidcIssuer,
-		CertOidcIssuerRegexp: s.options.CertOidcIssuerRegexp,
-		IgnoreSCT:            s.options.IgnoreSCT,
-	}
-
-	if s.options.PublicKeyPath == "" {
-		certOpts.Cert = s.options.OutputCertificatePath
-	}
+	opts := s.fileOptions(path)
 
 	ctx, cancel := s.options.context()
 	defer cancel()
-
-	isSigned := false
-
-	if !ignoreTLog {
-		var err error
-
-		isSigned, err = s.IsFileSigned(ctx, path)
-		if err != nil {
-			return nil, fmt.Errorf("checking if file is signed. file: %s, error: %w", path, err)
-		}
-	}
 
 	fileSHA, err := hash.SHA256ForFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
 	}
 
-	if !isSigned && !ignoreTLog {
+	// Without a signature or a matching transparency log entry, the file is
+	// considered unsigned.
+	if !ignoreTLog && !s.impl.FileExists(opts.OutputSignaturePath) {
 		s.log().Infof("Skipping unsigned file: %s", path)
 
 		return nil, nil
 	}
 
-	err = s.impl.VerifyFileInternal(ctx, ko, certOpts, s.options.OutputSignaturePath, path)
-	if err != nil {
+	if err := s.impl.VerifyFileInternal(ctx, opts, fileSHA, !ignoreTLog); err != nil {
+		if !ignoreTLog && errors.Is(err, ErrTlogEntryNotFound) {
+			s.log().Warnf(
+				"Signature %s for %s has no matching transparency log entry, treating the file as unsigned",
+				opts.OutputSignaturePath, path,
+			)
+
+			return nil, nil
+		}
+
 		return nil, fmt.Errorf("verify file reference: %s: %w", path, err)
 	}
 
@@ -538,8 +466,8 @@ func (s *Signer) VerifyFile(path string, ignoreTLog bool) (*SignedObject, error)
 		file: &SignedFile{
 			path:            path,
 			sha256:          fileSHA,
-			signaturePath:   s.options.OutputSignaturePath,
-			certificatePath: s.options.OutputCertificatePath,
+			signaturePath:   opts.OutputSignaturePath,
+			certificatePath: opts.OutputCertificatePath,
 		},
 	}, nil
 }
@@ -658,15 +586,12 @@ func (s *Signer) ImagesSigned(ctx context.Context, refs ...string) (*sync.Map, e
 			}
 
 			if _, err := s.impl.Digest(repoDigestToSig(repo, digest), crane.WithTransport(tr)); err != nil {
-				transportErr := &transport.Error{}
-				if errors.As(err, &transportErr) && len(transportErr.Errors) > 0 {
-					if transportErr.Errors[0].Code == transport.ManifestUnknownErrorCode {
-						res.Store(ref, false)
-						s.signedRefs.Set(ref, false, ttlcache.DefaultTTL)
-						t.Done(nil)
+				if isNotFound(err) {
+					res.Store(ref, false)
+					s.signedRefs.Set(ref, false, ttlcache.DefaultTTL)
+					t.Done(nil)
 
-						return
-					}
+					return
 				}
 
 				t.Done(fmt.Errorf("get digest for signature: %w", err))
@@ -750,7 +675,7 @@ func (s *Signer) transportForRepo(ctx context.Context, repo name.Repository) (ht
 	t := remote.DefaultTransport
 	t = transport.NewLogger(t)
 	t = transport.NewRetry(t)
-	t = transport.NewUserAgent(t, "k8s-release-sdk")
+	t = transport.NewUserAgent(t, userAgent)
 
 	t, err := s.impl.NewWithContext(ctx, repo.Registry, authn.Anonymous, t, scopes)
 	if err != nil {
@@ -761,46 +686,20 @@ func (s *Signer) transportForRepo(ctx context.Context, repo name.Repository) (ht
 }
 
 func repoDigestToSig(repo name.Repository, digest string) string {
-	return repo.Name() + ":" + strings.Replace(digest, ":", "-", 1) + sigExt
+	return repo.Name() + ":" + signatureTagName(digest)
 }
 
 // IsFileSigned takes an path reference and return true if there is a signature
 // available for it. It makes no signature verification, only checks to see if
-// there is a TLog to be found on Rekor.
+// there is a TLog to be found on Rekor. The entries are limited to the
+// configured public key if set.
 func (s *Signer) IsFileSigned(ctx context.Context, path string) (bool, error) {
-	ko := cliOpts.KeyOpts{
-		KeyRef:   s.options.PublicKeyPath,
-		RekorURL: cliOpts.DefaultRekorURL,
-	}
-
-	rClient, err := s.impl.NewRekorClient(ko.RekorURL)
+	fileSHA, err := hash.SHA256ForFile(path)
 	if err != nil {
-		return false, fmt.Errorf("creating rekor client: %w", err)
+		return false, fmt.Errorf("file retrieve sha256 error: %s: %w", path, err)
 	}
 
-	blobBytes, err := s.impl.PayloadBytes(path)
-	if err != nil {
-		return false, err
-	}
-
-	var b64sig string
-	if isb64(blobBytes) {
-		b64sig = string(blobBytes)
-	} else {
-		b64sig = base64.StdEncoding.EncodeToString(blobBytes)
-	}
-
-	pubKey, err := sigs.PublicKeyFromKeyRef(ctx, ko.KeyRef)
-	if err != nil {
-		return false, fmt.Errorf("getting the public key: %w", err)
-	}
-
-	pubBytes, err := sigs.PublicKeyPem(pubKey, signatureoptions.WithContext(ctx))
-	if err != nil {
-		return false, fmt.Errorf("generating the public key pem: %w", err)
-	}
-
-	uuids, err := s.impl.FindTlogEntry(ctx, rClient, b64sig, blobBytes, pubBytes)
+	uuids, err := s.impl.TlogEntryUUIDs(ctx, s.options, fileSHA)
 	if err != nil {
 		return false, fmt.Errorf("find rekor tlog entries: %w", err)
 	}
@@ -834,10 +733,4 @@ func (s *Signer) identityToken(ctx context.Context) (string, error) {
 	}
 
 	return tok, nil
-}
-
-func isb64(data []byte) bool {
-	_, err := base64.StdEncoding.DecodeString(string(data))
-
-	return err == nil
 }

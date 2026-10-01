@@ -17,7 +17,9 @@ limitations under the License.
 package sign_test
 
 import (
+	"crypto/elliptic"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -27,8 +29,7 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
-	"github.com/sigstore/cosign/v2/pkg/cosign"
-	"github.com/sigstore/rekor/pkg/generated/models"
+	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/stretchr/testify/require"
 
 	"sigs.k8s.io/release-sdk/sign"
@@ -86,7 +87,7 @@ func TestSignImage(t *testing.T) {
 				repository: testRepository,
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
+				mock.VerifyImageInternalReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 				mock.SignImageInternalReturns(nil)
 				mock.TokenFromProvidersReturns(token, nil)
 
@@ -117,7 +118,7 @@ func TestSignImage(t *testing.T) {
 				m := &sync.Map{}
 				m.Store(testImage, true)
 				mock.ImagesSignedReturns(m, nil)
-				mock.VerifyImageInternalReturns(nil, errTest)
+				mock.VerifyImageInternalReturns("", errTest)
 				mock.SignImageInternalReturns(nil)
 				mock.TokenFromProvidersReturns(token, nil)
 			},
@@ -133,7 +134,7 @@ func TestSignImage(t *testing.T) {
 				repository: testRepository,
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
+				mock.VerifyImageInternalReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 				mock.SignImageInternalReturns(errTest)
 				mock.TokenFromProvidersReturns(token, nil)
 			},
@@ -170,6 +171,57 @@ func TestSignImage(t *testing.T) {
 		obj, err := sut.SignImage(tc.fakeReference.image)
 		tc.assert(obj, err)
 	}
+}
+
+func TestSignImageVerification(t *testing.T) {
+	t.Parallel()
+
+	const digest = "sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a"
+
+	newSUT := func(mock *signfakes.FakeImpl) *sign.Signer {
+		mock.ParseReferenceReturns(&FakeReferenceStub{
+			image:      testImage,
+			registry:   testRegistry,
+			repository: testRepository,
+		}, nil)
+		mock.TokenFromProvidersReturns("DUMMYTOKEN", nil)
+		mock.VerifyImageInternalReturns(digest, nil)
+
+		sut := sign.New(sign.Default())
+		sut.SetImpl(mock)
+
+		return sut
+	}
+
+	signed := &sync.Map{}
+	signed.Store(testImage, true)
+
+	unsigned := &sync.Map{}
+	unsigned.Store(testImage, false)
+
+	// A previous verification does not skip the one after signing
+	mock := &signfakes.FakeImpl{}
+	mock.ImagesSignedReturns(signed, nil)
+	sut := newSUT(mock)
+
+	_, err := sut.VerifyImage(testImage)
+	require.NoError(t, err)
+
+	obj, err := sut.SignImage(testImage)
+	require.NoError(t, err)
+	require.NotNil(t, obj)
+	require.Equal(t, 2, mock.VerifyImageInternalCallCount())
+
+	// A signature which is not visible yet gets retried
+	mock = &signfakes.FakeImpl{}
+	mock.ImagesSignedReturnsOnCall(0, unsigned, nil)
+	mock.ImagesSignedReturns(signed, nil)
+	sut = newSUT(mock)
+
+	obj, err = sut.SignImage(testImage)
+	require.NoError(t, err)
+	require.NotNil(t, obj)
+	require.Equal(t, 2, mock.ImagesSignedCallCount())
 }
 
 func TestSignFile(t *testing.T) {
@@ -229,9 +281,7 @@ func TestSignFile(t *testing.T) {
 		{ // File does not exist.
 			path:    "/dummy/test-no-file",
 			options: opts,
-			prepare: func(mock *signfakes.FakeImpl) {
-				mock.PayloadBytesReturns(nil, errTest)
-			},
+			prepare: func(*signfakes.FakeImpl) {},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
 				require.ErrorContains(t, err, "file retrieve sha256:")
@@ -309,7 +359,7 @@ func TestVerifyImage(t *testing.T) {
 				repository: testRepository,
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyImageInternalReturns(&sign.SignedObject{}, nil)
+				mock.VerifyImageInternalReturns("sha256:honk69059c8e84bed02f4c4385d432808e2c8055eb5087f7fea74e286b736a", nil)
 
 				m := &sync.Map{}
 				m.Store(testImage, true)
@@ -328,8 +378,7 @@ func TestVerifyImage(t *testing.T) {
 				repository: testRepository,
 			},
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyImageInternalReturns(nil, errTest)
-				mock.SetenvReturns(nil)
+				mock.VerifyImageInternalReturns("", errTest)
 
 				m := &sync.Map{}
 				m.Store(testImage, true)
@@ -380,16 +429,6 @@ func TestVerifyFile(t *testing.T) {
 
 	payload := []byte("honk")
 	payloadSha256 := "4de18cc93efe15c1d1cc2407cfc9f054b4d9217975538ac005dba541acee1954"
-	uuid := "uuid"
-
-	var logindex int64 = 1
-
-	uuids := []models.LogEntryAnon{
-		{
-			LogID:    &uuid,
-			LogIndex: &logindex,
-		},
-	}
 
 	require.NoError(t, os.WriteFile(tempFile, payload, 0o644))
 
@@ -403,8 +442,7 @@ func TestVerifyFile(t *testing.T) {
 			path:    tempFile,
 			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.PayloadBytesReturns(payload, nil)
-				mock.FindTlogEntryReturns(uuids, nil)
+				mock.FileExistsReturns(true)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.NotNil(t, obj.File)
@@ -417,8 +455,7 @@ func TestVerifyFile(t *testing.T) {
 			path:    tempFile,
 			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.PayloadBytesReturns(nil, nil)
-				mock.FindTlogEntryReturns(nil, nil)
+				mock.FileExistsReturns(false)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
@@ -429,27 +466,25 @@ func TestVerifyFile(t *testing.T) {
 			path:    tempFile,
 			options: sign.Default(),
 			prepare: func(mock *signfakes.FakeImpl) {
-				mock.PayloadBytesReturns(payload, nil)
-				mock.FindTlogEntryReturns(uuids, nil)
+				mock.FileExistsReturns(true)
+				mock.VerifyFileInternalReturns(fmt.Errorf("wrapped: %w", sign.ErrTlogEntryNotFound))
+			},
+			assert: func(obj *sign.SignedObject, err error) {
+				require.Nil(t, obj)
+				require.NoError(t, err)
+			},
+		},
+		{ // File verification failed
+			path:    tempFile,
+			options: sign.Default(),
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.FileExistsReturns(true)
 				mock.VerifyFileInternalReturns(errTest)
 			},
 			assert: func(obj *sign.SignedObject, err error) {
 				require.Nil(t, obj)
 				require.Error(t, err)
 				require.ErrorContains(t, err, "verify file reference")
-			},
-		},
-		{ // File tlog error
-			path:    tempFile,
-			options: sign.Default(),
-			prepare: func(mock *signfakes.FakeImpl) {
-				mock.PayloadBytesReturns(payload, nil)
-				mock.FindTlogEntryReturns(nil, errTest)
-			},
-			assert: func(obj *sign.SignedObject, err error) {
-				require.Nil(t, obj)
-				require.Error(t, err)
-				require.ErrorContains(t, err, "find rekor tlog entries")
 			},
 		},
 	} {
@@ -470,7 +505,7 @@ func TestVerifyFile(t *testing.T) {
 	}
 }
 
-func generateKeyFile(t *testing.T, tmpDir string, pf cosign.PassFunc) (privFile, pubFile string) {
+func generateKeyFile(t *testing.T, tmpDir string, pf cryptoutils.PassFunc) (privFile, pubFile string) {
 	t.Helper()
 
 	tmpPrivFile, err := os.CreateTemp(tmpDir, "cosign_test_*.key")
@@ -488,16 +523,16 @@ func generateKeyFile(t *testing.T, tmpDir string, pf cosign.PassFunc) (privFile,
 	defer tmpPubFile.Close()
 
 	// Generate a valid keypair.
-	keys, err := cosign.GenerateKeyPair(pf)
+	privBytes, pubBytes, err := cryptoutils.GeneratePEMEncodedECDSAKeyPair(elliptic.P256(), pf)
 	if err != nil {
 		t.Fatalf("failed to generate keypair: %v", err)
 	}
 
-	if _, err := tmpPrivFile.Write(keys.PrivateBytes); err != nil {
+	if _, err := tmpPrivFile.Write(privBytes); err != nil {
 		t.Fatalf("failed to write key file: %v", err)
 	}
 
-	if _, err := tmpPubFile.Write(keys.PublicBytes); err != nil {
+	if _, err := tmpPubFile.Write(pubBytes); err != nil {
 		t.Fatalf("failed to write pub file: %v", err)
 	}
 
@@ -716,5 +751,52 @@ func TestImagesSigned(t *testing.T) {
 
 		res, err := sut.ImagesSigned(t.Context(), "")
 		tc.assert(res, err)
+	}
+}
+
+func TestIsFileSigned(t *testing.T) {
+	t.Parallel()
+
+	tempFile := filepath.Join(t.TempDir(), "test-file")
+	require.NoError(t, os.WriteFile(tempFile, []byte("honk"), 0o644))
+
+	for _, tc := range []struct {
+		prepare func(*signfakes.FakeImpl)
+		assert  func(bool, error)
+	}{
+		{ // Signed
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.TlogEntryUUIDsReturns([]string{"uuid"}, nil)
+			},
+			assert: func(signed bool, err error) {
+				require.NoError(t, err)
+				require.True(t, signed)
+			},
+		},
+		{ // Not signed
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.TlogEntryUUIDsReturns(nil, nil)
+			},
+			assert: func(signed bool, err error) {
+				require.NoError(t, err)
+				require.False(t, signed)
+			},
+		},
+		{ // Failure
+			prepare: func(mock *signfakes.FakeImpl) {
+				mock.TlogEntryUUIDsReturns(nil, errTest)
+			},
+			assert: func(_ bool, err error) {
+				require.ErrorContains(t, err, "find rekor tlog entries")
+			},
+		},
+	} {
+		mock := &signfakes.FakeImpl{}
+		tc.prepare(mock)
+
+		sut := sign.New(sign.Default())
+		sut.SetImpl(mock)
+
+		tc.assert(sut.IsFileSigned(t.Context(), tempFile))
 	}
 }
