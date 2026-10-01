@@ -1,0 +1,9 @@
+<directory>
+  <entry name="cri-tools"/>
+  <entry name="kubeadm"/>
+  <entry name="kubectl"/>
+  <entry name="kubelet"/>
+  <entry name="kubernetes-cni.20241211190905"/>
+  <entry name="kubernetes-cni.20250828170903"/>
+  <entry name="kubernetes-cni.20250828170904"/>
+</directory>
