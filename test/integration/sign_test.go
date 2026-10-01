@@ -19,13 +19,14 @@ limitations under the License.
 package integration
 
 import (
+	"crypto/elliptic"
 	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/sigstore/cosign/v2/pkg/cosign"
+	"github.com/sigstore/sigstore/pkg/cryptoutils"
 	"github.com/stretchr/testify/require"
 
 	"sigs.k8s.io/release-sdk/sign"
@@ -40,16 +41,19 @@ type cleanupFn func() error
 func generateCosignKeyPair(t *testing.T) (privateKeyPath, publicKeyPath string, fn cleanupFn) {
 	tempDir := t.TempDir()
 
-	keys, err := cosign.GenerateKeyPair(nil)
+	// Encrypt the private key with an empty password, like cosign does by
+	// default.
+	privateBytes, publicBytes, err := cryptoutils.GeneratePEMEncodedECDSAKeyPair(
+		elliptic.P256(), func(bool) ([]byte, error) { return []byte{}, nil },
+	)
 	require.NoError(t, err)
-	require.NotNil(t, keys)
 
 	privateKeyPath = filepath.Join(tempDir, "cosign.key")
-	err = os.WriteFile(privateKeyPath, keys.PrivateBytes, 0o600)
+	err = os.WriteFile(privateKeyPath, privateBytes, 0o600)
 	require.NoError(t, err)
 
 	publicKeyPath = filepath.Join(tempDir, "cosign.pub")
-	err = os.WriteFile(publicKeyPath, keys.PublicBytes, 0o644)
+	err = os.WriteFile(publicKeyPath, publicBytes, 0o644)
 	require.NoError(t, err)
 
 	cleanupFn := func() error {
