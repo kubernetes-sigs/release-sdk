@@ -97,7 +97,7 @@ func TestSignImageFailureWrongImageRef(t *testing.T) {
 	// Test the prerequisites
 	signer := sign.New(nil)
 	_, err := signer.SignImage(registry + "/not-existing:latest")
-	assert.ErrorContains(t, err, "entity not found in registry")
+	assert.ErrorContains(t, err, "get image descriptor")
 }
 
 func TestSignFileSuccess(t *testing.T) {
