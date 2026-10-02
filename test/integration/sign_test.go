@@ -34,9 +34,9 @@ import (
 const (
 	testFile = "hello kubefolx!"
 
-	cosignImage  = "ghcr.io/sigstore/cosign/cosign:v2.4.0"
-	testImage    = "kornotios/supermegafakeimage"
-	googleIssuer = "https://accounts.google.com"
+	cosignImage      = "ghcr.io/sigstore/cosign/cosign:v2.4.0"
+	nonexistentImage = "kornotios/supermegafakeimage"
+	googleIssuer     = "https://accounts.google.com"
 )
 
 type cleanupFn func() error
@@ -143,7 +143,7 @@ func TestIsImageSigned(t *testing.T) {
 		},
 		{
 			// nonexistent image, must fail
-			testImage, false, true,
+			nonexistentImage, false, true,
 		},
 	} {
 		res, err := signer.IsImageSigned(tc.imageRef)
@@ -173,13 +173,13 @@ func TestImagesSigned(t *testing.T) {
 				false,
 			},
 			{ // nonexistent
-				map[string]bool{testImage: false},
+				map[string]bool{nonexistentImage: false},
 				true,
 			},
 			{ // one valid and one nonexistent
 				map[string]bool{
-					cosignImage: true,
-					testImage:   false,
+					cosignImage:      true,
+					nonexistentImage: false,
 				},
 				true,
 			},
@@ -236,15 +236,15 @@ func TestVerifyImages(t *testing.T) {
 				false,
 			},
 			{ // nonexistent
-				map[string]bool{testImage: false},
+				map[string]bool{nonexistentImage: false},
 				"",
 				"",
 				true,
 			},
 			{ // one valid and one nonexistent
 				map[string]bool{
-					cosignImage: true,
-					testImage:   false,
+					cosignImage:      true,
+					nonexistentImage: false,
 				},
 				"keyless@projectsigstore.iam.gserviceaccount.com",
 				googleIssuer,

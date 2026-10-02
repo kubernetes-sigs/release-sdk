@@ -235,8 +235,8 @@ func (o *OBS) ListPackages(ctx context.Context, projectName string) ([]string, e
 
 // ListSubprojects returns the names of the subprojects of the given project,
 // which are the projects whose name starts with the project name followed by a
-// colon. The project itself is not among them. The search endpoint requires
-// authentication even for public projects.
+// colon, at any depth. The project itself is not among them. The search
+// endpoint requires authentication even for public projects.
 func (o *OBS) ListSubprojects(ctx context.Context, projectName string) ([]string, error) {
 	// The name is interpolated into an XPath string literal. Validation rejects
 	// the single quote that would allow breaking out of it.

@@ -538,13 +538,20 @@ func TestListPackages(t *testing.T) {
 }
 
 func TestListSubprojects(t *testing.T) {
-	fake := &fakeClient{body: `<collection matches="2">` +
-		`<project name="isv:kubernetes:core"/><project name="isv:kubernetes:addons"/></collection>`}
+	fake := &fakeClient{body: `<collection matches="3">` +
+		`<project name="isv:kubernetes:core"/><project name="isv:kubernetes:addons"/>` +
+		`<project name="isv:kubernetes:core:stable:v1.30"/></collection>`}
 	obs := newTestOBS(fake, false)
 
 	projects, err := obs.ListSubprojects(t.Context(), "isv:kubernetes")
 	require.NoError(t, err)
-	assert.Equal(t, []string{"isv:kubernetes:core", "isv:kubernetes:addons"}, projects)
+
+	// The search returns subprojects at any depth, and all of them are passed through.
+	assert.Equal(t, []string{
+		"isv:kubernetes:core",
+		"isv:kubernetes:addons",
+		"isv:kubernetes:core:stable:v1.30",
+	}, projects)
 
 	require.Len(t, fake.requests, 1)
 	request := fake.requests[0]
