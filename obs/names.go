@@ -33,8 +33,10 @@ var (
 	invalidSegmentStartRegex = regexp.MustCompile(`:[:._]`)
 )
 
-// validateProjectName applies the project name rules enforced by OBS.
-func validateProjectName(name string) error {
+// ValidateProjectName applies the project name rules enforced by OBS
+// without making API requests. It does not check whether the project exists
+// or whether a particular operation is supported or permitted.
+func ValidateProjectName(name string) error {
 	if name == "" {
 		return errors.New("project name must not be empty")
 	}
@@ -50,8 +52,14 @@ func validateProjectName(name string) error {
 	return nil
 }
 
-// validatePackageName applies the package name rules enforced by OBS.
-func validatePackageName(name string) error {
+// ValidatePackageName applies the package name rules enforced by OBS
+// without making API requests. It does not check whether the package exists
+// or whether a particular operation is supported or permitted.
+//
+// Special containers (_project, _product, _pattern, _patchinfo) and prefixed
+// names (_product:<name>, _patchinfo:<name>) are accepted. Callers must enforce
+// any additional restrictions required by their use case.
+func ValidatePackageName(name string) error {
 	if name == "" {
 		return errors.New("package name must not be empty")
 	}
