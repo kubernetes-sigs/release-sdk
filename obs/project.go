@@ -169,7 +169,7 @@ type ProjectID struct {
 // GetProjectMeta returns the meta of the given project. Use IsNotFound on the
 // returned error to check whether the project exists.
 func (o *OBS) GetProjectMeta(ctx context.Context, projectName string) (*Project, error) {
-	if err := validateProjectName(projectName); err != nil {
+	if err := ValidateProjectName(projectName); err != nil {
 		return nil, err
 	}
 
@@ -188,7 +188,7 @@ func (o *OBS) PutProjectMeta(ctx context.Context, project *Project) error {
 		return errors.New("project must not be nil")
 	}
 
-	if err := validateProjectName(project.Name); err != nil {
+	if err := ValidateProjectName(project.Name); err != nil {
 		return err
 	}
 
@@ -201,7 +201,7 @@ func (o *OBS) PutProjectMeta(ctx context.Context, project *Project) error {
 
 // DeleteProject deletes the given project including all of its packages.
 func (o *OBS) DeleteProject(ctx context.Context, projectName string) error {
-	if err := validateProjectName(projectName); err != nil {
+	if err := ValidateProjectName(projectName); err != nil {
 		return err
 	}
 
@@ -216,7 +216,7 @@ func (o *OBS) DeleteProject(ctx context.Context, projectName string) error {
 // order reported by OBS. Release copies are included; use FilterReleaseCopies
 // to drop them.
 func (o *OBS) ListPackages(ctx context.Context, projectName string) ([]string, error) {
-	if err := validateProjectName(projectName); err != nil {
+	if err := ValidateProjectName(projectName); err != nil {
 		return nil, err
 	}
 
@@ -240,7 +240,7 @@ func (o *OBS) ListPackages(ctx context.Context, projectName string) ([]string, e
 func (o *OBS) ListSubprojects(ctx context.Context, projectName string) ([]string, error) {
 	// The name is interpolated into an XPath string literal. Validation rejects
 	// the single quote that would allow breaking out of it.
-	if err := validateProjectName(projectName); err != nil {
+	if err := ValidateProjectName(projectName); err != nil {
 		return nil, err
 	}
 

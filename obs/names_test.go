@@ -35,7 +35,7 @@ func TestValidateProjectName(t *testing.T) {
 		strings.Repeat("a", maxNameLength),
 	} {
 		t.Run(name, func(t *testing.T) {
-			require.NoError(t, validateProjectName(name))
+			require.NoError(t, ValidateProjectName(name))
 		})
 	}
 
@@ -55,7 +55,7 @@ func TestValidateProjectName(t *testing.T) {
 		strings.Repeat("a", maxNameLength+1),
 	} {
 		t.Run("invalid "+name, func(t *testing.T) {
-			require.Error(t, validateProjectName(name))
+			require.Error(t, ValidateProjectName(name))
 		})
 	}
 }
@@ -69,9 +69,10 @@ func TestValidatePackageName(t *testing.T) {
 		"_patchinfo",
 		"_product:kubernetes",
 		"_patchinfo:kubernetes",
+		strings.Repeat("a", maxNameLength),
 	} {
 		t.Run(name, func(t *testing.T) {
-			require.NoError(t, validatePackageName(name))
+			require.NoError(t, ValidatePackageName(name))
 		})
 	}
 
@@ -82,9 +83,11 @@ func TestValidatePackageName(t *testing.T) {
 		"_unknown",
 		"_product:",
 		"_patchinfo:",
+		"_product:../other",
+		strings.Repeat("a", maxNameLength+1),
 	} {
 		t.Run("invalid "+name, func(t *testing.T) {
-			require.Error(t, validatePackageName(name))
+			require.Error(t, ValidatePackageName(name))
 		})
 	}
 }

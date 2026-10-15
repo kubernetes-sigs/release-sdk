@@ -53,11 +53,11 @@ type Devel struct {
 // GetPackageMeta returns the meta of the given package. Use IsNotFound on the
 // returned error to check whether the package exists.
 func (o *OBS) GetPackageMeta(ctx context.Context, projectName, packageName string) (*Package, error) {
-	if err := validateProjectName(projectName); err != nil {
+	if err := ValidateProjectName(projectName); err != nil {
 		return nil, err
 	}
 
-	if err := validatePackageName(packageName); err != nil {
+	if err := ValidatePackageName(packageName); err != nil {
 		return nil, err
 	}
 
@@ -76,11 +76,11 @@ func (o *OBS) PutPackageMeta(ctx context.Context, pkg *Package) error {
 		return errors.New("package must not be nil")
 	}
 
-	if err := validateProjectName(pkg.Project); err != nil {
+	if err := ValidateProjectName(pkg.Project); err != nil {
 		return err
 	}
 
-	if err := validatePackageName(pkg.Name); err != nil {
+	if err := ValidatePackageName(pkg.Name); err != nil {
 		return err
 	}
 
@@ -93,11 +93,11 @@ func (o *OBS) PutPackageMeta(ctx context.Context, pkg *Package) error {
 
 // DeletePackage deletes the given package from the given project.
 func (o *OBS) DeletePackage(ctx context.Context, projectName, packageName string) error {
-	if err := validateProjectName(projectName); err != nil {
+	if err := ValidateProjectName(projectName); err != nil {
 		return err
 	}
 
-	if err := validatePackageName(packageName); err != nil {
+	if err := ValidatePackageName(packageName); err != nil {
 		return err
 	}
 
