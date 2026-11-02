@@ -317,18 +317,6 @@ func TestSignFile(t *testing.T) {
 				require.Equal(t, obj.File().Path()+".sig", obj.File().SignaturePath())
 			},
 		},
-		{ // Verify failed.
-			path:    tempFile,
-			options: opts,
-			prepare: func(mock *signfakes.FakeImpl) {
-				mock.VerifyFileInternalReturns(errTest)
-			},
-			assert: func(obj *sign.SignedObject, err error) {
-				require.Nil(t, obj)
-				require.Error(t, err)
-				require.ErrorContains(t, err, "verifying signed file:")
-			},
-		},
 	} {
 		mock := &signfakes.FakeImpl{}
 		tc.prepare(mock)
@@ -341,6 +329,9 @@ func TestSignFile(t *testing.T) {
 
 		obj, err := sut.SignFile(tc.path)
 		tc.assert(obj, err)
+
+		// SignFile doesn't verify the written files.
+		require.Zero(t, mock.VerifyFileInternalCallCount())
 	}
 }
 

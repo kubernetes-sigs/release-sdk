@@ -233,12 +233,10 @@ func (s *Signer) SignFile(path string) (*SignedObject, error) {
 		return nil, fmt.Errorf("file retrieve sha256: %s: %w", path, err)
 	}
 
+	// Signing verifies the signature against its transparency log entry
+	// before writing it, so it isn't verified here once more.
 	if err := s.impl.SignFileInternal(ctx, opts, identityToken, path); err != nil {
 		return nil, fmt.Errorf("sign file: %s: %w", path, err)
-	}
-
-	if err := s.impl.VerifyFileInternal(ctx, opts, fileSHA, false); err != nil {
-		return nil, fmt.Errorf("verifying signed file: %s: %w", path, err)
 	}
 
 	return &SignedObject{

@@ -18,10 +18,13 @@ package sign
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -40,10 +43,13 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/go-containerregistry/pkg/v1/remote/transport"
 	"github.com/google/go-containerregistry/pkg/v1/static"
+	protobundle "github.com/sigstore/protobuf-specs/gen/pb-go/bundle/v1"
 	protocommon "github.com/sigstore/protobuf-specs/gen/pb-go/common/v1"
 	protorekor "github.com/sigstore/protobuf-specs/gen/pb-go/rekor/v1"
 	prototrustroot "github.com/sigstore/protobuf-specs/gen/pb-go/trustroot/v1"
 	"github.com/sigstore/sigstore-go/pkg/root"
+	"github.com/sigstore/sigstore-go/pkg/testing/ca"
+	"github.com/sigstore/sigstore-go/pkg/tlog"
 	"github.com/sigstore/sigstore-go/pkg/tuf"
 	"github.com/sigstore/sigstore-go/pkg/verify"
 	"github.com/sigstore/sigstore/pkg/cryptoutils"
@@ -610,4 +616,101 @@ func TestVerifyImageWithoutHead(t *testing.T) {
 	opts := &Options{PublicKeyPath: publicKeyPath, IgnoreTlog: true}
 
 	require.ErrorContains(t, verifyImage(t, &defaultImpl{}, opts, ref.String()), "no signatures found")
+}
+
+func TestVerifySignedBundle(t *testing.T) {
+	t.Parallel()
+
+	const (
+		identity = "krel@example.com"
+		issuer   = "https://accounts.example.com"
+	)
+
+	vs, err := ca.NewVirtualSigstore()
+	require.NoError(t, err)
+
+	trustedRoot, err := root.NewTrustedRoot(
+		root.TrustedRootMediaType01,
+		vs.FulcioCertificateAuthorities(), vs.CTLogs(), vs.TimestampingAuthorities(), vs.RekorLogs(),
+	)
+	require.NoError(t, err)
+
+	d := &defaultImpl{tufClient: &tuf.Client{}, trustedRoot: trustedRoot, tufFetched: time.Now()}
+	opts := &Options{CertIdentity: identity, CertOidcIssuer: issuer, IgnoreSCT: true}
+
+	digest := sha256.Sum256([]byte("hello kubefolx!"))
+
+	logID, err := vs.RekorLogID()
+	require.NoError(t, err)
+
+	// signed returns the bundle of a signature of the digest with a
+	// certificate valid from now on, which the transparency log recorded
+	// at the integrated time.
+	signed := func(integratedTime time.Time) *protobundle.Bundle {
+		t.Helper()
+
+		cert, key, err := vs.GenerateLeafCert(identity, issuer)
+		require.NoError(t, err)
+
+		ecdsaKey, ok := key.(*ecdsa.PrivateKey)
+		require.True(t, ok)
+
+		sig, err := ecdsa.SignASN1(rand.Reader, ecdsaKey, digest[:])
+		require.NoError(t, err)
+
+		body, err := json.Marshal(map[string]any{
+			"apiVersion": "0.0.1",
+			"kind":       "hashedrekord",
+			"spec": map[string]any{
+				"data": map[string]any{"hash": map[string]string{"algorithm": "sha256", "value": hex.EncodeToString(digest[:])}},
+				"signature": map[string]any{
+					"content":   base64.StdEncoding.EncodeToString(sig),
+					"publicKey": map[string]string{"content": base64.StdEncoding.EncodeToString(certificatePEM(cert.Raw))},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		payload := rekorPayload{
+			Body:           base64.StdEncoding.EncodeToString(body),
+			IntegratedTime: integratedTime.Unix(),
+			LogIndex:       1,
+			LogID:          logID,
+		}
+
+		set, err := vs.RekorSignPayload(tlog.RekorPayload{
+			Body: payload.Body, IntegratedTime: payload.IntegratedTime, LogIndex: payload.LogIndex, LogID: payload.LogID,
+		})
+		require.NoError(t, err)
+
+		entry, err := (&rekorBundle{SignedEntryTimestamp: set, Payload: payload}).entry()
+		require.NoError(t, err)
+
+		b, err := legacyBundle(sig, digest[:], cert.Raw, []*protorekor.TransparencyLogEntry{entry})
+		require.NoError(t, err)
+
+		return b.Bundle
+	}
+
+	require.NoError(t, d.verifySignedBundle(opts, signed(time.Now()), digest[:]))
+
+	// The certificate is checked at the time the log recorded the
+	// signature, not against the local clock: it is valid now, but wasn't a
+	// minute ago and won't be in 11 minutes, after its 10 minutes of
+	// validity.
+	for _, integratedTime := range []time.Time{time.Now().Add(-time.Minute), time.Now().Add(11 * time.Minute)} {
+		require.ErrorContains(t,
+			d.verifySignedBundle(opts, signed(integratedTime), digest[:]),
+			"integrated time outside certificate validity",
+		)
+	}
+
+	other := sha256.Sum256([]byte("other"))
+	require.ErrorContains(t, d.verifySignedBundle(opts, signed(time.Now()), other[:]), "artifact does not match digest")
+
+	// A key based signature can't be verified without the public key.
+	require.ErrorContains(t,
+		d.verifySignedBundle(&Options{PrivateKeyPath: "cosign.key"}, signed(time.Now()), digest[:]),
+		"verifying a key based signature needs the public key",
+	)
 }
