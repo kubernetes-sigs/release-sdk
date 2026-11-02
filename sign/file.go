@@ -35,6 +35,7 @@ import (
 	"github.com/sigstore/rekor/pkg/generated/client/index"
 	"github.com/sigstore/rekor/pkg/generated/models"
 	"github.com/sigstore/rekor/pkg/tle"
+	"github.com/sigstore/sigstore-go/pkg/bundle"
 	"github.com/sigstore/sigstore-go/pkg/verify"
 )
 
@@ -48,9 +49,9 @@ const (
 	signatureFileMode = 0o644
 )
 
-// signFile signs the file and writes the base64 encoded signature as well as
-// the base64 encoded PEM certificate (for keyless signing) to the configured
-// output paths.
+// signFile signs the file, verifies the signature and writes the base64
+// encoded signature as well as the base64 encoded PEM certificate (for
+// keyless signing) to the configured output paths.
 func (d *defaultImpl) signFile(ctx context.Context, opts *Options, identityToken, path string) error {
 	kp, err := signingKeypair(opts)
 	if err != nil {
@@ -86,6 +87,10 @@ func (d *defaultImpl) signFile(ctx context.Context, opts *Options, identityToken
 		return err
 	}
 
+	if err := d.verifySignedBundle(opts, b, digest); err != nil {
+		return err
+	}
+
 	sig := base64.StdEncoding.EncodeToString(b.GetMessageSignature().GetSignature())
 	if err := os.WriteFile(opts.OutputSignaturePath, []byte(sig), signatureFileMode); err != nil {
 		return fmt.Errorf("write signature: %w", err)
@@ -96,6 +101,28 @@ func (d *defaultImpl) signFile(ctx context.Context, opts *Options, identityToken
 		if err := os.WriteFile(opts.OutputCertificatePath, []byte(cert), signatureFileMode); err != nil {
 			return fmt.Errorf("write certificate: %w", err)
 		}
+	}
+
+	return nil
+}
+
+// verifySignedBundle verifies a bundle right after signing, against the
+// transparency log entry the signing created. The certificate gets checked at
+// the time the log recorded the signature, not against the local clock: a
+// Fulcio certificate is only milliseconds old then, and not yet valid for a
+// clock that is behind the one of the certificate authority.
+func (d *defaultImpl) verifySignedBundle(opts *Options, b *protobundle.Bundle, digest []byte) error {
+	if opts.PrivateKeyPath != "" && opts.PublicKeyPath == "" {
+		return errors.New("verifying a key based signature needs the public key, see PublicKeyPath")
+	}
+
+	signed, err := bundle.NewBundle(b)
+	if err != nil {
+		return fmt.Errorf("read signed bundle: %w", err)
+	}
+
+	if err := d.verifyBundle(opts, signed, verify.WithArtifactDigest("sha256", digest), true); err != nil {
+		return fmt.Errorf("verify signed bundle: %w", err)
 	}
 
 	return nil
